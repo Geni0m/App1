@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mon app">
+<title>Mon app</title>
+<style>
+:root{--fond:#f4f6f8;--encre:#16202c;--muted:#5b6b7c;--trait:#cdd6df;--bouton:#16202c;--bouton-texte:#fff}
+@media (prefers-color-scheme:dark){:root{--fond:#0f151c;--encre:#eaf0f6;--muted:#98a8b8;--trait:#2b3744;--bouton:#eaf0f6;--bouton-texte:#0f151c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fond);color:var(--encre);font:17px/1.45 system-ui,-apple-system,sans-serif;padding:max(24px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom))}
+main{max-width:480px;margin:0 auto}
+h1{margin:0 0 4px;font-size:28px}
+p{margin:0 0 24px;color:var(--muted)}
+.compteur{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--trait);border-radius:12px;padding:12px 16px}
+#n{font-size:40px;font-weight:700;font-variant-numeric:tabular-nums}
+button{font:inherit;font-weight:600;border:0;border-radius:10px;background:var(--bouton);color:var(--bouton-texte);padding:12px 20px}
+label{display:block;margin:24px 0 8px;font-weight:600}
+textarea{width:100%;min-height:120px;font:inherit;color:inherit;background:transparent;border:1px solid var(--trait);border-radius:12px;padding:12px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Mon app</h1>
+  <p>Page de test : si vous la voyez, la publication fonctionne.</p>
+
+  <div class="compteur">
+    <button id="moins" aria-label="Retirer 1">−</button>
+    <span id="n">0</span>
+    <button id="plus" aria-label="Ajouter 1">+</button>
+  </div>
+
+  <label for="note">Note (enregistrée sur ce téléphone)</label>
+  <textarea id="note"></textarea>
+</main>
+<script>
+const lire = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } };
+const ecrire = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+let n = parseInt(lire('n', '0'), 10) || 0;
+const sortie = document.getElementById('n'), note = document.getElementById('note');
+const afficher = () => { sortie.textContent = n; ecrire('n', n); };
+document.getElementById('plus').onclick = () => { n++; afficher(); };
+document.getElementById('moins').onclick = () => { n--; afficher(); };
+note.value = lire('note', '');
+note.oninput = () => ecrire('note', note.value);
+afficher();
+</script>
+</body>
+</html>
