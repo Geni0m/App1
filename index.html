@@ -5,8 +5,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Roulette JDR"><title>Roulette JDR</title>
 <style>
-:root{--f:#f3f1ec;--s:#fff;--e:#1d2330;--m:#667085;--l:#d8d4ca;--a:#b8862d;--ai:#fff;--mer:#bcd0dc;--terre:#e4dfcf;--rel:#c9c2ab}
-@media(prefers-color-scheme:dark){:root{--f:#12151c;--s:#1a1f29;--e:#ecebe6;--m:#9aa3b2;--l:#2d3442;--a:#d9a441;--ai:#1a1305;--mer:#1f3140;--terre:#2a2d27;--rel:#3b3d33}}
+:root{--f:#f3f1ec;--s:#fff;--e:#1d2330;--m:#667085;--l:#d8d4ca;--a:#b8862d;--ai:#fff;--mer:#bcd0dc;--terre:#e8e2cf;--rel:#b9b196;--arb:#6f8f58;--tro:#7a5a3a}
+@media(prefers-color-scheme:dark){:root{--f:#12151c;--s:#1a1f29;--e:#ecebe6;--m:#9aa3b2;--l:#2d3442;--a:#d9a441;--ai:#1a1305;--mer:#1b2d3b;--terre:#2b2e26;--rel:#4a4c3e;--arb:#47654a;--tro:#6b5538}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--f);color:var(--e);font:16px/1.45 system-ui,-apple-system,sans-serif;padding:max(18px,env(safe-area-inset-top)) 16px max(28px,env(safe-area-inset-bottom))}
 main{max-width:520px;margin:0 auto}
@@ -22,12 +22,31 @@ button{border:1px solid var(--l);background:var(--s);border-radius:8px;padding:1
 #res{min-height:56px;text-align:center;font-size:22px;font-weight:700;margin-top:10px}
 ul{list-style:none;margin:0;padding:0}li{padding:9px 0;border-top:1px solid var(--l)}
 li b{display:block;color:var(--m);font-weight:600;font-size:13px}
+.st{display:grid;grid-template-columns:92px 1fr 26px;gap:10px;align-items:center;padding:6px 0;border:0}
+.st i{height:8px;background:var(--l);border-radius:4px;position:relative}
+.st i::after{content:"";position:absolute;inset:0;width:var(--v);background:var(--a);border-radius:4px}
+.st b{display:inline;color:var(--e);font-size:15px;text-align:right}
 .l{display:flex;gap:8px;margin-top:8px}.l>*{flex:1}
-#carte{display:block;width:100%;border:1px solid var(--l);border-radius:8px;background:var(--terre)}
 #act{margin-top:8px;font-weight:600}
-@keyframes p{50%{r:3.6}}#tok circle{animation:p 1.4s infinite}
 details{margin-top:24px;border-top:1px solid var(--l);padding-top:12px}summary{font-weight:650;cursor:pointer}
 textarea{min-height:200px;font-size:14px}
+#plein{position:fixed;inset:0;z-index:9;background:var(--mer)}
+#mp{display:block;width:100%;height:100%;background:var(--mer)}
+#mp text{font-size:calc(var(--k)*1px);fill:var(--e);text-anchor:middle;paint-order:stroke;stroke:var(--terre);stroke-width:calc(var(--k)*.25px)}
+#mp .pa{font-size:calc(var(--k)*1.4px);opacity:.55;display:none}
+#mp[data-z=m] .pa{display:inline}
+#mp .mai{display:none}#mp[data-z=p] .mai,#mp[data-z=v] .mai{display:inline}
+.t{transform-box:fill-box;transform-origin:50% 100%;animation:s 3.2s ease-in-out infinite}
+@keyframes s{50%{transform:rotate(4deg)}}
+.nu{animation:d 70s linear infinite}.nu2{animation-delay:-35s}
+@keyframes d{to{transform:translateX(260px)}}
+.bt{animation:b 6s ease-in-out infinite alternate}
+@keyframes b{to{transform:translate(4px,-3px)}}
+#tk circle{animation:p 1.4s infinite}@keyframes p{50%{opacity:.7}}
+.top,.bas{position:absolute;left:0;right:0;display:flex;gap:8px;align-items:center;padding:10px 12px;background:color-mix(in srgb,var(--s) 85%,transparent)}
+.top{top:0;padding-top:max(10px,env(safe-area-inset-top))}.bas{bottom:0;padding-bottom:max(10px,env(safe-area-inset-bottom))}
+.top b{flex:1;font-size:15px}.bas button{flex:1}
+@media(prefers-reduced-motion:reduce){.t,.nu,.bt,#tk circle{animation:none}}
 </style></head><body><main>
 <h1>Roulette JDR</h1>
 <input id="nom" placeholder="Nom du personnage" aria-label="Nom du personnage">
@@ -35,20 +54,22 @@ textarea{min-height:200px;font-size:14px}
 <svg id="roue" viewBox="0 -6 300 306"><g id="g"></g><path d="M138 -2h24l-12 24z" fill="var(--a)" stroke="var(--f)"/></svg>
 <div id="leg"></div>
 <button class="go" id="go">Lancer la roulette</button>
-<div id="res" aria-live="polite"></div>
-<section id="cs" hidden><h2>Carte</h2>
-<svg id="carte" viewBox="0 0 100 60"></svg><div id="act"></div></section>
+<div id="res" aria-live="polite"></div><div id="act"></div>
+<div class="l"><button id="vc" hidden>Ouvrir la carte</button></div>
 <h2>Fiche du personnage</h2><ul id="fi"></ul>
 <h2>Journal de vie</h2><ul id="j"></ul>
 <div class="l"><button id="cop">Copier</button><button id="raz">Nouveau personnage</button></div>
 <details><summary>Modifier les tables</summary>
-<p style="color:var(--m);font-size:14px">Une option par ligne : <b>texte | poids | Réponse=multiplicateur; …</b><br>Le multiplicateur s'applique si le personnage a déjà cette réponse (0 = exclu, 3 = trois fois plus probable). Un événement commençant par « Voyage » déplace le personnage sur la carte ; les options de « Décor » sont les lieux de la carte.</p>
+<p style="color:var(--m);font-size:14px">Une option par ligne : <b>texte | poids | Réponse=multiplicateur; …</b><br>Le multiplicateur s'applique si le personnage a déjà cette réponse, ou si l'un de ses deux derniers événements porte ce nom (0 = exclu, 3 = trois fois plus probable). Un événement commençant par « Voyage » ouvre la carte ; les options de « Décor » sont les lieux.</p>
 <select id="sl" aria-label="Table"></select>
 <textarea id="ed" aria-label="Options de la table"></textarea>
 <div class="l"><button id="sv">Enregistrer</button><button id="rd">Tables d'origine</button></div>
 </details></main>
+<div id="plein" hidden><svg id="mp" viewBox="0 0 200 120" data-z="m"></svg>
+<div class="top"><b id="mt"></b><button id="mf">Fermer</button></div>
+<div class="bas"><button data-w="205">Monde</button><button data-w="80">Pays</button><button data-w="24">Ville</button></div></div>
 <script>
-const $=i=>document.getElementById(i),K='jdr2-',NS='http://www.w3.org/2000/svg';
+const $=i=>document.getElementById(i),K='jdr3-',NS='http://www.w3.org/2000/svg';
 const lire=(k,d)=>{try{const v=localStorage.getItem(K+k);return v===null?d:JSON.parse(v)}catch(e){return d}};
 const ecrire=(k,v)=>{try{localStorage.setItem(K+k,JSON.stringify(v))}catch(e){}};
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
@@ -58,15 +79,20 @@ const DEF=[
 {n:'Trait de caractère',o:[['Loyal',3,{'Soldat':3,'Mercenaire':.3}],['Cupide',2,{'Voleur':3,'Contrebandier':3,'Mercenaire':2}],['Curieux',3,{'Érudit':4,'Guérisseur':2}],['Rancunier',2,{'Mercenaire':2,'Noble déchu':3}],['Généreux',3,{'Guérisseur':3,'Aubergiste':2,'Voleur':.3}],['Peureux',2,{'Soldat':.1,'Mercenaire':.1}],['Têtu',3,{'Forgeron':3,'Paysan':1.5}]]},
 {n:'Défaut',o:[['Joueur',2,{'Cupide':3,'Curieux':1}],['Menteur',3,{'Voleur':3,'Cupide':2,'Loyal':.2}],['Colérique',3,{'Têtu':2,'Rancunier':3,'Généreux':.5}],['Orgueilleux',3,{'Noble déchu':3,'Têtu':2,'Peureux':.2}],['Ivrogne',2,{'Aubergiste':3,'Soldat':2,'Mercenaire':2}],['Naïf',3,{'Généreux':3,'Curieux':2,'Cupide':.3}]]},
 {n:'Décor',o:[['Cité portuaire',3,{'Marchand':3,'Contrebandier':4,'Étranger exilé':2}],['Village de montagne',3,{'Paysan':3,'Forgeron':3,'Guérisseur':2}],['Capitale en révolte',2,{'Érudit':3,'Noble déchu':3,'Voleur':2}],['Forêt interdite',2,{'Guérisseur':2,'Curieux':2}],['Désert aux ruines',1,{'Érudit':2,'Mercenaire':2,'Étranger exilé':3}],['Forteresse assiégée',2,{'Soldat':4,'Mercenaire':3,'Fils de soldat':3}]]},
-{n:'Événement de vie',vie:1,o:[['Voyage lointain',3,{'Curieux':2,'Mercenaire':2,'Étranger exilé':2,'Contrebandier':2}],['Voyage forcé',1,{'Voleur':2,'Contrebandier':2,'Capitale en révolte':3,'Forteresse assiégée':3}],['Une rencontre décisive',4],['Une trahison',2,{'Cupide':2,'Voleur':2,'Loyal':.5}],['Un héritage inattendu',1,{'Noble déchu':3,'Orphelin des rues':.2}],['Une maladie',2,{'Guérisseur':.3,'Ivrogne':2}],['Un coup de chance',2],['Une dette',2,{'Joueur':3,'Cupide':1.5}],['Un deuil',2]]}];
-const P={'Cité portuaire':[18,40],'Village de montagne':[78,14],'Capitale en révolte':[48,26],'Forêt interdite':[30,12],'Désert aux ruines':[80,46],'Forteresse assiégée':[56,50]};
-const pos=n=>P[n]||(()=>{let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))>>>0;return[12+h%76,8+(h>>8)%44]})();
-const nouveau=()=>({nom:'',rep:[],vie:[],pos:null,trail:[]});
+{n:'Événement de vie',vie:1,o:[['Voyage lointain',3,{'Curieux':2,'Mercenaire':2,'Étranger exilé':2,'Contrebandier':2,'Un héritage inattendu':2,'Une rencontre décisive':1.5,'Un coup de chance':2,'Voyage lointain':.3,'Voyage forcé':.3,'Une maladie':.3}],['Voyage forcé',1,{'Voleur':2,'Contrebandier':2,'Capitale en révolte':3,'Forteresse assiégée':3,'Une trahison':4,'Une dette':3,'Une maladie':2,'Voyage forcé':.3}],['Une rencontre décisive',4,{'Voyage lointain':3,'Voyage forcé':2,'Une rencontre décisive':.4}],['Une trahison',2,{'Cupide':2,'Voleur':2,'Loyal':.5,'Une rencontre décisive':1.5,'Une dette':2,'Un deuil':1.5,'Un coup de chance':.5}],['Un héritage inattendu',1,{'Noble déchu':3,'Orphelin des rues':.2,'Un deuil':3,'Une dette':.2}],['Une maladie',2,{'Guérisseur':.3,'Ivrogne':2,'Un deuil':1.5,'Voyage forcé':1.5}],['Un coup de chance',2,{'Voyage lointain':2,'Une dette':.2}],['Une dette',2,{'Joueur':3,'Cupide':1.5,'Un coup de chance':.2,'Un héritage inattendu':0,'Une trahison':1.5}],['Un deuil',2,{'Une maladie':3,'Une trahison':1.5}]]}];
+const S={For:'Force',Agi:'Agilité',Esp:'Esprit',Cha:'Charisme',End:'Endurance'};
+const SB={'Paysan':{End:1},'Noble déchu':{Cha:1,Esp:1},'Marchand':{Cha:1},'Orphelin des rues':{Agi:1,End:1},'Fils de soldat':{For:1},'Étranger exilé':{End:1},'Forgeron':{For:2},'Voleur':{Agi:2},'Soldat':{For:1,End:1},'Érudit':{Esp:2},'Guérisseur':{Esp:1,Cha:1},'Mercenaire':{For:1,Agi:1},'Aubergiste':{Cha:1,End:1},'Contrebandier':{Agi:1,Cha:1},'Curieux':{Esp:1},'Têtu':{End:1},'Généreux':{Cha:1},'Peureux':{Agi:1,For:-1},'Rancunier':{For:1},'Cupide':{Esp:1}};
+const EF={'Voyage lointain':{Esp:1},'Voyage forcé':{Agi:1},'Une rencontre décisive':{Cha:1},'Une trahison':{Cha:-1,Esp:1},'Une maladie':{End:-1},'Une dette':{Cha:-1},'Un deuil':{Esp:1,End:-1}};
+const P={'Cité portuaire':[36,80],'Village de montagne':[156,28],'Capitale en révolte':[96,52],'Forêt interdite':[60,24],'Désert aux ruines':[160,92],'Forteresse assiégée':[112,100]};
+const pos=n=>P[n]||(()=>{let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))>>>0;return[28+h%150,16+(h>>8)%88]})();
+const pays=q=>q[1]<41?'Royaume du Nord':q[1]>80?'Marches du Sud':'Terres du Centre';
+const nouveau=()=>({nom:'',rep:[],vie:[],pos:null,trail:[],st:null});
 let T=lire('t',DEF),C=lire('c',nouveau()),rot=0,occ=false,cur=[];
 const etapes=()=>T.filter(t=>!t.vie),tv=()=>T.find(t=>t.vie),lieux=()=>((T.find(t=>t.n==='Décor')||{o:[]}).o).map(x=>x[0]);
 const table=()=>C.rep.length<etapes().length?etapes()[C.rep.length]:tv();
-function poids(t){const a=C.rep.map(r=>r[1]);
- const l=t.o.map(x=>{let w=x[1];a.forEach(k=>{if(x[2]&&x[2][k]!==undefined)w*=x[2][k]});return{t:x[0],w}}).filter(x=>x.w>0);
+function poids(t){const ev=t.vie?C.vie.slice(-2).map(e=>e.t):[],a=C.rep.map(r=>r[1]).concat(ev);
+ const l=t.o.map(x=>{let w=x[1];a.forEach(k=>{if(x[2]&&x[2][k]!==undefined)w*=x[2][k]});
+  const why=ev.slice().reverse().find(k=>x[2]&&x[2][k]!==undefined&&x[2][k]!==1);return{t:x[0],w,why}}).filter(x=>x.w>0);
  return l.length?l:t.o.map(x=>({t:x[0],w:x[1]}))}
 function dessiner(){
  const t=table();if(!t){cur=[];$('g').innerHTML='';return}
@@ -78,43 +104,74 @@ function dessiner(){
   h+='<text transform="translate('+p(ok?88:105,m)+') rotate('+(m*180/Math.PI)+')" text-anchor="middle" dominant-baseline="middle" font-size="'+(ok?fs.toFixed(1):11)+'" fill="#fff">'+txt+'</text>';a=b});
  $('g').innerHTML=h;$('leg').innerHTML=leg.join(' · ');
 }
-function carte(){
- const l=lieux();let h='<path d="M0 0H14C10 14 20 22 12 34S16 52 10 60H0Z" fill="var(--mer)"/><path d="M62 24l6-14 6 14zM71 24l5-10 5 10z" fill="var(--rel)"/>';
- C.trail.forEach(s=>{const a=pos(s[0]),b=pos(s[1]);h+='<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'" stroke="var(--a)" stroke-width=".5" stroke-dasharray="1.4 1.2"/>'});
- l.forEach(n=>{const q=pos(n);h+='<circle cx="'+q[0]+'" cy="'+q[1]+'" r="1.3" fill="var(--m)"/><text x="'+q[0]+'" y="'+(q[1]+4.6)+'" font-size="2.9" text-anchor="middle" fill="var(--e)">'+esc(n)+'</text>'});
- const q=C.pos?pos(C.pos):[0,0];
- h+='<g id="tok" transform="translate('+q[0]+' '+q[1]+')"><circle r="2.6" fill="var(--a)" stroke="var(--s)" stroke-width=".6"/><text y=".9" font-size="2.6" text-anchor="middle" fill="var(--ai)" font-weight="700">'+esc((C.nom||'?')[0].toUpperCase())+'</text></g>';
- $('carte').innerHTML=h;$('cs').hidden=!C.pos}
+/* ---------- Carte plein écran ---------- */
+let V={cx:100,cy:60,h:120},TP=[0,0],built=false;const mp=$('mp');
+const R=(()=>{let s=7;return()=>(s=s*16807%2147483647)/2147483647})();
+function vue(cx,cy,h){V={cx,cy,h};const w=h*innerWidth/innerHeight;mp.setAttribute('viewBox',(cx-w/2)+' '+(cy-h/2)+' '+w+' '+h);
+ mp.style.setProperty('--k',h*.018);mp.dataset.z=w>150?'m':w>45?'p':'v';tok(TP[0],TP[1])}
+function tok(x,y){TP=[x,y];const k=$('tk');if(k)k.setAttribute('transform','translate('+x+' '+y+') scale('+V.h/100+')')}
+function tw(ms,f,fin){const t0=performance.now(),g=n=>{let u=Math.min(1,(n-t0)/ms);u=u*u*(3-2*u);f(u);u<1?requestAnimationFrame(g):fin&&fin()};requestAnimationFrame(g)}
+function cam(cx,cy,h,ms,fin){const a=V;tw(ms,u=>vue(a.cx+(cx-a.cx)*u,a.cy+(cy-a.cy)*u,a.h+(h-a.h)*u),fin)}
+function monde(){
+ if(built)return;built=true;const L=lieux();
+ let h='<path d="M20 10L70 4L130 8L186 14L196 50L190 100L150 114L90 110L40 106L18 80L24 40Z" fill="var(--terre)" stroke="var(--rel)" stroke-width=".6"/>'
+ +'<path d="M24 41H194M20 80H192" stroke="var(--rel)" stroke-width=".4" stroke-dasharray="2 1.5" fill="none"/>'
+ +'<path d="M150 34C130 50 110 46 96 62S60 80 40 84" fill="none" stroke="var(--mer)" stroke-width="1.6"/>'
+ +'<ellipse cx="160" cy="92" rx="22" ry="12" fill="#d9c58f" opacity=".55"/>'
+ +'<path d="M140 30l6-12 6 12zM150 30l7-15 7 15zM162 30l5-10 5 10z" fill="var(--rel)"/>'
+ +'<text class="pa" x="105" y="22">Royaume du Nord</text><text class="pa" x="105" y="74">Terres du Centre</text><text class="pa" x="105" y="104">Marches du Sud</text>';
+ const q=L.map(pos),pr=(x,y,r)=>q.some(c=>Math.hypot(c[0]-x,c[1]-y)<r);
+ const arbre=(x,y)=>'<g class="t" style="animation-delay:-'+(R()*3).toFixed(1)+'s" transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+')"><rect x="-.3" y="-.7" width=".6" height="1.4" fill="var(--tro)"/><circle cy="-1.7" r="1.4" fill="var(--arb)"/></g>';
+ for(let i=0;i<120;i++){const x=28+R()*160,y=14+R()*92;if(!pr(x,y,7)&&Math.hypot(x-160,y-92)>20&&!(y<34&&x>138&&x<170))h+=arbre(x,y)}
+ for(let i=0;i<40;i++)h+=arbre(60+(R()-.5)*30,24+(R()-.5)*18);
+ q.forEach((c,i)=>{for(let k=0;k<7;k++)h+='<rect class="mai" x="'+(c[0]+(R()-.5)*8-.7).toFixed(1)+'" y="'+(c[1]+(R()-.5)*6).toFixed(1)+'" width="1.5" height="1.1" fill="var(--rel)" stroke="var(--e)" stroke-width=".12"/>';
+  h+='<circle cx="'+c[0]+'" cy="'+c[1]+'" r="1.2" fill="var(--a)" stroke="var(--e)" stroke-width=".25"/><text x="'+c[0]+'" y="'+(c[1]+5)+'">'+esc(L[i])+'</text>'});
+ h+='<g class="nu"><ellipse cx="-30" cy="30" rx="14" ry="3" fill="#fff" opacity=".35"/></g><g class="nu nu2"><ellipse cx="-20" cy="84" rx="12" ry="2.6" fill="#fff" opacity=".3"/></g>'
+ +'<g class="bt"><path d="M8 66h5l-1 2h-3zM10 66v-4l2 3" fill="var(--tro)" stroke="var(--e)" stroke-width=".15"/></g><g id="dyn"></g>';
+ mp.innerHTML=h}
+function dyn(from){let h='';C.trail.forEach(s=>{const a=pos(s[0]),b=pos(s[1]);h+='<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'" stroke="var(--a)" stroke-width=".5" stroke-dasharray="1.6 1.2"/>'});
+ h+='<g id="tk"><circle r="2.6" fill="var(--a)" stroke="var(--s)" stroke-width=".6"/><text y=".9" style="font-size:2.6px;stroke:none;fill:var(--ai);font-weight:700">'+esc((C.nom||'?')[0].toUpperCase())+'</text></g>';
+ $('dyn').innerHTML=h;const q=pos(from||C.pos);TP=q}
+function ouvrirCarte(){if(!C.pos)return;monde();$('plein').hidden=false;$('mf').textContent='Fermer';dyn();const q=pos(C.pos);
+ $('mt').textContent=C.pos+', '+pays(q);vue(q[0],q[1],80*innerHeight/innerWidth)}
+function voyage(ev,de,d){monde();const A=pos(de),B=pos(d),dist=Math.hypot(B[0]-A[0],B[1]-A[1]),h=Math.min(170,Math.max(60,dist*1.4+30))*innerHeight/innerWidth;
+ $('plein').hidden=false;$('mf').textContent='Fermer';$('mt').textContent=ev+' : '+de+' vers '+d;
+ C.trail.pop();dyn(de);C.trail.push([de,d]);vue(A[0],A[1],h);occ=true;
+ tw(3800,u=>{const x=A[0]+(B[0]-A[0])*u,y=A[1]+(B[1]-A[1])*u;tok(x,y);vue(x,y,h)},()=>cam(B[0],B[1],24*innerHeight/innerWidth,1400,()=>{occ=false;$('mf').textContent='Continuer';$('mt').textContent='Arrivée : '+d+', '+pays(B);ui()}))}
+$('mf').onclick=()=>{$('plein').hidden=true;ui()};$('vc').onclick=ouvrirCarte;
+document.querySelectorAll('.bas button').forEach(b=>b.onclick=()=>{const w=+b.dataset.w,h=w*innerHeight/innerWidth;w>150?cam(100,60,h,700):cam(TP[0],TP[1],h,700)});
+addEventListener('resize',()=>vue(V.cx,V.cy,V.h));
+/* ---------- Jeu ---------- */
+function stats(){const s={};for(const k in S)s[k]=4+Math.floor(Math.random()*3);C.rep.forEach(r=>{const b=SB[r[1]];if(b)for(const k in b)s[k]+=b[k]});for(const k in s)s[k]=Math.max(1,s[k]);C.st=s}
 function ui(){
  const t=table(),n=etapes().length;
  $('et').textContent=C.rep.length<n?'Création, étape '+(C.rep.length+1)+'/'+n+' : '+t.n:'Vie de '+(C.nom||'votre personnage')+' : tirez un événement';
- $('fi').innerHTML=C.rep.map(r=>'<li><b>'+esc(r[0])+'</b>'+esc(r[1])+'</li>').join('')||'<li>Pas encore de réponse.</li>';
- $('j').innerHTML=C.vie.map(x=>'<li>'+esc(x)+'</li>').join('')||'<li>Aucun événement pour l\u2019instant.</li>';
- $('go').disabled=!t;dessiner();carte()}
-function anim(a,b,fin){const t0=performance.now(),D=2600,tk=$('tok');
- const f=now=>{let u=Math.min(1,(now-t0)/D);u=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
-  tk.setAttribute('transform','translate('+(a[0]+(b[0]-a[0])*u)+' '+(a[1]+(b[1]-a[1])*u)+')');u<1?requestAnimationFrame(f):fin()};requestAnimationFrame(f)}
-function agir(ev){
- if(/^voyage/i.test(ev)){const c=lieux().filter(x=>x!==C.pos);if(c.length&&C.pos){const d=c[Math.random()*c.length|0],de=C.pos;
-  $('act').textContent=ev+' : '+de+' vers '+d+'…';C.trail.push([de,d]);C.pos=d;C.vie.push(ev+' : '+de+' vers '+d);ecrire('c',C);occ=true;
-  anim(pos(de),pos(d),()=>{occ=false;$('act').textContent='Arrivée : '+d;ui()});return}}
- C.vie.push(ev+(C.pos?' ('+C.pos+')':''));$('act').textContent=ev+(C.pos?', à '+C.pos:'');ecrire('c',C);ui()}
+ $('fi').innerHTML=(C.st?Object.keys(S).map(k=>'<li class="st"><span>'+S[k]+'</span><i style="--v:'+Math.min(100,C.st[k]/12*100)+'%"></i><b>'+C.st[k]+'</b></li>').join(''):'')+(C.rep.map(r=>'<li><b>'+esc(r[0])+'</b>'+esc(r[1])+'</li>').join('')||'<li>Pas encore de réponse.</li>');
+ $('j').innerHTML=C.vie.map(x=>'<li>'+esc(x.txt)+'</li>').join('')||'<li>Aucun événement pour l\u2019instant.</li>';
+ $('go').disabled=!t||occ;$('vc').hidden=!C.pos;dessiner()}
+function agir(v,why){
+ const ef=EF[v]||{},tx=[];if(C.st)for(const k in ef){C.st[k]=Math.max(1,C.st[k]+ef[k]);tx.push(S[k]+(ef[k]>0?' +':' ')+ef[k])}
+ let txt=v;
+ if(/^voyage/i.test(v)){const c=lieux().filter(x=>x!==C.pos);if(c.length&&C.pos){const d=c[Math.random()*c.length|0],de=C.pos;txt=v+' : '+de+' vers '+d;C.trail.push([de,d]);C.pos=d;
+  C.vie.push({t:v,txt:txt+(why?' (suite à : '+why+')':'')+(tx.length?' ['+tx.join(', ')+']':'')});ecrire('c',C);$('act').textContent=txt;voyage(v,de,d);return}}
+ txt+=(C.pos?' à '+C.pos:'')+(why?' (suite à : '+why+')':'')+(tx.length?' ['+tx.join(', ')+']':'');
+ C.vie.push({t:v,txt});$('act').textContent=txt;ecrire('c',C);ui()}
 $('go').onclick=()=>{
  if(occ||!cur.length)return;const t=table(),s=cur.reduce((a,x)=>a+x.w,0);let r=Math.random()*s,i=0,c=0;
  for(;i<cur.length-1;i++){if(r<c+cur[i].w)break;c+=cur[i].w}
  const d=(((-r/s*360-rot)%360)+360)%360;rot+=1800+d;occ=true;$('res').textContent='…';$('act').textContent='';
  $('g').style.transform='rotate('+rot+'deg)';
- setTimeout(()=>{occ=false;const v=cur[i].t;$('res').textContent=v;
-  if(t.vie)agir(v);else{C.rep.push([t.n,v]);if(t.n==='Décor')C.pos=v;ecrire('c',C);ui()}},4100)};
+ setTimeout(()=>{occ=false;const v=cur[i].t,why=cur[i].why;$('res').textContent=v;
+  if(t.vie)agir(v,why);else{C.rep.push([t.n,v]);if(t.n==='Décor')C.pos=v;if(C.rep.length===etapes().length)stats();ecrire('c',C);ui()}},4100)};
 $('nom').value=C.nom;$('nom').oninput=e=>{C.nom=e.target.value;ecrire('c',C)};
-$('cop').onclick=()=>{const s=(C.nom||'Personnage')+'\n\n'+C.rep.map(r=>r[0]+' : '+r[1]).join('\n')+'\n\n'+C.vie.join('\n');try{navigator.clipboard.writeText(s);$('cop').textContent='Copié'}catch(e){}setTimeout(()=>$('cop').textContent='Copier',1500)};
+$('cop').onclick=()=>{const s=(C.nom||'Personnage')+'\n\n'+(C.st?Object.keys(S).map(k=>S[k]+' : '+C.st[k]).join('\n')+'\n\n':'')+C.rep.map(r=>r[0]+' : '+r[1]).join('\n')+'\n\n'+C.vie.map(x=>x.txt).join('\n');try{navigator.clipboard.writeText(s);$('cop').textContent='Copié'}catch(e){}setTimeout(()=>$('cop').textContent='Copier',1500)};
 $('raz').onclick=()=>{if(occ||!confirm('Commencer un nouveau personnage ?'))return;C=nouveau();$('nom').value='';ecrire('c',C);$('res').textContent='';$('act').textContent='';ui()};
 function menu(){$('sl').innerHTML=T.map((x,i)=>'<option value="'+i+'">'+esc(x.n)+'</option>').join('');edit()}
 function edit(){const t=T[+$('sl').value||0];$('ed').value=t.o.map(x=>{const m=x[2]||{},k=Object.keys(m);return x[0]+' | '+x[1]+(k.length?' | '+k.map(y=>y+'='+m[y]).join('; '):'')}).join('\n')}
 $('sl').onchange=edit;
 $('sv').onclick=()=>{const o=$('ed').value.split('\n').map(l=>{const p=l.split('|').map(s=>s.trim()),w=parseFloat((p[1]||'').replace(',','.')),m={};
  (p[2]||'').split(';').forEach(s=>{const k=s.lastIndexOf('=');if(k>0){const v=parseFloat(s.slice(k+1).replace(',','.'));if(!isNaN(v))m[s.slice(0,k).trim()]=v}});return[p[0],w>0?w:1,m]}).filter(x=>x[0]);
- if(!o.length)return alert('Ajoutez au moins une option.');T[+$('sl').value||0].o=o;ecrire('t',T);ui()};
-$('rd').onclick=()=>{if(confirm('Remettre toutes les tables d\u2019origine ?')){T=JSON.parse(JSON.stringify(DEF));ecrire('t',T);menu();ui()}};
+ if(!o.length)return alert('Ajoutez au moins une option.');T[+$('sl').value||0].o=o;built=false;ecrire('t',T);ui()};
+$('rd').onclick=()=>{if(confirm('Remettre toutes les tables d\u2019origine ?')){T=JSON.parse(JSON.stringify(DEF));built=false;ecrire('t',T);menu();ui()}};
 menu();ui();
 </script></body></html>
