@@ -1,0 +1,63 @@
+:root{--f:#f3f1ec;--s:#fff;--e:#1d2330;--m:#667085;--l:#d8d4ca;--a:#b8862d;--ai:#fff;--mer:#bcd0dc;--terre:#e8e2cf;--rel:#b9b196;--arb:#6f8f58;--tro:#7a5a3a}
+@media(prefers-color-scheme:dark){:root{--f:#12151c;--s:#1a1f29;--e:#ecebe6;--m:#9aa3b2;--l:#2d3442;--a:#d9a441;--ai:#1a1305;--mer:#1b2d3b;--terre:#2b2e26;--rel:#4a4c3e;--arb:#47654a;--tro:#6b5538}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--f);color:var(--e);font:16px/1.45 system-ui,-apple-system,sans-serif;padding:max(18px,env(safe-area-inset-top)) 16px max(28px,env(safe-area-inset-bottom))}
+main{max-width:520px;margin:0 auto}
+h1{font-size:26px;margin:0 0 14px}h2{font-size:16px;margin:24px 0 8px}
+select,input,textarea,button{font:inherit;color:inherit}
+select,input,textarea{width:100%;background:var(--s);border:1px solid var(--l);border-radius:8px;padding:10px}
+button{border:1px solid var(--l);background:var(--s);border-radius:8px;padding:10px 14px;font-weight:600}
+.go{background:var(--a);color:var(--ai);border:0;width:100%;padding:14px;font-size:18px;margin-top:10px}
+#et{margin:14px 0 0;font-weight:650}
+#roue{display:block;width:100%;max-width:340px;margin:8px auto 0}
+#g{transition:transform 4s cubic-bezier(.12,.6,.1,1);transform-origin:150px 150px}
+#leg{font-size:13px;color:var(--m);text-align:center;margin-top:6px}
+#res{min-height:56px;text-align:center;font-size:22px;font-weight:700;margin-top:10px}
+ul{list-style:none;margin:0;padding:0}li{padding:9px 0;border-top:1px solid var(--l)}
+li b{display:block;color:var(--m);font-weight:600;font-size:13px}
+.st{display:grid;grid-template-columns:92px 1fr 46px;gap:10px;align-items:center;padding:6px 0;border:0}
+.st i{height:8px;background:var(--l);border-radius:4px;position:relative}
+.st i::after{content:"";position:absolute;inset:0;width:var(--v);background:var(--a);border-radius:4px}
+.st b{display:inline;color:var(--e);font-size:15px;text-align:right}
+.l{display:flex;gap:8px;margin-top:8px}.l>*{flex:1}
+#act{margin-top:8px;font-weight:600}
+details{margin-top:24px;border-top:1px solid var(--l);padding-top:12px}summary{font-weight:650;cursor:pointer}
+textarea{min-height:200px;font-size:14px}
+#plein{position:fixed;inset:0;z-index:9;background:var(--mer)}
+#mp{display:block;width:100%;height:100%;background:var(--mer)}
+#mp text{font-size:calc(var(--k)*1px);fill:var(--e);text-anchor:middle;paint-order:stroke;stroke:var(--terre);stroke-width:calc(var(--k)*.25px)}
+#mp .pa{font-size:calc(var(--k)*1.4px);opacity:.55;display:none}
+#mp[data-z=m] .pa{display:inline}
+#mp .mai{display:none}#mp[data-z=p] .mai,#mp[data-z=v] .mai{display:inline}
+.t{transform-box:fill-box;transform-origin:50% 100%;animation:s 3.2s ease-in-out infinite}
+@keyframes s{50%{transform:rotate(4deg)}}
+.nu{animation:d 70s linear infinite}.nu2{animation-delay:-35s}
+@keyframes d{to{transform:translateX(260px)}}
+.bt{animation:b 6s ease-in-out infinite alternate}
+@keyframes b{to{transform:translate(4px,-3px)}}
+#tk circle{animation:p 1.4s infinite}@keyframes p{50%{opacity:.7}}
+.top,.bas{position:absolute;left:0;right:0;display:flex;gap:8px;align-items:center;padding:10px 12px;background:color-mix(in srgb,var(--s) 85%,transparent)}
+.top{top:0;padding-top:max(10px,env(safe-area-inset-top))}.bas{bottom:0;padding-bottom:max(10px,env(safe-area-inset-bottom))}
+.top b{flex:1;font-size:15px}.bas button{flex:1}
+.fin{margin-top:14px;padding:12px;border:1px solid var(--a);border-radius:8px}
+#inv button{margin-left:8px;padding:4px 10px;font-size:14px}
+.vg{fill:none;stroke:#fff;stroke-width:.4;opacity:.5;animation:v 5s ease-in-out infinite alternate}@keyframes v{to{transform:translateX(3px)}}
+.fu{fill:#fff;opacity:0;animation:f 4s linear infinite}@keyframes f{0%{opacity:.7;transform:translateY(0)}100%{opacity:0;transform:translateY(-4px)}}
+.an{animation:a 8s ease-in-out infinite alternate}@keyframes a{to{transform:translateX(9px)}}
+.oi{animation:o 22s linear infinite}.o2{animation-delay:-11s}@keyframes o{from{transform:translateX(-10px)}to{transform:translateX(220px)}}
+.b2{animation-delay:-3s}
+#nuit{opacity:0;pointer-events:none;animation:n 70s ease-in-out infinite}@keyframes n{0%,45%{opacity:0}75%{opacity:.35}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.t,.nu,.bt,.vg,.fu,.an,.oi,#nuit,#tk circle{animation:none}}
+.nomrow{display:flex;gap:10px;align-items:center}.nomrow input{flex:1}#ico:empty{display:none}
+li small{color:var(--m);font-size:13px}
+#pan li{display:flex;gap:10px;align-items:center}#pan b{display:block;font-size:15px;color:var(--e)}.pi{flex:none}
+#mp[data-s=printemps] .t circle{fill:#8bb36a}#mp[data-s=automne] .t circle{fill:#c98a35}#mp[data-s=hiver] .t circle{fill:#dfe8ee}
+#mp .pl,#mp .ne,#mp .br{display:none;pointer-events:none}
+#mp .pl{fill:url(#plu);animation:pl .35s linear infinite}@keyframes pl{to{transform:translateY(calc(var(--sc,1)*6px))}}
+#mp .ne{fill:url(#nei);animation:ne 3s linear infinite}@keyframes ne{to{transform:translateY(calc(var(--sc,1)*8px))}}
+#mp .br{fill:#fff;opacity:.28}
+#mp[data-w=Pluie] .pl,#mp[data-w=Orage] .pl{display:inline}#mp[data-w=Neige] .ne{display:inline}#mp[data-w=Brume] .br{display:inline}
+.fl{animation:fl .5s steps(2) infinite}@keyframes fl{50%{opacity:.15}}
+.pc{animation:pc 1.4s ease-out infinite}@keyframes pc{from{transform:translateY(2px);opacity:1}to{transform:translateY(-8px);opacity:0}}
+@media(prefers-reduced-motion:reduce){.pl,.ne,.fl,.pc{animation:none}}
+
