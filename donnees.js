@@ -2,7 +2,7 @@
 const S={For:'Force',Agi:'Agilité',Esp:'Esprit',Cha:'Charisme',End:'Endurance'};
 const SB={'Elfe':{Agi:1,Esp:1,For:-1},'Nain':{For:1,End:1,Agi:-1},'Orc':{For:2,Esp:-1,Cha:-1},'Halfelin':{Agi:2,For:-1,Cha:1},'Paysan':{End:1},'Noble déchu':{Cha:1,Esp:1},'Marchand':{Cha:1},'Orphelin des rues':{Agi:1,End:1},'Fils de soldat':{For:1},'Étranger exilé':{End:1},'Forgeron':{For:2},'Voleur':{Agi:2},'Soldat':{For:1,End:1},'Érudit':{Esp:2},'Guérisseur':{Esp:1,Cha:1},'Mercenaire':{For:1,Agi:1},'Aubergiste':{Cha:1,End:1},'Contrebandier':{Agi:1,Cha:1},'Curieux':{Esp:1},'Têtu':{End:1},'Généreux':{Cha:1},'Peureux':{Agi:1,For:-1},'Rancunier':{For:1},'Cupide':{Esp:1}};
 /* Objets : bonus aux jets (For, Agi, Esp, Cha, End), prix d'achat (p), effet à l'utilisation automatique (use) */
-const ITEMS={'Épée':{For:2,p:15},'Dague':{Agi:2,p:10},'Marteau':{For:1},'Livre':{Esp:2},'Bâton':{For:1},'Armure légère':{End:2,p:20},'Potion de soin':{use:'PV',n:4,p:5},'Ration':{use:'EN',n:4,p:2},'Carte au trésor':{},'Relique':{}};
+const ITEMS={'Arc':{Agi:2,p:12},'Cheval':{mount:1},'Chien fidèle':{Agi:1},'Talisman béni':{For:1,Agi:1,Esp:1,Cha:1,End:1},'Épée bénie':{For:3},'Épée':{For:2,p:15},'Dague':{Agi:2,p:10},'Marteau':{For:1},'Livre':{Esp:2},'Bâton':{For:1},'Armure légère':{End:2,p:20},'Potion de soin':{use:'PV',n:4,p:5},'Ration':{use:'EN',n:4,p:2},'Carte au trésor':{},'Relique':{}};
 const INV={'Forgeron':'Marteau','Voleur':'Dague','Soldat':'Épée','Érudit':'Livre','Guérisseur':'Potion de soin','Mercenaire':'Épée','Aubergiste':'Ration','Contrebandier':'Dague'};
 const SAI=['hiver','hiver','printemps','printemps','printemps','été','été','été','automne','automne','automne','hiver'];
 const P={'Cité portuaire':[36,80],'Village de montagne':[156,28],'Capitale en révolte':[96,52],'Forêt interdite':[60,24],'Désert aux ruines':[160,92],'Forteresse assiégée':[112,100]};
@@ -11,7 +11,7 @@ const VILLES=['Cité portuaire','Capitale en révolte'];   /* lieux où le perso
 const QU={
 'Retrouver la Relique':[['Obtenir la Carte au trésor',()=>C.inv.includes('Carte au trésor'),'Carte'],['Atteindre : Désert aux ruines',()=>C.pos==='Désert aux ruines','Ruines'],['Rapporter la Relique',()=>C.inv.includes('Relique'),'Relique']],
 'Venger sa famille':[['Se faire un ennemi',()=>C.fl.includes('Ennemi juré')||C.vie.some(e=>e.t==='Vengeance de l\'ennemi'),'Ennemi'],['Survivre à sa vengeance',()=>C.vie.some(e=>e.t==='Vengeance de l\'ennemi'),'Vengeance']]};
-const DEF=[
+const DEF0=[
 {n:'Race',o:[['Humain',4],['Elfe',2],['Nain',2],['Orc',2],['Halfelin',2]]},
 {n:'Origine',o:[['Noble déchu',1],['Paysan',4],['Marchand',3],['Orphelin des rues',3],['Fils de soldat',3],['Étranger exilé',2]]},
 {n:'Métier',o:[['Forgeron',3,{'Paysan':2,'Marchand':1.5,'Noble déchu':.2,'Nain':3}],['Voleur',2,{'Orphelin des rues':4,'Noble déchu':.3,'Halfelin':2}],['Soldat',3,{'Fils de soldat':4,'Noble déchu':1.5,'Orc':2}],['Érudit',2,{'Noble déchu':4,'Paysan':.2,'Orphelin des rues':.2,'Elfe':2.5,'Orc':.3}],['Guérisseur',2,{'Paysan':1.5,'Étranger exilé':1.5,'Elfe':1.5}],['Mercenaire',2,{'Fils de soldat':2,'Étranger exilé':2,'Orc':2}],['Aubergiste',2,{'Marchand':3,'Paysan':1.2,'Halfelin':2}],['Contrebandier',1,{'Marchand':2,'Orphelin des rues':3}]]},
@@ -119,3 +119,100 @@ const TR={
 'Orgueilleux':{'Tournoi':1.5,'Banquet':1.4},
 'Ivrogne':{'Repos à l\'auberge':1.4,'Combat de rue':1.4},
 'Naïf':{'Une trahison':1.5,'Une dette':1.3}};
+
+/* ===================== V2 : races, archétypes, métiers, compétences, objectifs, cadeau divin ===================== */
+const RACES=[['Humain',4],['Elfe',2],['Nain',2],['Orc',2],['Halfelin',2],['Gnome',1.5],['Démon',1.2],['Drakéen',1.2],['Félin',1.5],['Sylvain',1.2]];
+Object.assign(SB,{'Gnome':{Esp:2,Agi:1,For:-2},'Démon':{For:1,Cha:1,End:1,Esp:-1},'Drakéen':{For:2,End:1,Agi:-1},'Félin':{Agi:2,Cha:1,End:-1},'Sylvain':{End:2,Esp:1,Agi:-1},
+ 'Combattant':{For:1,End:1},'Voyageur':{End:1,Agi:1},'Érudit':{Esp:1},'Artisan':{For:1,Esp:1},'Commerçant':{Cha:2},'Roublard':{Agi:2},'Soigneur':{Esp:1,Cha:1},'Mystique':{Esp:1,Cha:1}});
+Object.assign(INV,{'Chasseur':'Arc','Pisteur':'Arc','Guide':'Bâton','Marin':'Dague','Apothicaire':'Potion de soin','Alchimiste':'Potion de soin','Prêtre':'Livre','Devin':'Livre','Scribe':'Livre','Cartographe':'Livre','Charpentier':'Marteau','Tisserand':'Ration','Gladiateur':'Épée','Garde de caravane':'Épée','Espion':'Dague','Changeur':'Ration','Marchand ambulant':'Ration','Messager':'Bâton'});
+const ARCH={
+'Combattant':[3,{'Orc':2.5,'Nain':1.5,'Drakéen':2,'Fils de soldat':3,'Noble déchu':1.3,'Gnome':.5}],
+'Voyageur':[3,{'Elfe':1.8,'Félin':2,'Humain':1.2,'Étranger exilé':3,'Halfelin':1.3}],
+'Érudit':[2,{'Elfe':1.5,'Gnome':2.5,'Noble déchu':2.5,'Orc':.4}],
+'Artisan':[3,{'Nain':3,'Gnome':1.8,'Paysan':1.8,'Humain':1.1}],
+'Commerçant':[3,{'Halfelin':2,'Marchand':4,'Gnome':1.3,'Humain':1.3}],
+'Roublard':[2,{'Halfelin':1.8,'Félin':2,'Démon':1.5,'Orphelin des rues':4,'Noble déchu':.4}],
+'Soigneur':[2,{'Elfe':1.5,'Sylvain':2.5,'Paysan':1.5,'Orc':.5}],
+'Mystique':[2,{'Elfe':2,'Démon':2.5,'Sylvain':2,'Gnome':1.3,'Drakéen':1.3,'Orc':.7}]};
+const MET={
+'Combattant':[['Soldat',3],['Mercenaire',2],['Garde de caravane',2],['Gladiateur',1]],
+'Voyageur':[['Chasseur',2],['Guide',2],['Marin',2],['Messager',2]],
+'Érudit':[['Érudit',2],['Scribe',2],['Cartographe',1.5]],
+'Artisan':[['Forgeron',3],['Charpentier',2],['Tisserand',2]],
+'Commerçant':[['Marchand ambulant',2],['Aubergiste',2],['Changeur',1.5]],
+'Roublard':[['Voleur',2],['Contrebandier',1.5],['Espion',1.5]],
+'Soigneur':[['Guérisseur',2],['Apothicaire',2]],
+'Mystique':[['Prêtre',2],['Alchimiste',1.5],['Devin',1.5]]};
+const MX={'Chasseur':{'Félin':2,'Elfe':1.5,'Sylvain':1.5},'Marin':{'Cité portuaire':2},'Prêtre':{'Démon':.4,'Humain':1.3},'Alchimiste':{'Gnome':2.5,'Démon':1.5},'Charpentier':{'Nain':1.5,'Sylvain':1.5},'Devin':{'Démon':1.8,'Elfe':1.5},'Gladiateur':{'Orc':2,'Drakéen':2},'Cartographe':{'Gnome':1.5,'Elfe':1.3}};
+const sk=s=>s.split(',').map(x=>x.split(':'));
+const SKM={'Soldat':sk('Discipline:combat,Marche forcée:voyage'),'Mercenaire':sk('Escrime pragmatique:combat,Négociation de contrat:commerce'),'Garde de caravane':sk('Vigilance:survie,Bouclier:combat'),'Gladiateur':sk('Jeu d\'arène:combat,Charisme de foule:social'),
+'Chasseur':sk('Pistage:survie,Tir précis:combat'),'Guide':sk('Lecture des routes:voyage,Camp de fortune:survie'),'Marin':sk('Nœuds et voiles:voyage,Gros temps:survie'),'Messager':sk('Course longue:voyage,Discrétion:ruse'),
+'Érudit':sk('Recherche:savoir,Rhétorique:social'),'Scribe':sk('Calligraphie:savoir,Faux et usage de faux:ruse'),'Cartographe':sk('Relevés:savoir,Orientation:voyage'),
+'Forgeron':sk('Forge:artisanat,Armes de qualité:combat'),'Charpentier':sk('Charpente:artisanat,Résistance:survie'),'Tisserand':sk('Tissage fin:artisanat,Marchandage de tissus:commerce'),
+'Marchand ambulant':sk('Marchandage:commerce,Réseau de routes:voyage'),'Aubergiste':sk('Qualité des plats:hospitalité,Écoute des rumeurs:social'),'Changeur':sk('Évaluation:commerce,Calcul:savoir'),
+'Voleur':sk('Crochetage:ruse,Fuite:survie'),'Contrebandier':sk('Cachettes:ruse,Corruption:commerce'),'Espion':sk('Déguisement:ruse,Interrogatoire:social'),
+'Guérisseur':sk('Herboristerie:soin,Chirurgie de fortune:soin'),'Apothicaire':sk('Mélanges:soin,Poisons et antidotes:ruse'),
+'Prêtre':sk('Rites:mystique,Réconfort:social'),'Alchimiste':sk('Transmutation:mystique,Distillation:artisanat'),'Devin':sk('Augures:mystique,Lecture des gens:social')};
+const RSK={'Humain':['Ténacité humaine','survie'],'Elfe':['Sens de la forêt','voyage'],'Nain':['Œil du forgeron','artisanat'],'Orc':['Fureur tribale','combat'],'Halfelin':['Chance du petit peuple','ruse'],'Gnome':['Ingéniosité','savoir'],'Démon':['Regard infernal','social'],'Drakéen':['Souffle de feu','combat'],'Félin':['Pas de velours','ruse'],'Sylvain':['Racines profondes','survie']};
+const ASK={'Combattant':['Art de la guerre','combat'],'Voyageur':['Sens de l\'orientation','voyage'],'Érudit':['Mémoire d\'archiviste','savoir'],'Artisan':['Main sûre','artisanat'],'Commerçant':['Sens des affaires','commerce'],'Roublard':['Doigts agiles','ruse'],'Soigneur':['Mains apaisantes','soin'],'Mystique':['Intuition','mystique']};
+const GEN={combat:'Bagarre',voyage:'Pied sûr',social:'Bagout',commerce:'Marchandage de fortune',survie:'Système D',hospitalité:'Cuisine de campagne',soin:'Premiers secours',savoir:'Curiosité',ruse:'Débrouillardise',artisanat:'Bricolage',mystique:'Intuition naissante'};
+/* Compétences débloquées par une situation : [événement, réussite exigée (true/false/undefined), nom, domaine] */
+const UNL=[['Embuscade',true,'Instinct de survie','survie'],['Combat de rue',true,'Sens du duel','combat'],['Tournoi',true,'Gloire d\'arène','social'],['Fouille des ruines',true,'Lecture des ruines','savoir'],['Marché florissant',undefined,'Flair du marché','commerce'],['Tempête en mer',true,'Pied marin','voyage'],['Vengeance de l\'ennemi',true,'Haine froide','combat'],['Une maladie',true,'Constitution de fer','survie'],['Une trahison',undefined,'Méfiance','social']];
+const ETAG={'Voyage lointain':'voyage','Voyage forcé':'voyage','Une rencontre décisive':'social','Une trahison':'social','Un héritage inattendu':'commerce','Une maladie':'survie','Un coup de chance':'ruse','Une dette':'commerce','Un deuil':'social','Repos à l\'auberge':'hospitalité','Soins d\'un guérisseur':'soin','Embuscade':'combat','Combat de rue':'combat','Vengeance de l\'ennemi':'combat','Rencontre d\'un allié':'social','Mission de l\'allié':'ruse','Marché florissant':'commerce','Tempête en mer':'survie','Fouille des ruines':'savoir','Piège des ruines':'ruse','Chasse au trésor':'savoir','Tournoi':'combat','Banquet':'hospitalité','Source dans la forêt':'soin','Sortie de la forteresse':'combat',
+'Commande importante':'artisanat','Vision étrange':'mystique','Cours improvisé':'savoir','Concours de cuisine':'hospitalité','Chasse au gibier':'survie','Négociation tendue':'social','Cambriolage':'ruse','Épreuve d\'honneur':'combat'};
+const EVN=[
+['Commande importante',3,{'Artisan':4,'Nain':1.5,'Gnome':1.5}],
+['Vision étrange',2,{'Mystique':4,'Démon':1.5,'Brume':1.5}],
+['Cours improvisé',2,{'Érudit':4,'Gnome':1.5,'Capitale en révolte':1.5}],
+['Concours de cuisine',2,{'Aubergiste':5,'Commerçant':2,'Halfelin':1.5,'Capitale en révolte':2}],
+['Chasse au gibier',3,{'Voyageur':3,'Chasseur':3,'Forêt interdite':2,'Félin':1.5,'Épuisé':1.5}],
+['Négociation tendue',2,{'Commerçant':2.5,'Noble déchu':2,'Capitale en révolte':1.5}],
+['Cambriolage',2,{'Roublard':4,'Voleur':3,'Félin':1.5,'Cité portuaire':1.5}],
+['Épreuve d\'honneur',2,{'Combattant':3,'Drakéen':1.5,'Orc':1.5}]];
+Object.assign(EF,{'Commande importante':{or:10,Esp:1,jet:['Esp',9]},'Vision étrange':{Esp:1,EN:-1},'Cours improvisé':{or:6,Cha:1},'Concours de cuisine':{or:8,Cha:1,sc:'marche',jet:['Cha',9]},
+ 'Chasse au gibier':{EN:2,it:'Ration',jet:['Agi',9]},'Négociation tendue':{or:7,Cha:1,jet:['Cha',10]},'Cambriolage':{or:12,PV:-3,jet:['Agi',11]},'Épreuve d\'honneur':{For:1,or:5,PV:-2,jet:['For',10],sc:'combat'}});
+Object.assign(HIST,{'Gnome':'Inventeurs minuscules aux idées immenses : ils réparent tout, et cassent parfois davantage.','Démon':'Sang d\'enfer et fierté ombrageuse : on les soupçonne de tous les maux, ils en tirent parti.','Drakéen':'Fiers descendants des dragons, couverts d\'écailles, d\'honneur et de colère contenue.','Félin':'Peuple souple et discret des toits et des steppes : curieux, indépendant, jamais domestiqué.','Sylvain':'Nés dans les bois anciens, plus proches des arbres que des villes : patients comme la sève.',
+'Combattant':'La vie se règle par l\'acier, la discipline et le courage.','Voyageur':'Les routes sont sa maison et l\'horizon sa promesse.','Artisan':'Des mains qui façonnent : bois, métal, fil et patience.','Commerçant':'Offre, demande et bon sens : le monde est un grand marché.','Roublard':'Ruse, discrétion et opportunités : la loi est une suggestion.','Soigneur':'Il écoute les corps, les peines, et les plantes qui les apaisent.','Mystique':'Rêves, signes et puissances invisibles guident son pas.',
+'Garde de caravane':'Il escorte marchandises et voyageurs sur des routes peu sûres.','Gladiateur':'Le sable de l\'arène lui a appris le goût du spectacle et du sang.','Chasseur':'Silence, patience et flèche : la forêt n\'a pas de secrets pour lui.','Guide':'Il connaît les raccourcis, les gués et les dangers du chemin.','Marin':'Le sel, les cordages et l\'horizon : un cœur de port.','Messager':'Il court avec des secrets cousus dans la doublure.','Scribe':'Plume rapide, mémoire fidèle : il consigne ce que les puissants veulent oublier.','Cartographe':'Il dessine le monde avant que d\'autres ne s\'y perdent.','Charpentier':'Il bâtit des toits, des ponts et des navires.','Tisserand':'Fils, métiers et motifs : il habille les gens et les murs.','Marchand ambulant':'Sa boutique est un chariot, son comptoir un sourire.','Changeur':'Il pèse l\'or, démasque les fausses pièces et connaît le prix de la confiance.','Espion':'Il écoute aux portes et vend ce qu\'il y entend.','Apothicaire':'Fioles, poudres et dosages : un grain de trop et tout change.','Prêtre':'Il porte la parole d\'une puissance, et la peine de ceux qui la prient.','Alchimiste':'Il cherche dans les cornues ce que la nature cache.','Devin':'Il lit les cartes, les os et les regards, et se trompe rarement.',
+'Commande importante':'Un client exigeant, un délai serré : l\'atelier tourne jusqu\'à la nuit.','Vision étrange':'Le monde vacille un instant : une image qui n\'est pas à lui, mais qui le concerne.','Cours improvisé':'Une place, quelques curieux, une question : il explique, et les gens écoutent.','Concours de cuisine':'Fumets, casseroles et jury sévère : la réputation se joue à une cuillère.','Chasse au gibier':'Le silence des sous-bois, un bruissement : le dîner se décide en un instant.','Négociation tendue':'Deux camps, une table, des regards en coin : chaque mot compte.','Cambriolage':'Une serrure, une ombre, un coffre : la nuit appartient à ceux qui osent.','Épreuve d\'honneur':'On l\'a défié devant témoins. Reculer serait pire que perdre.'});
+Object.assign(TR,{'Elfe':{'Source dans la forêt':1.5,'Banquet':1.2,'Vision étrange':1.2},'Nain':{'Commande importante':1.5,'Tournoi':1.3},'Orc':{'Combat de rue':1.5,'Tournoi':1.4},'Halfelin':{'Banquet':1.5,'Cambriolage':1.3,'Concours de cuisine':1.4},'Démon':{'Vision étrange':1.5,'Une trahison':1.3},'Gnome':{'Commande importante':1.4,'Fouille des ruines':1.3},'Drakéen':{'Combat de rue':1.3,'Tournoi':1.4},'Félin':{'Cambriolage':1.5,'Chasse au gibier':1.4},'Sylvain':{'Source dans la forêt':2,'Chasse au gibier':1.3}});
+/* Objectifs : [nom, poids, multiplicateurs, étapes]. Les étapes (type : lieu, vie, or, ev, tag, comp, lieux, stat) sont évaluées automatiquement. */
+const OBJ=[
+['Retrouver la Relique',2,{'Érudit':3,'Curieux':2,'Gnome':1.5}],
+['Venger sa famille',2,{'Fils de soldat':2,'Rancunier':3,'Démon':1.3}],
+['Atteindre : Désert aux ruines',1,{'Érudit':2,'Cartographe':2},[{t:'lieu',v:'Désert aux ruines'}]],
+['Atteindre : Capitale en révolte',2,{'Noble déchu':2,'Espion':2},[{t:'lieu',v:'Capitale en révolte'}]],
+['Atteindre : Forteresse assiégée',2,{'Combattant':2},[{t:'lieu',v:'Forteresse assiégée'}]],
+['Atteindre : Village de montagne',1.5,{'Nain':2,'Artisan':1.5},[{t:'lieu',v:'Village de montagne'}]],
+['Atteindre : Forêt interdite',1.5,{'Elfe':3,'Sylvain':3,'Mystique':2},[{t:'lieu',v:'Forêt interdite'}]],
+['Atteindre : Cité portuaire',1.5,{'Commerçant':2,'Marin':3},[{t:'lieu',v:'Cité portuaire'}]],
+['Survivre à 12 événements',2,{},[{t:'vie',n:12}]],
+['Réunir 40 pièces d\'or',3,{'Commerçant':3,'Roublard':2,'Cupide':2,'Halfelin':1.5},[{t:'or',n:40}]],
+['Maîtriser un art (niveau 4)',2,{'Artisan':3,'Érudit':2,'Mystique':2,'Gnome':1.5},[{t:'comp',n:4}]],
+['Explorer le monde (5 lieux)',2,{'Voyageur':4,'Curieux':2,'Félin':1.5,'Elfe':1.3},[{t:'lieux',n:5}]],
+['Remporter 2 tournois',1.5,{'Combattant':3,'Orc':2,'Drakéen':2},[{t:'ev',v:'Tournoi',n:2}]],
+['Conclure 3 marchés',1.5,{'Commerçant':4,'Halfelin':2,'Gnome':1.5},[{t:'ev',v:'Marché florissant',n:3}]],
+['Devenir irrésistible (Charisme 9)',1.5,{'Noble déchu':2,'Démon':2,'Commerçant':1.5},[{t:'stat',k:'Cha',n:9}]],
+['Devenir un colosse (Force 10)',1.5,{'Orc':2,'Nain':1.5,'Combattant':2,'Drakéen':1.5},[{t:'stat',k:'For',n:10}]],
+['Gagner 3 combats',2,{'Combattant':3,'Mercenaire':1.5,'Orc':1.5},[{t:'tag',v:'combat',n:3}]],
+['Recevoir 2 visions',1,{'Mystique':4,'Démon':2},[{t:'ev',v:'Vision étrange',n:2}]],
+['Réussir 2 commandes',1,{'Artisan':4,'Nain':1.5},[{t:'ev',v:'Commande importante',n:2}]]];
+const OBJD={};OBJ.forEach(o=>{if(o[3])OBJD[o[0]]=o[3]});
+/* Cadeau divin : un seul tirage, à la création */
+const CAD0=[['Une bourse bénie',3,{'Commerçant':2}],['Un don d\'expérience',3,{'Érudit':1.5,'Mystique':1.5}],['Un souffle de vigueur',3],['Une grâce d\'endurance',2,{'Voyageur':1.5}],['La force des ancêtres',2,{'Combattant':2,'Nain':1.5}],['Une parole d\'or',2,{'Commerçant':1.5,'Noble déchu':1.5}],['Un esprit éveillé',2,{'Érudit':2,'Gnome':1.5}],['Un cheval fidèle',2,{'Voyageur':2}],['Un compagnon à quatre pattes',2,{'Chasseur':2,'Félin':1.5}],['Un talisman béni',1.5,{'Mystique':2}],['Une arme bénie',1.5,{'Combattant':2}],['Une amitié précieuse',2,{'Généreux':2}]];
+const CAD={'Une bourse bénie':{or:25},'Un don d\'expérience':{xp:4},'Un souffle de vigueur':{pvm:3},'Une grâce d\'endurance':{End:1,enm:2},'La force des ancêtres':{For:1},'Une parole d\'or':{Cha:1},'Un esprit éveillé':{Esp:1},'Un cheval fidèle':{it:'Cheval'},'Un compagnon à quatre pattes':{it:'Chien fidèle'},'Un talisman béni':{it:'Talisman béni'},'Une arme bénie':{it:'Épée bénie'},'Une amitié précieuse':{fl:'Allié'}};
+Object.assign(HIST,{'Un don d\'expérience':'Un souvenir qui n\'est pas à lui : des gestes appris sans les avoir jamais faits.','Un cheval fidèle':'Un cheval s\'approche, calme, comme s\'il l\'attendait depuis toujours.','Un talisman béni':'Un pendentif tiède : il protège un peu de tout.'});
+function construire(){
+ const old=DEF0.find(t=>t.n==='Métier').o,om={};old.forEach(x=>om[x[0]]=x);
+ const arcs=Object.keys(MET),mt=[];
+ arcs.forEach(a=>MET[a].forEach(m=>{const x=om[m[0]],mu=Object.assign({},x?x[2]:{},MX[m[0]]||{});arcs.forEach(b=>{mu[b]=b===a?5:.25});mt.push([m[0],x?x[1]:m[1],mu])}));
+ const out=[];
+ DEF0.forEach(t=>{
+  if(t.n==='Race')out.push({n:'Race',o:RACES.map(r=>[r[0],r[1]])});
+  else if(t.n==='Métier')out.push({n:'Métier',o:mt});
+  else if(t.n==='Objectif')out.push({n:'Objectif',o:OBJ.map(o=>[o[0],o[1],o[2]||{}])},{n:'Cadeau divin',o:CAD0});
+  else if(t.vie){const v=t.o.find(x=>x[0]==='Voyage lointain')[2];v['Étape:Lieu']=2.5;v['Étape:Explorer']=3;t.o.push(...EVN);t.o.forEach(x=>{x[2]=x[2]||{};const g=ETAG[x[0]];if(g)x[2]['Étape:Tag:'+g]=1.8});OBJ.forEach(o=>(o[3]||[]).forEach(s=>{if(s.t==='ev'){const e=t.o.find(x=>x[0]===s.v);if(e)e[2]['Étape:Ev:'+s.v]=4}}));out.push(t)}
+  else out.push(t);
+  if(t.n==='Origine')out.push({n:'Archétype',o:Object.keys(ARCH).map(a=>[a,ARCH[a][0],ARCH[a][1]])})});
+ return out}
+const DEF=construire();

@@ -1,6 +1,6 @@
 /* carte.js : icônes de race, carte plein écran (monde, pays, ville), voyages et scènes animées */
 const NS='http://www.w3.org/2000/svg';
-const RC={Humain:'#e0b48a',Elfe:'#ecd6bd',Nain:'#d9a273',Orc:'#7fa650',Halfelin:'#e8c19a'};
+const RC={Humain:'#e0b48a',Elfe:'#ecd6bd',Nain:'#d9a273',Orc:'#7fa650',Halfelin:'#e8c19a',Gnome:'#e6b89a',Démon:'#c0504d',Drakéen:'#5fa68a',Félin:'#d9a35c',Sylvain:'#8aa05a'};
 function icone(r){
  const c=RC[r]||RC.Humain,yeux='<circle cx="-2.2" cy="-.4" r=".75" fill="#222"/><circle cx="2.2" cy="-.4" r=".75" fill="#222"/>';
  let ar='',av='';
@@ -8,6 +8,11 @@ function icone(r){
  else if(r==='Nain'){ar='<path d="M-6 1q6 13 12 0z" fill="#9a4b1f"/>';av='<path d="M-6.6 -1a6.6 6.6 0 0 1 13.2 0z" fill="#8a8f99"/>'}
  else if(r==='Orc'){av='<path d="M-3.4 3.6l1-3 1 3zM2.4 3.6l1-3 1 3z" fill="#fff"/><path d="M-4 -2.4l3 1M4 -2.4l-3 1" stroke="#222" stroke-width=".6"/>'}
  else if(r==='Halfelin'){av='<circle cx="-3.5" cy="-5" r="2.4" fill="#6b4a2b"/><circle cx="0" cy="-6" r="2.6" fill="#6b4a2b"/><circle cx="3.5" cy="-5" r="2.4" fill="#6b4a2b"/>'}
+ else if(r==='Gnome'){av='<path d="M-6 -3.5L0 -13 6 -3.5z" fill="#c0504d"/><circle cx="0" cy="1.6" r="1.5" fill="#d9967a"/>'}
+ else if(r==='Démon'){ar='<path d="M-4.5 -4l-2-5 4 2zM4.5 -4l2-5-4 2z" fill="#3a1a1a"/>';av='<path d="M-6 -1a6 6 0 0 1 12 0q-6-3-12 0z" fill="#2b1b1b"/>'}
+ else if(r==='Drakéen'){ar='<path d="M-1.6 -6l1.6-4 1.6 4zM-4.2 -5l.8-3 1.7 3zM1.6 -5l1.7-3 .8 3z" fill="#2e7d65"/>';av='<path d="M-3 3.6q3 1.4 6 0" stroke="#1d4d3d" fill="none" stroke-width=".6"/>'}
+ else if(r==='Félin'){ar='<path d="M-5.5 -3l-1-6 4 3zM5.5 -3l1-6-4 3z" fill="'+c+'" stroke="#3b2a1a" stroke-width=".4"/>';av='<path d="M-6 1.6h-4M-6 3h-4M6 1.6h4M6 3h4" stroke="#222" stroke-width=".3"/><path d="M-1 2l1 1 1-1z" fill="#c55"/>'}
+ else if(r==='Sylvain'){av='<path d="M-4 -5q1-4 4-4 3 0 4 4-4-2-8 0z" fill="#4f8a3e"/><path d="M-2 -6q2-3 5-1" stroke="#2f5a26" fill="none" stroke-width=".5"/>'}
  else av='<path d="M-6.2 -1a6.2 6.2 0 0 1 12.4 0q-6.2-3.5-12.4 0z" fill="#6b4a2b"/>';
  return ar+'<circle r="6" fill="'+c+'" stroke="#3b2a1a" stroke-width=".5"/>'+yeux+av}
 const iconeSVG=(r,px)=>'<svg viewBox="-11 -11 22 22" width="'+px+'" height="'+px+'" aria-hidden="true">'+icone(r)+'</svg>';
