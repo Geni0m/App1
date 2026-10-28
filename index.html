@@ -4,9 +4,9 @@
 <meta name="color-scheme" content="light dark">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Roulette JDR"><title>Roulette JDR</title>
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=6">
 </head><body><main>
-<h1>Roulette JDR</h1>
+<div class="haut"><h1>Roulette JDR</h1><button id="son">Son : oui</button></div>
 <div class="nomrow"><span id="ico"></span><input id="nom" placeholder="Nom du personnage" aria-label="Nom du personnage"></div>
 <div id="fin" class="fin" hidden></div>
 <div id="et"></div>
@@ -26,11 +26,13 @@
 <textarea id="ed" aria-label="Options de la table"></textarea>
 <div class="l"><button id="sv">Enregistrer</button><button id="rd">Tables d'origine</button></div>
 </details></main>
+<div id="fx"></div>
+<div id="md" hidden><div class="carte" role="dialog" aria-modal="true"><div class="emb" id="mem"></div><div class="ca" id="mca"></div><h3 id="mti"></h3><p id="mtx"></p><ul id="mli"></ul><button class="go" id="mok">Continuer</button></div></div>
 <div id="plein" hidden><svg id="mp" viewBox="0 0 200 120" data-z="m"></svg>
 <div class="top"><b id="mt"></b><button id="mf">Fermer</button></div>
 <div class="bas"><button data-w="205">Monde</button><button data-w="80">Pays</button><button data-w="24">Ville</button></div></div>
-<script src="outils.js?v=5"></script>
-<script src="donnees.js?v=5"></script>
-<script src="carte.js?v=5"></script>
-<script src="jeu.js?v=5"></script>
+<script src="outils.js?v=6"></script>
+<script src="donnees.js?v=6"></script>
+<script src="carte.js?v=6"></script>
+<script src="jeu.js?v=6"></script>
 </body></html>
