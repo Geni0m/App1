@@ -10,7 +10,7 @@ const VILLES=['Cité portuaire','Capitale en révolte'];   /* lieux où le perso
 /* Quêtes : suite d'étapes [texte, condition, clé]. La clé sert de contexte (« Étape:Carte ») pour favoriser des événements. */
 const QU={
 'Retrouver la Relique':[['Obtenir la Carte au trésor',()=>C.inv.includes('Carte au trésor'),'Carte'],['Atteindre : Désert aux ruines',()=>C.pos==='Désert aux ruines','Ruines'],['Rapporter la Relique',()=>C.inv.includes('Relique'),'Relique']],
-'Venger sa famille':[['Se faire un ennemi',()=>C.fl.includes('Ennemi juré')||C.vie.some(e=>e.t==='Vengeance de l\'ennemi'),'Ennemi'],['Survivre à sa vengeance',()=>C.vie.some(e=>e.t==='Vengeance de l\'ennemi'),'Vengeance']]};
+'Venger sa famille':[['Se faire un ennemi',()=>C.fl.includes('Ennemi juré')||C.vie.some(e=>e.t==='Vengeance de l\'ennemi'),'Ennemi'],['Survivre à sa vengeance',()=>C.vie.some(e=>e.t==='Vengeance de l\'ennemi'&&e.ok),'Vengeance']]};
 const DEF0=[
 {n:'Race',o:[['Humain',4],['Elfe',2],['Nain',2],['Orc',2],['Halfelin',2]]},
 {n:'Origine',o:[['Noble déchu',1],['Paysan',4],['Marchand',3],['Orphelin des rues',3],['Fils de soldat',3],['Étranger exilé',2]]},
@@ -186,7 +186,7 @@ const OBJ=[
 ['Atteindre : Village de montagne',1.5,{'Nain':2,'Artisan':1.5},[{t:'lieu',v:'Village de montagne'}]],
 ['Atteindre : Forêt interdite',1.5,{'Elfe':3,'Sylvain':3,'Mystique':2},[{t:'lieu',v:'Forêt interdite'}]],
 ['Atteindre : Cité portuaire',1.5,{'Commerçant':2,'Marin':3},[{t:'lieu',v:'Cité portuaire'}]],
-['Survivre à 12 événements',2,{},[{t:'vie',n:12}]],
+['Survivre à 16 événements',2,{},[{t:'vie',n:16}]],
 ['Réunir 40 pièces d\'or',3,{'Commerçant':3,'Roublard':2,'Cupide':2,'Halfelin':1.5},[{t:'or',n:40}]],
 ['Maîtriser un art (niveau 4)',2,{'Artisan':3,'Érudit':2,'Mystique':2,'Gnome':1.5},[{t:'comp',n:4}]],
 ['Explorer le monde (5 lieux)',2,{'Voyageur':4,'Curieux':2,'Félin':1.5,'Elfe':1.3},[{t:'lieux',n:5}]],
@@ -216,3 +216,25 @@ function construire(){
   if(t.n==='Origine')out.push({n:'Archétype',o:Object.keys(ARCH).map(a=>[a,ARCH[a][0],ARCH[a][1]])})});
  return out}
 const DEF=construire();
+
+/* ===================== V3 : difficulté, relations, ennemis nommés, événements du monde ===================== */
+const DUR={'Épée':9,'Dague':8,'Arc':8,'Marteau':12,'Bâton':14,'Armure légère':10};   /* nombre de jets avant de se briser */
+ITEMS['Potion de soin'].p=14;
+const RELF=['Marchands','Couronne','Pègre','Peuple'];
+const REL={'Marché florissant':{Marchands:1},'Négociation tendue':{Marchands:1,Couronne:1},'Tournoi':{Couronne:1,Peuple:1},'Banquet':{Couronne:1},'Cambriolage':{Pègre:1,Peuple:-1,Marchands:-1},'Combat de rue':{Peuple:-1,Pègre:1},'Embuscade':{Pègre:-1},
+ 'Rencontre d\'un allié':{Peuple:1},'Soins d\'un guérisseur':{Peuple:1},'Repos à l\'auberge':{Peuple:1},'Une dette':{Marchands:-1},'Mission de l\'allié':{Pègre:1},'Sortie de la forteresse':{Couronne:1},'Épreuve d\'honneur':{Couronne:1},'Concours de cuisine':{Peuple:1,Marchands:1},'Commande importante':{Marchands:1},'Duel avec le rival':{Peuple:1}};
+const RELW={'Rel:Marchands+':{'Marché florissant':1.5,'Négociation tendue':1.4,'Une dette':.6},'Rel:Marchands-':{'Une dette':1.5,'Marché florissant':.7},
+ 'Rel:Couronne+':{'Tournoi':1.6,'Banquet':1.5,'Épreuve d\'honneur':1.4},'Rel:Couronne-':{'Combat de rue':1.4,'Embuscade':1.3,'Tournoi':.6},
+ 'Rel:Pègre+':{'Cambriolage':1.5,'Mission de l\'allié':1.3},'Rel:Pègre-':{'Embuscade':1.5,'Combat de rue':1.3},
+ 'Rel:Peuple+':{'Repos à l\'auberge':1.4,'Rencontre d\'un allié':1.4,'Banquet':1.2},'Rel:Peuple-':{'Combat de rue':1.4,'Une trahison':1.3,'Repos à l\'auberge':.7}};
+const MONDE={
+'Guerre':{t:'Les armées se mettent en marche : routes dangereuses, armes chères.',w:{'Embuscade':1.6,'Combat de rue':1.4,'Sortie de la forteresse':1.8,'Voyage forcé':1.5,'Tournoi':.4,'Marché florissant':.6}},
+'Épidémie':{t:'Une fièvre court les villes : on soigne, on se barricade.',w:{'Une maladie':2.5,'Soins d\'un guérisseur':2,'Repos à l\'auberge':.7,'Marché florissant':.7,'Banquet':.5}},
+'Famine':{t:'Les récoltes ont échoué : les vivres sont chers, les ventres vides.',w:{'Une dette':1.6,'Chasse au gibier':1.8,'Banquet':.3,'Concours de cuisine':.3,'Marché florissant':.7}},
+'Festival':{t:'Les villes sont en fête : musique, concours et bourses mal gardées.',w:{'Banquet':2,'Tournoi':1.6,'Concours de cuisine':1.6,'Marché florissant':1.5,'Cambriolage':1.3}}};
+const NOMS1=['Karg','Veyra','Morlen','Sivaï','Dunmar','Ysolde','Brannoc','Tessa','Ulric','Nahel','Orsa','Kael'];
+const NOMS2=['le Borgne','la Louve','aux Mains Rouges','l\'Implacable','de la Brume','le Vieux','la Cendre','sans Nom','du Marais','le Doux'];
+DEF.find(t=>t.vie).o.push(['Un rival entre en scène',2,{'Étape:Carte':2,'Étape:Ruines':2,'Étape:Ev:Tournoi':3,'Étape:Tag:combat':2}],['Duel avec le rival',4,{},'Rival']);
+Object.assign(EF,{'Un rival entre en scène':{fl:'Rival',Cha:-1},'Duel avec le rival':{PV:-4,or:8,uf:'Rival',jet:['For',11],sc:'combat'}});
+Object.assign(ETAG,{'Un rival entre en scène':'social','Duel avec le rival':'combat'});
+Object.assign(HIST,{'Un rival entre en scène':'Quelqu\'un vise le même but que lui, et ne compte pas partager.','Duel avec le rival':'Le rival le provoque en public : il faudra régler cela maintenant.'});

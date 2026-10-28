@@ -1,5 +1,5 @@
 /* jeu.js : état du personnage, roulette, jets, objets, boutique, saisons, quêtes, fin de partie, interface */
-const nouveau=()=>({nom:'',rep:[],vie:[],pos:null,trail:[],st:{},pv:0,pvm:0,en:0,enm:0,inv:[],or:0,fl:[],comp:[],vis:[],obj:'',qs:0,t:0,age0:20,meteo:'Clair',fin:null,arch:0});
+const nouveau=()=>({nom:'',rep:[],vie:[],pos:null,trail:[],st:{},pv:0,pvm:0,en:0,enm:0,inv:[],or:0,fl:[],comp:[],vis:[],rel:{Marchands:0,Couronne:0,Pègre:0,Peuple:0},cic:[],us:{},fat:0,cd:0,nem:'',ally:'',mnd:null,obj:'',qs:0,t:0,age0:20,meteo:'Clair',fin:null,arch:0});
 let T=lire('t',DEF),C=lire('c',nouveau()),PAN=lire('pan',[]),rot=0,occ=false,cur=[];
 const etapes=()=>T.filter(t=>!t.vie),tv=()=>T.find(t=>t.vie),lieux=()=>((T.find(t=>t.n==='Décor')||{o:[]}).o).map(x=>x[0]);
 const table=()=>C.rep.length<etapes().length?etapes()[C.rep.length]:tv();
@@ -7,7 +7,7 @@ const age=()=>C.age0+Math.floor(C.t/12),sai=()=>SAI[C.t%12],rnd=n=>Math.floor(Ma
 function meteo(){const s=sai(),r=Math.random();C.meteo=s==='hiver'?(r<.4?'Neige':r<.6?'Brume':'Clair'):s==='automne'?(r<.4?'Pluie':r<.55?'Orage':r<.7?'Brume':'Clair'):s==='printemps'?(r<.3?'Pluie':'Clair'):(r<.15?'Orage':'Clair')}
 /* ----- Quêtes ----- */
 const niv=k=>Math.floor(Math.sqrt(k.xp)),cnt=f=>C.vie.filter(f).length;
-const okS=s=>({lieu:()=>C.pos===s.v,vie:()=>C.vie.length>=s.n,or:()=>C.or>=s.n,ev:()=>cnt(e=>e.t===s.v&&e.ok)>=s.n,tag:()=>cnt(e=>ETAG[e.t]===s.v&&e.ok)>=s.n,comp:()=>C.comp.some(k=>niv(k)>=s.n),lieux:()=>C.vis.length>=s.n,stat:()=>C.st[s.k]>=s.n}[s.t]());
+const okS=s=>({lieu:()=>C.pos===s.v&&C.vie.length>=6,vie:()=>C.vie.length>=s.n,or:()=>C.or>=s.n,ev:()=>cnt(e=>e.t===s.v&&e.ok)>=s.n,tag:()=>cnt(e=>ETAG[e.t]===s.v&&e.ok)>=s.n,comp:()=>C.comp.some(k=>niv(k)>=s.n),lieux:()=>C.vis.length>=s.n,stat:()=>C.st[s.k]>=s.n}[s.t]());
 const etq=()=>{const o=C.obj;if(QU[o])return QU[o];const d=OBJD[o];return d?d.map(s=>[o,()=>okS(s),s.t==='ev'?'Ev:'+s.v:s.t==='tag'?'Tag:'+s.v:{lieu:'Lieu',or:'Or',lieux:'Explorer',comp:'Art'}[s.t]||'But']):[]};
 function avancer(){const q=etq();while(C.qs<q.length&&q[C.qs][1]())C.qs++;return q.length>0&&C.qs>=q.length&&C.vie.length>0}
 /* ----- Tirage pondéré : réponses précédentes, deux derniers événements, objets, états, lieu, météo, saison, étape de quête ----- */
@@ -16,7 +16,7 @@ function poids(t){
  const ev=t.vie?C.vie.filter(e=>e.t!=='Objet').slice(-2).map(e=>e.t):[],a=C.rep.map(r=>r[1]);let cx=[];
  if(t.vie){cx=ev.concat(C.fl,C.inv,[C.pos,C.meteo,cap(sai())]);if(C.en<=3)cx.push('Épuisé');if(C.pv<=4)cx.push('Blessé');const q=etq();if(C.qs<q.length)cx.push('Étape:'+q[C.qs][2])}
  a.push(...cx);const rw=cx.slice().reverse();
- const l=t.o.filter(x=>!x[3]||a.includes(x[3])).map(x=>{let w=x[1];a.forEach(k=>{if(x[2]&&x[2][k]!==undefined)w*=x[2][k]});if(t.vie)C.rep.forEach(r=>{const m=TR[r[1]];if(m&&m[x[0]])w*=m[x[0]]});
+ const l=t.o.filter(x=>(!x[3]||a.includes(x[3]))&&!(x[0]==='Vengeance de l\'ennemi'&&C.cd>0)).map(x=>{let w=x[1];a.forEach(k=>{if(x[2]&&x[2][k]!==undefined)w*=x[2][k]});if(t.vie){C.rep.forEach(r=>{const m=TR[r[1]];if(m&&m[x[0]])w*=m[x[0]]});RELF.forEach(f=>{const v=C.rel[f],k=v>=2?'Rel:'+f+'+':v<=-2?'Rel:'+f+'-':'',m=RELW[k];if(m&&m[x[0]])w*=m[x[0]]});const mo=C.mnd&&MONDE[C.mnd.n].w[x[0]];if(mo)w*=mo}
   const why=rw.find(k=>x[2]&&x[2][k]!==undefined&&x[2][k]!==1&&k!==C.pos&&!SAI.includes(k.toLowerCase()))||(x[3]&&x[3]!==C.pos?x[3]:'');return{t:x[0],w,why:why.startsWith('Étape:')?'son objectif':why}}).filter(x=>x.w>0);
  return l.length?l:t.o.filter(x=>!x[3]).map(x=>({t:x[0],w:x[1]}))}
 function dessiner(w){
@@ -30,8 +30,9 @@ function dessiner(w){
  $('g').innerHTML=h;
 }
 /* ----- Jets, effets, objets, boutique ----- */
-function jet(k,d,tag){const b=C.inv.reduce((s,x)=>s+((ITEMS[x]||{})[k]||0),0),cp=tag?bonusComp(tag):0,r=2+rnd(6)+rnd(6),st=Math.floor(C.st[k]/2),tot=r+st+b+cp;
- return{ok:tot>=d,txt:(/^[AEIOUÉ]/.test(S[k])?'Jet d\u2019':'Jet de ')+S[k]+' : '+tot+' (dés '+r+' + stat '+st+(b?' + objets '+b:'')+(cp?' + compétence '+cp:'')+') contre '+d}}
+function usure(k){const c=[];C.inv.filter((x,i,a)=>a.indexOf(x)===i).forEach(x=>{if(((ITEMS[x]||{})[k])&&DUR[x]){C.us[x]=(C.us[x]||0)+1;if(C.us[x]>=DUR[x]){C.inv.splice(C.inv.indexOf(x),1);C.us[x]=0;c.push(x)}}});return c}
+function jet(k,d,tag){d+=1+Math.min(6,Math.floor(C.vie.length/4));const b=C.inv.reduce((s,x)=>s+((ITEMS[x]||{})[k]||0),0),cp=tag?bonusComp(tag):0,r=2+rnd(6)+rnd(6),st=Math.floor(C.st[k]/2),tot=r+st+b+cp;
+ const casses=usure(k);return{ok:tot>=d,casses,txt:(/^[AEIOUÉ]/.test(S[k])?'Jet d\u2019':'Jet de ')+S[k]+' : '+tot+' (dés '+r+' + stat '+st+(b?' + objets '+b:'')+(cp?' + compétence '+cp:'')+') contre '+d}}
 let LASTOK=true;
 function initComp(){const g=k=>(C.rep.find(r=>r[0]===k)||[])[1],L=[];
  (SKM[g('Métier')]||[]).forEach(s=>L.push(s));if(RSK[g('Race')])L.push(RSK[g('Race')]);if(ASK[g('Archétype')])L.push(ASK[g('Archétype')]);
@@ -45,35 +46,44 @@ function donner(v){const e=CAD[v]||{},tx=[];
  Object.keys(S).forEach(k=>{if(e[k]){C.st[k]+=e[k];tx.push(S[k]+' +'+e[k])}});
  if(e.or){C.or+=e.or;tx.push('Or +'+e.or)}if(e.pvm){C.pvm+=e.pvm;C.pv+=e.pvm;tx.push('Vie max +'+e.pvm)}if(e.enm){C.enm+=e.enm;C.en+=e.enm;tx.push('Énergie max +'+e.enm)}
  if(e.xp){C.comp.forEach(s=>s.xp+=e.xp);tx.push('Toutes les compétences progressent')}if(e.it){C.inv.push(e.it);tx.push('+ '+e.it)}if(e.fl){C.fl.push(e.fl);tx.push(e.fl)}return tx}
+const CIC=['au bras','à la jambe','au visage','au flanc'],nomPropre=()=>NOMS1[rnd(NOMS1.length)]+' '+NOMS2[rnd(NOMS2.length)];
+function cicatrice(tx){const k=Object.keys(S)[rnd(5)];C.st[k]=Math.max(1,C.st[k]-1);C.pvm=Math.max(5,C.pvm-1);C.pv=Math.min(C.pv,C.pvm);const t='Cicatrice '+CIC[rnd(4)]+' ('+S[k]+' -1)';C.cic.push(t);tx.push(t)}
+function evMonde(tx){const m=C.mnd;if(m&&C.t>=m.fin){tx.push('Fin : '+m.n);C.mnd=null;return}
+ if(!m&&C.vie.length>=3&&Math.random()<.12){const k=Object.keys(MONDE),n=k[rnd(k.length)],d=10+rnd(15);C.mnd={n,fin:C.t+d};tx.push('Le monde change : '+n+' ('+d+' mois). '+MONDE[n].t)}}
+const vieChere=tx=>{if(VILLES.includes(C.pos)&&C.or>0){C.or--;tx.push('Vie chère : or -1')}};
+const etats=()=>C.fl.map(f=>f==='Ennemi juré'&&C.nem?'Ennemi juré : '+C.nem:f==='Allié'&&C.ally?'Allié : '+C.ally:f).concat(C.cic);
 function appliquer(v){const e=EF[v]||{},tx=[];let ok=true;
- if(e.jet){const j=jet(e.jet[0],e.jet[1],ETAG[v]);ok=j.ok;tx.push(j.txt+' : '+(ok?'réussi':'raté'))}
+ if(e.jet){const j=jet(e.jet[0],e.jet[1],ETAG[v]);ok=j.ok;tx.push(j.txt+' : '+(ok?'réussi':'raté'));j.casses.forEach(x=>tx.push(x+' se brise'))}
  Object.keys(S).forEach(k=>{if(e[k]){C.st[k]=Math.max(1,C.st[k]+e[k]);tx.push(S[k]+(e[k]>0?' +':' ')+e[k])}});
- if(e.PV){let d=e.PV;if(d<0&&e.jet&&ok)d=Math.min(-1,Math.ceil(d/2));C.pv=Math.min(C.pvm,C.pv+d);tx.push('Vie '+(d>0?'+':'')+d)}
+ if(e.PV){let d=e.PV;if(d<0&&e.jet&&ok)d=Math.min(-1,Math.ceil(d/2));C.pv=Math.min(C.pvm,C.pv+d);tx.push('Vie '+(d>0?'+':'')+d);if(d<0&&e.jet&&!ok&&Math.random()<.5)cicatrice(tx)}
  if(e.EN){C.en=Math.max(0,Math.min(C.enm,C.en+e.EN));tx.push('Énergie '+(e.EN>0?'+':'')+e.EN)}
  if(e.or&&(e.or<0||ok)){C.or=Math.max(0,C.or+e.or);tx.push('Or '+(e.or>0?'+':'')+e.or)}
  if(e.it&&ok){C.inv.push(e.it);tx.push('+ '+e.it)}
- if(e.fl&&!C.fl.includes(e.fl)){C.fl.push(e.fl);tx.push(e.fl)}
- if(e.uf)C.fl=C.fl.filter(f=>f!==e.uf);LASTOK=ok;gagner(v,ok,tx);return tx}
+ if(e.fl&&!C.fl.includes(e.fl)){C.fl.push(e.fl);tx.push(e.fl);if(e.fl==='Ennemi juré'&&!C.nem)C.nem=nomPropre();if(e.fl==='Allié'&&!C.ally)C.ally=nomPropre()}
+ if(e.uf&&(ok||!e.jet)){C.fl=C.fl.filter(f=>f!==e.uf);if(e.uf==='Ennemi juré')C.nem=''}
+ const rl=REL[v];if(rl&&ok)Object.keys(rl).forEach(f=>{C.rel[f]=Math.max(-5,Math.min(5,C.rel[f]+rl[f]));tx.push(f+(rl[f]>0?' +':' ')+rl[f])});LASTOK=ok;gagner(v,ok,tx);return tx}
 function auto(tx){ /* objets utilisés seuls */
  let k;while(C.pv>0&&C.pv<=4&&(k=C.inv.indexOf('Potion de soin'))>=0){C.inv.splice(k,1);C.pv=Math.min(C.pvm,C.pv+ITEMS['Potion de soin'].n);tx.push('boit une Potion de soin')}
  while(C.pv>0&&C.en<=2&&(k=C.inv.indexOf('Ration'))>=0){C.inv.splice(k,1);C.en=Math.min(C.enm,C.en+ITEMS['Ration'].n);tx.push('mange une Ration')}}
+const px=x=>Math.round(ITEMS[x].p*(C.rel.Marchands>=2?.75:C.rel.Marchands<=-2?1.25:1)*(C.mnd&&C.mnd.n==='Famine'&&x==='Ration'?2:1)*(C.mnd&&C.mnd.n==='Guerre'&&['Épée','Dague','Arc','Armure légère'].includes(x)?1.5:1));
 function boutique(tx){ /* achats seuls en ville */
- if(!VILLES.includes(C.pos)||C.pv<=0)return;const a=x=>{C.or-=ITEMS[x].p;C.inv.push(x);tx.push('achète : '+x)},n=x=>C.inv.filter(y=>y===x).length;
- if(!n('Potion de soin')&&C.or>=5)a('Potion de soin');if(n('Ration')<2&&C.or>=2)a('Ration');
- if(!C.inv.some(x=>['Épée','Dague','Marteau'].includes(x))&&C.or>=15)a('Épée');if(!n('Armure légère')&&C.or>=20)a('Armure légère')}
+ if(!VILLES.includes(C.pos)||C.pv<=0)return;const a=x=>{const p=px(x);C.or-=p;C.inv.push(x);tx.push('achète : '+x+' ('+p+' or)')},n=x=>C.inv.filter(y=>y===x).length;
+ if(!n('Potion de soin')&&C.or>=px('Potion de soin')+3)a('Potion de soin');if(n('Ration')<2&&C.or>=px('Ration'))a('Ration');
+ if(!C.inv.some(x=>['Épée','Dague','Marteau','Arc'].includes(x))&&C.or>=px('Épée'))a('Épée');if(!n('Armure légère')&&C.or>=px('Armure légère')+5)a('Armure légère')}
 function verifier(){
- if(C.en<=0&&C.pv>0)C.pv--;
+ if(C.en<=0){C.fat++;if(C.fat%2===0&&C.enm>3)C.enm--;if(C.pv>0)C.pv--}
  if(C.pv<=0){C.pv=0;C.fin='mort';return}
  if(age()>=70){C.fin='mort';return}
  if(avancer())C.fin='victoire'}
 function cible(c){const o=C.obj,q=etq();let tg=null;if(C.qs<q.length){const d=OBJD[o]&&OBJD[o][C.qs];if(d){if(d.t==='lieu')tg=d.v;else if(d.t==='ev'){const e=tv().o.find(x=>x[0]===d.v);tg=e&&e[3]}}else if(o==='Retrouver la Relique'&&C.qs===1)tg='Désert aux ruines'}
  return tg&&c.includes(tg)&&Math.random()<.65?tg:c[rnd(c.length)]}
 function agir(v,why){
- const d0=cap(sai())+', '+age()+' ans',tx=appliquer(v),sc=(EF[v]||{}).sc;let txt=v,vers=null,de=C.pos,dt=1+rnd(2);
+ const nm=v==='Vengeance de l\'ennemi'?C.nem:'',d0=cap(sai())+', '+age()+' ans',tx=appliquer(v),sc=(EF[v]||{}).sc;let txt=v,vers=null,de=C.pos,dt=1+rnd(2);
  if(/^voyage/i.test(v)){const c=lieux().filter(x=>x!==C.pos);if(c.length&&C.pos){vers=cible(c);txt=v+' : '+de+' vers '+vers;C.trail.push([de,vers]);C.pos=vers;if(!C.vis.includes(vers))C.vis.push(vers);const cf=C.inv.includes('Cheval')?1:2;C.en=Math.max(0,C.en-cf);tx.push('Énergie -'+cf);dt=3}}
  else txt+=(C.pos?' à '+C.pos:'');
  if(sai()==='hiver'){C.en=Math.max(0,C.en-1);tx.push('Froid : Énergie -1')}
- C.t+=dt;meteo();auto(tx);boutique(tx);verifier();if(C.en<=0&&!C.fin)tx.push('épuisé');
+ C.t+=dt;meteo();if(C.cd>0)C.cd--;if(v==='Vengeance de l\'ennemi')C.cd=4;evMonde(tx);vieChere(tx);auto(tx);boutique(tx);verifier();if(C.en<=0&&!C.fin)tx.push('épuisé');
+ if(tx.includes('Ennemi juré')&&C.nem)txt+=' (ennemi : '+C.nem+')';if(nm)txt=v+' : '+nm;if(/allié/i.test(v)&&C.ally)txt+=' : '+C.ally;
  C.vie.push({t:v,ok:LASTOK,txt:d0+' : '+txt+(why?' (suite à : '+why+')':'')+(tx.length?' ['+tx.join(', ')+']':'')+(C.fin==='mort'?' : mort'+(age()>=70?' de vieillesse':''):'')});
  $('act').textContent=C.vie[C.vie.length-1].txt;ecrire('c',C);return{tx,vers,de,sc}}
 function fin(){C.pvm=C.pv=8+C.st.End;C.enm=C.en=6+Math.floor(C.st.End/2);C.or=5;C.age0=17+rnd(14);C.t=rnd(12);meteo();
@@ -88,13 +98,13 @@ const jauge=(n,v,m)=>'<li class="st"><span>'+n+'</span><i style="--v:'+Math.max(
 const libItem=x=>{const i=ITEMS[x]||{},b=Object.keys(S).filter(k=>i[k]).map(k=>'+'+i[k]+' '+S[k]);return esc(x)+(b.length?' <small>('+b.join(', ')+' aux jets)</small>':i.use?' <small>(utilisé seul si besoin)</small>':'')};
 function ui(){
  const t=table(),n=etapes().length,f=C.fin;archiver();feedback();document.body.dataset.s=C.pvm?sai():'';
- $('et').textContent=f?'':C.rep.length<n?'Création, étape '+(C.rep.length+1)+'/'+n+' : '+t.n:(C.nom||'Votre personnage')+' : '+cap(sai())+', '+age()+' ans, '+C.meteo.toLowerCase()+'. Tirez un événement';
+ $('et').textContent=f?'':C.rep.length<n?'Création, étape '+(C.rep.length+1)+'/'+n+' : '+t.n:(C.nom||'Votre personnage')+' : '+cap(sai())+', '+age()+' ans, '+C.meteo.toLowerCase()+(C.mnd?', '+C.mnd.n.toLowerCase()+' en cours':'')+'. Tirez un événement';
  $('ico').innerHTML=C.rep.length?iconeSVG(race(),42):'';
  const nomsS=Object.values(S),q=etq();
- $('fi').innerHTML=(C.pvm?jauge('Vie',C.pv,C.pvm)+jauge('Énergie',C.en,C.enm)+'<li class="st"><span>Or</span><i></i><b>'+C.or+'</b></li>':'')+Object.keys(C.st).map(k=>'<li class="st"><span>'+S[k]+'</span><i style="--v:'+Math.min(100,C.st[k]/12*100)+'%"></i><b>'+C.st[k]+'</b></li>').join('')
+ $('fi').innerHTML=(C.pvm?jauge('Vie',C.pv,C.pvm)+jauge('Énergie',C.en,C.enm)+'<li class="st"><span>Or</span><i></i><b>'+C.or+'</b></li>'+RELF.map(f=>'<li class="st"><span>'+f+'</span><i style="--v:'+((C.rel[f]+5)*10)+'%"></i><b>'+(C.rel[f]>0?'+':'')+C.rel[f]+'</b></li>').join(''):'')+Object.keys(C.st).map(k=>'<li class="st"><span>'+S[k]+'</span><i style="--v:'+Math.min(100,C.st[k]/12*100)+'%"></i><b>'+C.st[k]+'</b></li>').join('')
   +(C.rep.filter(r=>!nomsS.includes(r[0])&&r[0]!=='Objectif').map(r=>'<li><b>'+esc(r[0])+'</b>'+esc(r[1])+'</li>').join('')||'<li>Pas encore de réponse.</li>')
   +(C.comp.length?'<li><b>Compétences</b>'+C.comp.map(k=>esc(k.n)+' <small>niv. '+niv(k)+'</small>').join('<br>')+'</li>':'')
-  +(C.fl.length?'<li><b>États</b>'+C.fl.map(esc).join(', ')+'</li>':'')
+  +(etats().length?'<li><b>États</b>'+etats().map(esc).join('<br>')+'</li>':'')
   +(C.obj?'<li><b>Objectif</b>'+esc(C.obj)+(q.length>1?'<br><small>'+q.map((e,i)=>(i<C.qs?'fait : ':i===C.qs?'en cours : ':'à venir : ')+esc(e[0])).join('<br>')+'</small>':'')+'</li>':'');
  $('inv').innerHTML=C.inv.map(x=>'<li>'+libItem(x)+'</li>').join('')||'<li>Inventaire vide.</li>';
  $('j').innerHTML=C.vie.map(x=>'<li>'+esc(x.txt)+'</li>').join('')||'<li>Aucun événement pour l\u2019instant.</li>';
