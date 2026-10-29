@@ -1,7 +1,8 @@
 /* jeu.js : état du personnage, roulette, jets, objets, boutique, saisons, quêtes, fin de partie, interface */
-const nouveau=()=>({nom:'',rep:[],vie:[],pos:null,trail:[],st:{},pv:0,pvm:0,en:0,enm:0,inv:[],or:0,fl:[],comp:[],vis:[],rel:{Marchands:0,Couronne:0,Pègre:0,Peuple:0},cic:[],us:{},fat:0,cd:0,nem:'',ally:'',mnd:null,obj:'',qs:0,t:0,age0:20,meteo:'Clair',fin:null,arch:0});
+const nouveau=()=>({nom:'',rep:[],vie:[],pos:null,trail:[],st:{},pv:0,pvm:0,en:0,enm:0,inv:[],or:0,fl:[],comp:[],vis:[],rel:{Marchands:0,Couronne:0,Pègre:0,Peuple:0},cic:[],us:{},fat:0,cd:0,nem:'',ally:'',mnd:null,succ:[],expl:[],dec:0,boss:0,an0:0,lig:null,ligTrait:'',ligTx:[],fonde:'',obj:'',qs:0,t:0,age0:20,meteo:'Clair',fin:null,arch:0});
 let T=lire('t',DEF),C=lire('c',nouveau()),PAN=lire('pan',[]),rot=0,occ=false,cur=[];
-const etapes=()=>T.filter(t=>!t.vie),tv=()=>T.find(t=>t.vie),lieux=()=>((T.find(t=>t.n==='Décor')||{o:[]}).o).map(x=>x[0]);
+let WORLD=lire('monde',{annee:1200,sites:[]}),LIG=lire('lig',[]);WORLD.sites.forEach(s=>P[s.n]=[s.x,s.y]);
+const ligTable=()=>({n:'Lignée',o:[['Sans lignée',8]].concat(LIG.map(l=>[l.nom,1.5]))}),etapes=()=>(LIG.length?[ligTable()]:[]).concat(T.filter(t=>!t.vie)),tous=()=>lieux().concat(WORLD.sites.map(s=>s.n)),anCourant=()=>C.an0+Math.floor(C.t/12),tv=()=>T.find(t=>t.vie),lieux=()=>((T.find(t=>t.n==='Décor')||{o:[]}).o).map(x=>x[0]);
 const table=()=>C.rep.length<etapes().length?etapes()[C.rep.length]:tv();
 const age=()=>C.age0+Math.floor(C.t/12),sai=()=>SAI[C.t%12],rnd=n=>Math.floor(Math.random()*n);
 function meteo(){const s=sai(),r=Math.random();C.meteo=s==='hiver'?(r<.4?'Neige':r<.6?'Brume':'Clair'):s==='automne'?(r<.4?'Pluie':r<.55?'Orage':r<.7?'Brume':'Clair'):s==='printemps'?(r<.3?'Pluie':'Clair'):(r<.15?'Orage':'Clair')}
@@ -14,9 +15,9 @@ function avancer(){const q=etq();while(C.qs<q.length&&q[C.qs][1]())C.qs++;return
 function poids(t){
  if(t.stat){const b=C.rep.reduce((s,r)=>s+((SB[r[1]]||{})[t.stat]||0),0);return[2,3,4,5,6,7,8,9].map(v=>({t:String(v),w:Math.exp(-((v-5.5)**2)/6)*Math.exp(.22*b*(v-5.5))}))}
  const ev=t.vie?C.vie.filter(e=>e.t!=='Objet').slice(-2).map(e=>e.t):[],a=C.rep.map(r=>r[1]);let cx=[];
- if(t.vie){cx=ev.concat(C.fl,C.inv,[C.pos,C.meteo,cap(sai())]);if(C.en<=3)cx.push('Épuisé');if(C.pv<=4)cx.push('Blessé');const q=etq();if(C.qs<q.length)cx.push('Étape:'+q[C.qs][2])}
+ if(t.vie){cx=ev.concat(C.fl,C.inv,[C.pos,C.meteo,cap(sai())],WORLD.sites.some(s=>s.n===C.pos)?['Site']:[]);if(C.en<=3)cx.push('Épuisé');if(C.pv<=4)cx.push('Blessé');const q=etq();if(C.qs<q.length)cx.push('Étape:'+q[C.qs][2])}
  a.push(...cx);const rw=cx.slice().reverse();
- const l=t.o.filter(x=>(!x[3]||a.includes(x[3]))&&!(x[0]==='Vengeance de l\'ennemi'&&C.cd>0)).map(x=>{let w=x[1];a.forEach(k=>{if(x[2]&&x[2][k]!==undefined)w*=x[2][k]});if(t.vie){C.rep.forEach(r=>{const m=TR[r[1]];if(m&&m[x[0]])w*=m[x[0]]});RELF.forEach(f=>{const v=C.rel[f],k=v>=2?'Rel:'+f+'+':v<=-2?'Rel:'+f+'-':'',m=RELW[k];if(m&&m[x[0]])w*=m[x[0]]});const mo=C.mnd&&MONDE[C.mnd.n].w[x[0]];if(mo)w*=mo}
+ const l=t.o.filter(x=>(!x[3]||a.includes(x[3]))&&!(x[0]==='Vengeance de l\'ennemi'&&C.cd>0)&&!(x[0]==='Explorer le site'&&C.expl.includes(C.pos))&&!(x[0]==='Piste d\'un lieu oublié'&&WORLD.sites.length>=12)).map(x=>{let w=x[1];a.forEach(k=>{if(x[2]&&x[2][k]!==undefined)w*=x[2][k]});if(t.vie){C.rep.concat(C.ligTrait?[['L',C.ligTrait]]:[]).forEach(r=>{const m=TR[r[1]];if(m&&m[x[0]])w*=m[x[0]]});RELF.forEach(f=>{const v=C.rel[f],k=v>=2?'Rel:'+f+'+':v<=-2?'Rel:'+f+'-':'',m=RELW[k];if(m&&m[x[0]])w*=m[x[0]]});const mo=C.mnd&&MONDE[C.mnd.n].w[x[0]];if(mo)w*=mo}
   const why=rw.find(k=>x[2]&&x[2][k]!==undefined&&x[2][k]!==1&&k!==C.pos&&!SAI.includes(k.toLowerCase()))||(x[3]&&x[3]!==C.pos?x[3]:'');return{t:x[0],w,why:why.startsWith('Étape:')?'son objectif':why}}).filter(x=>x.w>0);
  return l.length?l:t.o.filter(x=>!x[3]).map(x=>({t:x[0],w:x[1]}))}
 function dessiner(w){
@@ -52,7 +53,7 @@ function evMonde(tx){const m=C.mnd;if(m&&C.t>=m.fin){tx.push('Fin : '+m.n);C.mnd
  if(!m&&C.vie.length>=3&&Math.random()<.12){const k=Object.keys(MONDE),n=k[rnd(k.length)],d=10+rnd(15);C.mnd={n,fin:C.t+d};tx.push('Le monde change : '+n+' ('+d+' mois). '+MONDE[n].t)}}
 const vieChere=tx=>{if(VILLES.includes(C.pos)&&C.or>0){C.or--;tx.push('Vie chère : or -1')}};
 const etats=()=>C.fl.map(f=>f==='Ennemi juré'&&C.nem?'Ennemi juré : '+C.nem:f==='Allié'&&C.ally?'Allié : '+C.ally:f).concat(C.cic);
-function appliquer(v){const e=EF[v]||{},tx=[];let ok=true;
+function appliquer(v){const e=EF[v]||{},tx=[];let ok=true;if(v==='Piste d\'un lieu oublié')decouvrir(tx);if(v==='Explorer le site')explorer(tx);
  if(e.jet){const j=jet(e.jet[0],e.jet[1],ETAG[v]);ok=j.ok;tx.push(j.txt+' : '+(ok?'réussi':'raté'));j.casses.forEach(x=>tx.push(x+' se brise'))}
  Object.keys(S).forEach(k=>{if(e[k]){C.st[k]=Math.max(1,C.st[k]+e[k]);tx.push(S[k]+(e[k]>0?' +':' ')+e[k])}});
  if(e.PV){let d=e.PV;if(d<0&&e.jet&&ok)d=Math.min(-1,Math.ceil(d/2));C.pv=Math.min(C.pvm,C.pv+d);tx.push('Vie '+(d>0?'+':'')+d);if(d<0&&e.jet&&!ok&&Math.random()<.5)cicatrice(tx)}
@@ -79,20 +80,41 @@ function cible(c){const o=C.obj,q=etq();let tg=null;if(C.qs<q.length){const d=OB
  return tg&&c.includes(tg)&&Math.random()<.65?tg:c[rnd(c.length)]}
 function agir(v,why){
  const nm=v==='Vengeance de l\'ennemi'?C.nem:'',d0=cap(sai())+', '+age()+' ans',tx=appliquer(v),sc=(EF[v]||{}).sc;let txt=v,vers=null,de=C.pos,dt=1+rnd(2);
- if(/^voyage/i.test(v)){const c=lieux().filter(x=>x!==C.pos);if(c.length&&C.pos){vers=cible(c);txt=v+' : '+de+' vers '+vers;C.trail.push([de,vers]);C.pos=vers;if(!C.vis.includes(vers))C.vis.push(vers);const cf=C.inv.includes('Cheval')?1:2;C.en=Math.max(0,C.en-cf);tx.push('Énergie -'+cf);dt=3}}
+ if(/^voyage/i.test(v)){const c=tous().filter(x=>x!==C.pos);if(c.length&&C.pos){vers=cible(c);txt=v+' : '+de+' vers '+vers;C.trail.push([de,vers]);C.pos=vers;if(!C.vis.includes(vers))C.vis.push(vers);const cf=C.inv.includes('Cheval')?1:2;C.en=Math.max(0,C.en-cf);tx.push('Énergie -'+cf);dt=3}}
  else txt+=(C.pos?' à '+C.pos:'');
  if(sai()==='hiver'){C.en=Math.max(0,C.en-1);tx.push('Froid : Énergie -1')}
- C.t+=dt;meteo();if(C.cd>0)C.cd--;if(v==='Vengeance de l\'ennemi')C.cd=4;evMonde(tx);vieChere(tx);auto(tx);boutique(tx);verifier();if(C.en<=0&&!C.fin)tx.push('épuisé');
+ C.t+=dt;meteo();if(C.cd>0)C.cd--;if(v==='Vengeance de l\'ennemi')C.cd=4;evMonde(tx);vieChere(tx);auto(tx);boutique(tx);succes(tx);verifier();if(C.en<=0&&!C.fin)tx.push('épuisé');
  if(tx.includes('Ennemi juré')&&C.nem)txt+=' (ennemi : '+C.nem+')';if(nm)txt=v+' : '+nm;if(/allié/i.test(v)&&C.ally)txt+=' : '+C.ally;
  C.vie.push({t:v,ok:LASTOK,txt:d0+' : '+txt+(why?' (suite à : '+why+')':'')+(tx.length?' ['+tx.join(', ')+']':'')+(C.fin==='mort'?' : mort'+(age()>=70?' de vieillesse':''):'')});
  $('act').textContent=C.vie[C.vie.length-1].txt;ecrire('c',C);return{tx,vers,de,sc}}
 function fin(){C.pvm=C.pv=8+C.st.End;C.enm=C.en=6+Math.floor(C.st.End/2);C.or=5;C.age0=17+rnd(14);C.t=rnd(12);meteo();
- const g=k=>(C.rep.find(r=>r[0]===k)||[])[1];C.inv=[INV[g('Métier')]||'Bâton','Ration'];C.obj=g('Objectif')||'';initComp()}
+ const g=k=>(C.rep.find(r=>r[0]===k)||[])[1];C.inv=[INV[g('Métier')]||'Bâton','Ration'];C.obj=g('Objectif')||'';initComp();C.an0=WORLD.annee+1+rnd(20);applyLig()}
 /* ----- Fin de partie ----- */
 function bio(){const g=k=>((C.rep.find(r=>r[0]===k)||[])[1]||'').toLowerCase(),ev=C.vie.filter(x=>x.t!=='Objet').map(x=>x.t.toLowerCase()).slice(0,5).join(', ');
  return (C.nom||'Le personnage')+', '+g('Race')+' '+g('Métier')+' ('+g('Origine')+', '+g('Trait de caractère')+' et '+g('Défaut')+'). '+(ev?'Sa vie : '+ev+'. ':'')
-  +(C.fin==='mort'?'Fin : mort à '+age()+' ans.':'Fin : objectif accompli (« '+C.obj+' ») à '+age()+' ans.')+' Fortune : '+C.or+' pièces d\u2019or.'}
-function archiver(){if(!C.fin||C.arch)return;C.arch=1;PAN.unshift({nom:C.nom||'Sans nom',race:race(),metier:((C.rep.find(r=>r[0]==='Métier')||[])[1]||''),fin:C.fin,age:age(),bio:bio()});PAN=PAN.slice(0,15);ecrire('pan',PAN);ecrire('c',C)}
+  +(C.fin==='mort'?'Fin : mort à '+age()+' ans.':'Fin : objectif accompli (« '+C.obj+' ») à '+age()+' ans.')+' Fortune : '+C.or+' pièces d\u2019or.'+(C.lig?' Lignée : '+C.lig.nom+'.':'')+(C.fonde?' Il fonde la '+C.fonde+'.':'')+(C.succ.length?' Succès : '+C.succ.join(', ')+'.':'')}
+function effet(e,tx){if(!e)return;Object.keys(e.st||{}).forEach(k=>{C.st[k]=Math.max(1,C.st[k]+e.st[k]);tx.push(S[k]+' +'+e.st[k])});
+ if(e.or){C.or+=e.or;tx.push('Or +'+e.or)}if(e.it){C.inv.push(e.it);tx.push('+ '+e.it)}if(e.xp){C.comp.forEach(s=>s.xp+=e.xp);tx.push('Compétences +'+e.xp)}
+ if(e.comp&&!C.comp.some(s=>s.n===e.comp[0])){C.comp.push({n:e.comp[0],tag:e.comp[1],xp:4,rate:1});tx.push('Compétence héritée : '+e.comp[0])}
+ if(e.trait){C.ligTrait=e.trait;tx.push('Trait de lignée : '+e.trait)}}
+function applyLig(){C.ligTx=[];if(!C.lig)return;effet(C.lig.heri.eff,C.ligTx);(C.lig.gains||[]).forEach(g=>effet(g.eff,C.ligTx))}
+function succes(tx){SUCC.forEach(s=>{if(!C.succ.includes(s[0])&&s[1](C)){C.succ.push(s[0]);const t2=[];effet(s[2],t2);tx.push('Succès : '+s[0]+' ('+t2.join(', ')+')')}})}
+function decouvrir(tx){const ty=SITES[rnd(SITES.length)],n=ty+' '+SNOMS[rnd(SNOMS.length)];if(WORLD.sites.some(s=>s.n===n))return;let x,y,k=0;
+ do{x=32+rnd(150);y=16+rnd(86);k++}while(k<30&&Object.values(P).some(q=>Math.hypot(q[0]-x,q[1]-y)<12));
+ WORLD.sites.push({n,ty,x,y,an:anCourant(),par:C.nom||'Un inconnu',expl:0});P[n]=[x,y];C.dec++;built=false;ecrire('monde',WORLD);tx.push('Découverte : '+n+' (ajouté à la carte)')}
+function explorer(tx){const s=WORLD.sites.find(z=>z.n===C.pos);if(!s)return;const pille=s.expl>0&&anCourant()-s.an<100,m=pille?.25:1,boss=Math.random()<.35;let ok=true;
+ if(boss){const j=jet(Math.random()<.5?'For':'Agi',12,'combat');ok=j.ok;tx.push('Un gardien surgit. '+j.txt+' : '+(ok?'réussi':'raté'));j.casses.forEach(x=>tx.push(x+' se brise'));if(ok)C.boss++;else{C.pv=Math.max(0,C.pv-5);tx.push('Vie -5')}}
+ const or=Math.round((12+rnd(15))*m*(boss&&ok?1.8:1)*(ok?1:.4));C.or+=or;tx.push('Butin : or +'+or+(pille?' (site déjà pillé)':''));
+ if(s.expl===0&&ok&&Math.random()<.5){const it=['Épée bénie','Talisman béni','Potion de soin'][rnd(3)];C.inv.push(it);tx.push('+ '+it)}
+ s.expl++;C.expl.push(s.n);ecrire('monde',WORLD)}
+function fonder(){const g=k=>(C.rep.find(r=>r[0]===k)||[])[1]||'',pre=(C.nom||'sans nom').split(' ')[0];let nom='Lignée '+pre;while(LIG.some(l=>l.nom===nom))nom+=' II';
+ const bs=Object.keys(S).sort((a,b)=>C.st[b]-C.st[a])[0],bc=C.comp.slice().sort((a,b)=>b.xp-a.xp)[0],tr=g('Trait de caractère'),r=Math.random();let heri;
+ if(r<.3&&bc)heri={txt:'Héritage de savoir : '+bc.n,eff:{comp:[bc.n,bc.tag]}};else if(r<.6)heri={txt:'Héritage de sang : '+S[bs]+' +1',eff:{st:{[bs]:1}}};else if(r<.8&&tr)heri={txt:'Héritage de caractère : '+tr.toLowerCase(),eff:{trait:tr}};else heri={txt:'Héritage de fortune : 15 pièces d\u2019or',eff:{or:15}};
+ const gains=C.succ.slice(0,2).map(n=>({txt:n,eff:SUCC.find(x=>x[0]===n)[2]})),l={nom,fond:C.nom||'Sans nom',txt:(C.nom||'Un ancêtre')+', '+g('Race').toLowerCase()+' '+g('Métier').toLowerCase()+', a fondé cette lignée. '+heri.txt+(gains.length?'. Succès transmis : '+gains.map(x=>x.txt).join(', '):'')+'.',heri,gains};
+ LIG.push(l);ecrire('lig',LIG);C.fonde=nom;return l}
+function archiver(){if(!C.fin||C.arch)return;C.arch=1;WORLD.annee=Math.max(WORLD.annee,anCourant());ecrire('monde',WORLD);
+ const marq=(C.fin==='victoire'&&C.succ.length>=1)||C.succ.length>=3||(C.dec>0&&C.boss>0);if(marq&&Math.random()<.08+.92/(1+.6*LIG.length))fonder();
+ PAN.unshift({nom:C.nom||'Sans nom',race:race(),metier:((C.rep.find(r=>r[0]==='Métier')||[])[1]||''),fin:C.fin,age:age(),bio:bio(),lig:C.lig?C.lig.nom:'',nouvelle:C.fonde});PAN=PAN.slice(0,15);ecrire('pan',PAN);ecrire('c',C)}
 /* ----- Interface ----- */
 const jauge=(n,v,m)=>'<li class="st"><span>'+n+'</span><i style="--v:'+Math.max(0,Math.min(100,v/m*100))+'%"></i><b>'+v+'/'+m+'</b></li>';
 const libItem=x=>{const i=ITEMS[x]||{},b=Object.keys(S).filter(k=>i[k]).map(k=>'+'+i[k]+' '+S[k]);return esc(x)+(b.length?' <small>('+b.join(', ')+' aux jets)</small>':i.use?' <small>(utilisé seul si besoin)</small>':'')};
@@ -104,11 +126,12 @@ function ui(){
  $('fi').innerHTML=(C.pvm?jauge('Vie',C.pv,C.pvm)+jauge('Énergie',C.en,C.enm)+'<li class="st"><span>Or</span><i></i><b>'+C.or+'</b></li>'+RELF.map(f=>'<li class="st"><span>'+f+'</span><i style="--v:'+((C.rel[f]+5)*10)+'%"></i><b>'+(C.rel[f]>0?'+':'')+C.rel[f]+'</b></li>').join(''):'')+Object.keys(C.st).map(k=>'<li class="st"><span>'+S[k]+'</span><i style="--v:'+Math.min(100,C.st[k]/12*100)+'%"></i><b>'+C.st[k]+'</b></li>').join('')
   +(C.rep.filter(r=>!nomsS.includes(r[0])&&r[0]!=='Objectif').map(r=>'<li><b>'+esc(r[0])+'</b>'+esc(r[1])+'</li>').join('')||'<li>Pas encore de réponse.</li>')
   +(C.comp.length?'<li><b>Compétences</b>'+C.comp.map(k=>esc(k.n)+' <small>niv. '+niv(k)+'</small>').join('<br>')+'</li>':'')
-  +(etats().length?'<li><b>États</b>'+etats().map(esc).join('<br>')+'</li>':'')
+  +(etats().length?'<li><b>États</b>'+etats().map(esc).join('<br>')+'</li>':'')+(C.succ.length?'<li><b>Succès</b>'+C.succ.map(esc).join('<br>')+'</li>':'')
   +(C.obj?'<li><b>Objectif</b>'+esc(C.obj)+(q.length>1?'<br><small>'+q.map((e,i)=>(i<C.qs?'fait : ':i===C.qs?'en cours : ':'à venir : ')+esc(e[0])).join('<br>')+'</small>':'')+'</li>':'');
  $('inv').innerHTML=C.inv.map(x=>'<li>'+libItem(x)+'</li>').join('')||'<li>Inventaire vide.</li>';
+ $('mn').innerHTML=WORLD.sites.map(s=>'<li><b>'+esc(s.ty)+' : '+esc(s.n)+'</b>découvert par '+esc(s.par)+' (an '+s.an+'), '+s.expl+' exploration'+(s.expl>1?'s':'')+(s.expl>0&&(C.an0?anCourant():WORLD.annee)-s.an<100?', déjà pillé':', intact')+'</li>').join('')||'<li>Aucun lieu découvert.</li>';
  $('j').innerHTML=C.vie.map(x=>'<li>'+esc(x.txt)+'</li>').join('')||'<li>Aucun événement pour l\u2019instant.</li>';
- $('pan').innerHTML=PAN.map(x=>'<li><span class="pi">'+iconeSVG(x.race,30)+'</span><span><b>'+esc(x.nom)+' : '+(x.fin==='mort'?'mort':'victoire')+' à '+x.age+' ans</b>'+esc(x.race+' '+x.metier)+'</span></li>').join('')||'<li>Aucun personnage terminé pour l\u2019instant.</li>';
+ $('pan').innerHTML=PAN.map(x=>'<li><span class="pi">'+iconeSVG(x.race,30)+'</span><span><b>'+esc(x.nom)+' : '+(x.fin==='mort'?'mort':'victoire')+' à '+x.age+' ans</b>'+esc(x.race+' '+x.metier+(x.lig?', '+x.lig:'')+(x.nouvelle?', fonde la '+x.nouvelle:''))+'</span></li>').join('')||'<li>Aucun personnage terminé pour l\u2019instant.</li>';
  $('fin').hidden=!f;if(f)$('fin').innerHTML='<b>'+(f==='mort'?esc(C.nom||'Le personnage')+' est mort.':'Objectif accompli !')+'</b><br>'+esc(bio());
  $('go').disabled=!t||occ||!!f;$('vc').hidden=!C.pos;dessiner()}
 /* ----- Son, tirage synchronisé, carte du destin ----- */
@@ -117,7 +140,7 @@ function bip(f,d,v,t){if(MUET)return;try{AC=AC||new(window.AudioContext||window.
 const ding=()=>{bip(660,.5,.07,'sine');setTimeout(()=>bip(990,.7,.06,'sine'),90)};
 let TIC=0;const tic=k=>{const n=performance.now();if(n-TIC<90)return;TIC=n;bip(380+20*(k%6),.04,.012,'sine')};
 $('son').textContent='Son : '+(MUET?'non':'oui');$('son').onclick=()=>{MUET=!MUET;ecrire('muet',MUET);$('son').textContent='Son : '+(MUET?'non':'oui')};
-const STORY=(t,v)=>HIST[v]||({'Trait de caractère':'Un trait qui marquera ses choix : '+v.toLowerCase()+'.','Défaut':'Son défaut, '+v.toLowerCase()+', lui jouera des tours.','Décor':'Sa vie commence ici : '+v+'.','Objectif':'Son but : '+v.toLowerCase()+'.'}[t.n]||'');
+const STORY=(t,v)=>(t.n==='Lignée'?(v==='Sans lignée'?'Aucun grand nom derrière lui : tout reste à écrire.':(LIG.find(l=>l.nom===v)||{}).txt):'')||HIST[v]||({'Trait de caractère':'Un trait qui marquera ses choix : '+v.toLowerCase()+'.','Défaut':'Son défaut, '+v.toLowerCase()+', lui jouera des tours.','Décor':'Sa vie commence ici : '+v+'.','Objectif':'Son but : '+v.toLowerCase()+'.'}[t.n]||'');
 function modal(cat,titre,texte,liste,ok){const m=$('md');$('mca').textContent=cat;$('mti').textContent=titre;$('mtx').textContent=texte;$('mli').innerHTML=(liste||[]).map(x=>'<li>'+esc(x)+'</li>').join('');
  $('mem').innerHTML=cat==='Race'?iconeSVG(titre,64):'<div class="gl">'+esc(titre.charAt(0))+'</div>';m.hidden=false;$('mok').onclick=()=>{m.hidden=true;ok&&ok()};$('mok').focus()}
 function resume(){const k=Object.keys(S).sort((a,b)=>C.st[b]-C.st[a]);modal('Caractéristiques','Votre personnage',S[k[0]]+' est son point fort, '+S[k[4]]+' son point faible.',Object.keys(S).map(x=>S[x]+' : '+C.st[x]),()=>ui())}
@@ -133,7 +156,7 @@ function arret(t,i){const v=cur[i].t,why=cur[i].why;$('res').textContent=v;$('re
  setTimeout(()=>{occ=false;suite(t,v,why)},1000)}
 function suite(t,v,why){
  if(t.vie){const o=agir(v,why);ui();modal(t.n,v,STORY(t,v),o.tx,()=>{o.vers?voyage(v,o.de,o.vers):o.sc?scene(o.sc,ui):ui()});return}
- C.rep.push([t.n,v]);if(t.n==='Décor')C.pos=v;if(t.stat)C.st[t.stat]=+v;let extra=[];if(C.rep.length===etapes().length){fin();if(t.n==='Cadeau divin')extra=donner(v)}ecrire('c',C);ui();
+ C.rep.push([t.n,v]);if(t.n==='Lignée')C.lig=LIG.find(l=>l.nom===v)||null;if(t.n==='Décor')C.pos=v;if(t.stat)C.st[t.stat]=+v;let extra=[];if(C.rep.length===etapes().length){fin();if(t.n==='Cadeau divin')extra=donner(v).concat(C.ligTx||[])}ecrire('c',C);ui();
  if(t.stat){const nx=etapes()[C.rep.length];if(!nx||!nx.stat)resume();return}
  modal(t.n,v,STORY(t,v),extra,ui)}
 /* ----- Retours visuels : dégâts, gains, confettis ----- */

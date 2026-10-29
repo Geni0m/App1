@@ -28,6 +28,7 @@ function tw(ms,f,fin){const t0=performance.now(),g=n=>{let u=Math.min(1,(n-t0)/m
 function cam(cx,cy,h,ms,fin){const a=V;tw(ms,u=>vue(a.cx+(cx-a.cx)*u,a.cy+(cy-a.cy)*u,a.h+(h-a.h)*u),fin)}
 /* Un bâtiment ou un repère propre à chaque lieu (visible aux zooms Pays et Ville) */
 function ville(n,x,y){const f=v=>v.toFixed(1),r=(a,b,w,h,c)=>'<rect class="mai" x="'+f(x+a)+'" y="'+f(y+b)+'" width="'+w+'" height="'+h+'" fill="'+(c||'var(--rel)')+'" stroke="var(--e)" stroke-width=".12"/>';
+ const S0=WORLD.sites.find(z=>z.n===n);if(S0){const t=S0.ty;if(t==='Grotte')return '<ellipse class="mai" cx="'+x+'" cy="'+y+'" rx="3" ry="2" fill="#4a4a4a"/>';if(t.startsWith('Temple'))return r(-3,-2,.9,3.5,'#9fb7c4')+r(0,-3,.9,4.5,'#9fb7c4')+r(3,-1,.9,2.5,'#9fb7c4');if(t.startsWith('Tour'))return r(-1,-6,2,7,'#a89d8f');if(t.startsWith('Mine'))return r(-3,-1,6,3,'#6b5a3a');if(t.startsWith('Cimetière'))return r(-3,-1,.6,2.5,'#bbb')+r(0,-2,.6,3.5,'#bbb')+r(3,-1,.6,2.5,'#bbb');return r(-4,-3,8,6,'#a89d8f')}
  if(n==='Capitale en révolte')return r(-4,-3.5,8,5,'#b9aea0')+r(-5.2,-6,2,4.5,'#a89d8f')+r(3.2,-6,2,4.5,'#a89d8f')+r(-1,-7,2,5,'#a89d8f')+'<path class="mai" d="M0 -7v-2.6l2.2.7-2.2.7" fill="#b02a2a"/>';
  if(n==='Cité portuaire')return r(-14,3,11,1.3,'#7a5a3a')+r(-12,4.3,.5,2,'#7a5a3a')+r(-7,4.3,.5,2,'#7a5a3a')+r(6,-5,1.6,6,'#eee')+'<path class="mai" d="M5.6 -5h2.4l-1.2-2z" fill="#b02a2a"/>';
  if(n==='Forteresse assiégée')return '<path class="mai" d="M'+f(x-5)+' '+f(y-4)+'h10v8h-10z" fill="none" stroke="var(--e)" stroke-width=".5"/>'+r(-6,-5,2.4,3,'#a89d8f')+r(3.6,-5,2.4,3,'#a89d8f')+r(-6,3,2.4,3,'#a89d8f')+r(3.6,3,2.4,3,'#a89d8f')+'<path class="mai" d="M0 -4v-3l2.2.8-2.2.8" fill="#b02a2a"/>';
@@ -35,7 +36,7 @@ function ville(n,x,y){const f=v=>v.toFixed(1),r=(a,b,w,h,c)=>'<rect class="mai" 
  if(n==='Forêt interdite')return '<circle class="mai" cx="'+f(x)+'" cy="'+f(y)+'" r="4" fill="none" stroke="var(--rel)" stroke-width=".5" stroke-dasharray=".8 1"/>'+r(-.5,-2.5,1,2.4,'#8c8f96');
  let h='';for(let k=0;k<8;k++)h+=r((R()-.5)*9-.7,(R()-.5)*7,1.5,1.1)+(k<3?'<circle class="fu" style="animation-delay:-'+(R()*4).toFixed(1)+'s" cx="'+f(x+(R()-.5)*8)+'" cy="'+f(y+(R()-.5)*6)+'" r=".45"/>':'');return h}
 function monde(){
- if(built)return;built=true;const L=lieux(),q=L.map(pos),f=n=>n.toFixed(1);
+ if(built)return;built=true;const L=tous(),q=L.map(pos),f=n=>n.toFixed(1);
  let h='<defs><pattern id="plu" width="5" height="6" patternUnits="userSpaceOnUse"><path d="M2 0l-.8 3" stroke="#6d8fb5" stroke-width=".25"/></pattern><pattern id="nei" width="6" height="8" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r=".35" fill="#fff"/><circle cx="5" cy="6" r=".3" fill="#fff"/></pattern></defs>'
  +'<path class="vg" d="M4 14q3-2 6 0t6 0M2 40q3-2 6 0t6 0M3 66q3-2 6 0t6 0M4 92q3-2 6 0t6 0"/><path d="M20 10L70 4L130 8L186 14L196 50L190 100L150 114L90 110L40 106L18 80L24 40Z" fill="var(--terre)" stroke="var(--rel)" stroke-width=".6"/>'
  +'<path d="M24 41H194M20 80H192" stroke="var(--rel)" stroke-width=".4" stroke-dasharray="2 1.5" fill="none"/>'

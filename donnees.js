@@ -238,3 +238,20 @@ DEF.find(t=>t.vie).o.push(['Un rival entre en scène',2,{'Étape:Carte':2,'Étap
 Object.assign(EF,{'Un rival entre en scène':{fl:'Rival',Cha:-1},'Duel avec le rival':{PV:-4,or:8,uf:'Rival',jet:['For',11],sc:'combat'}});
 Object.assign(ETAG,{'Un rival entre en scène':'social','Duel avec le rival':'combat'});
 Object.assign(HIST,{'Un rival entre en scène':'Quelqu\'un vise le même but que lui, et ne compte pas partager.','Duel avec le rival':'Le rival le provoque en public : il faudra régler cela maintenant.'});
+
+/* ===================== V4 : lignées, succès, lieux découverts et exploration ===================== */
+const SITES=['Grotte','Forteresse en ruines','Temple englouti','Tour oubliée','Mine abandonnée','Cimetière des anciens rois'];
+const SNOMS=['de Brannoc','des Murmures','du Corbeau','de l\'Ombre','des Trois Vents','de la Dernière Lune','du Roi Pâle','des Cendres'];
+/* Succès : [nom, condition(C), gain immédiat (transmis aux héritiers si la lignée est fondée)] */
+const SUCC=[
+['Survivant',c=>c.vie.length>=20,{or:10}],
+['Fortuné',c=>c.or>=60,{st:{Cha:1}}],
+['Mille lieues',c=>c.vis.length>=6,{st:{End:1}}],
+['Maître d\'un art',c=>c.comp.some(k=>Math.floor(Math.sqrt(k.xp))>=5),{xp:2}],
+['Ami du monde',c=>Math.max(c.rel.Peuple,c.rel.Marchands,c.rel.Couronne)>=4,{or:10}],
+['Vengeance accomplie',c=>c.vie.some(e=>e.t==='Vengeance de l\'ennemi'&&e.ok),{st:{For:1}}],
+['Découvreur',c=>c.dec>0,{st:{Esp:1}}],
+['Tueur de gardien',c=>c.boss>0,{st:{For:1}}]];
+DEF.find(t=>t.vie).o.push(['Piste d\'un lieu oublié',2,{'Voyageur':2,'Érudit':1.5,'Curieux':2,'Étape:Explorer':2}],['Explorer le site',8,{},'Site']);
+Object.assign(ETAG,{'Piste d\'un lieu oublié':'savoir','Explorer le site':'savoir'});
+Object.assign(HIST,{'Piste d\'un lieu oublié':'Un vieux récit, une carte effacée : un lieu oublié se dessine enfin.','Explorer le site':'Entre les pierres et l\'ombre, quelque chose attend d\'être trouvé.'});
