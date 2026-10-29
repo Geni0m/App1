@@ -19,7 +19,7 @@ const iconeSVG=(r,px)=>'<svg viewBox="-11 -11 22 22" width="'+px+'" height="'+px
 const race=()=>(C.rep.find(r=>r[0]==='Race')||[])[1]||'Humain';
 const pos=n=>P[n]||(()=>{let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))>>>0;return[28+h%150,16+(h>>8)%88]})();
 const pays=q=>q[1]<41?'Royaume du Nord':q[1]>80?'Marches du Sud':'Terres du Centre';
-const mp=$('mp');let V={cx:100,cy:60,h:120},TP=[0,0],built=false;
+const mp=$('mp');let V={cx:100,cy:60,h:120},TP=[0,0],built=false,CARTE_URL='',PLACE=null;
 const R=(()=>{let s=7;return()=>(s=s*16807%2147483647)/2147483647})();
 function vue(cx,cy,h){V={cx,cy,h};const w=h*innerWidth/innerHeight;mp.setAttribute('viewBox',(cx-w/2)+' '+(cy-h/2)+' '+w+' '+h);
  mp.style.setProperty('--k',h*.018);mp.style.setProperty('--sc',h/100);['plu','nei'].forEach(i=>{const e=$(i);if(e)e.setAttribute('patternTransform','scale('+h/100+')')});mp.dataset.z=w>150?'m':w>45?'p':'v';tok(TP[0],TP[1])}
@@ -51,6 +51,7 @@ function monde(){
  for(let i=0;i<60;i++)h+=arbre(60+(R()-.5)*30,24+(R()-.5)*18);
  for(let i=0;i<90;i++){const x=26+R()*164,y=12+R()*96;if(!pr(x,y,5))h+='<circle cx="'+f(x)+'" cy="'+f(y)+'" r=".28" fill="'+['#d96a6a','#e6c84a','#b78ad6'][i%3]+'"/>'}
  for(let i=0;i<18;i++){const x=30+R()*156,y=16+R()*88;if(!pr(x,y,5))h+='<path d="M'+f(x)+' '+f(y)+'l1-1.3 1.2.2.6 1.1z" fill="var(--rel)"/>'}
+ if(CARTE_URL)h+='<image href="'+CARTE_URL+'" x="0" y="0" width="200" height="120" preserveAspectRatio="xMidYMid slice"/>';
  q.forEach((c,i)=>{h+=ville(L[i],c[0],c[1])+'<circle cx="'+c[0]+'" cy="'+c[1]+'" r="1.2" fill="var(--a)" stroke="var(--e)" stroke-width=".25"/><text x="'+c[0]+'" y="'+(c[1]+7)+'">'+esc(L[i])+'</text>'});
  for(let i=0;i<5;i++){const x=40+R()*130,y=20+R()*80;h+='<g class="an" style="animation-duration:'+f(6+R()*6)+'s;animation-delay:-'+f(R()*6)+'s"><ellipse cx="'+f(x)+'" cy="'+f(y)+'" rx=".9" ry=".5" fill="var(--tro)"/><circle cx="'+f(x+.9)+'" cy="'+f(y-.4)+'" r=".35" fill="var(--tro)"/></g>'}
  h+='<g class="nu"><ellipse cx="-30" cy="30" rx="14" ry="3" fill="#fff" opacity=".35"/></g><g class="nu nu2"><ellipse cx="-20" cy="84" rx="12" ry="2.6" fill="#fff" opacity=".3"/></g>'
@@ -79,6 +80,9 @@ function scene(k,fin){monde();const q=pos(C.pos);$('plein').hidden=false;$('mf')
  const g=document.createElementNS(NS,'g');g.setAttribute('transform','translate('+q[0]+' '+(q[1]-6*V.h/100)+') scale('+(V.h/100*1.6)+')');g.innerHTML=e;$('dyn').appendChild(g);
  if(k==='tempete')mp.dataset.w='Orage';let ok=false;const fermer=()=>{if(ok)return;ok=true;g.remove();$('plein').hidden=true;$('mf').onclick=fermerCarte;fin()};
  $('mf').onclick=fermer;setTimeout(fermer,2600)}
-const fermerCarte=()=>{$('plein').hidden=true;ui()};$('mf').onclick=fermerCarte;$('vc').onclick=ouvrirCarte;
+const fermerCarte=()=>{PLACE=null;$('plein').hidden=true;ui()};$('mf').onclick=fermerCarte;$('vc').onclick=ouvrirCarte;
 document.querySelectorAll('.bas button').forEach(b=>b.onclick=()=>{const w=+b.dataset.w,h=w*innerHeight/innerWidth;w>150?cam(100,60,h,700):cam(TP[0],TP[1],h,700)});
 addEventListener('resize',()=>vue(V.cx,V.cy,V.h));
+mp.addEventListener('click',ev=>{if(!PLACE)return;const pt=mp.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;const q=pt.matrixTransform(mp.getScreenCTM().inverse()),
+ x=Math.max(2,Math.min(198,+q.x.toFixed(1))),y=Math.max(2,Math.min(118,+q.y.toFixed(1))),n=PLACE.n;PLACE=null;
+ PERSO.pos[n]=[x,y];P[n]=[x,y];const l=PERSO.lieux.find(z=>z.n===n);if(l){l.x=x;l.y=y}ecrire('perso',PERSO);built=false;$('plein').hidden=true;ui()});

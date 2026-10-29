@@ -1,7 +1,13 @@
 /* jeu.js : état du personnage, roulette, jets, objets, boutique, saisons, quêtes, fin de partie, interface */
 const nouveau=()=>({nom:'',rep:[],vie:[],pos:null,trail:[],st:{},pv:0,pvm:0,en:0,enm:0,inv:[],or:0,fl:[],comp:[],vis:[],rel:{Marchands:0,Couronne:0,Pègre:0,Peuple:0},cic:[],us:{},fat:0,cd:0,nem:'',ally:'',mnd:null,succ:[],expl:[],dec:0,boss:0,an0:0,lig:null,ligTrait:'',ligTx:[],fonde:'',obj:'',qs:0,t:0,age0:20,meteo:'Clair',fin:null,arch:0});
-let T=lire('t',DEF),C=lire('c',nouveau()),PAN=lire('pan',[]),rot=0,occ=false,cur=[];
+let PERSO=lire('perso',{tables:{},ev:[],efx:{},hist:{},etag:{},lieux:[],pos:{},extra:[]}),T=null,C=lire('c',nouveau()),PAN=lire('pan',[]),rot=0,occ=false,cur=[];
 let WORLD=lire('monde',{annee:1200,sites:[]}),LIG=lire('lig',[]);WORLD.sites.forEach(s=>P[s.n]=[s.x,s.y]);
+function appliquerPerso(){Object.assign(EF,PERSO.efx);Object.assign(HIST,PERSO.hist);Object.assign(ETAG,PERSO.etag);PERSO.lieux.forEach(l=>{P[l.n]=[l.x,l.y]});Object.keys(PERSO.pos).forEach(n=>{P[n]=PERSO.pos[n]})}
+function construireT(){const t=JSON.parse(JSON.stringify(DEF));t.forEach(x=>{if(PERSO.tables[x.n])x.o=PERSO.tables[x.n]});
+ const v=t.find(x=>x.vie);PERSO.ev.forEach(e=>{if(!v.o.some(y=>y[0]===e[0]))v.o.push(e)});
+ const d=t.find(x=>x.n==='Décor');PERSO.lieux.forEach(l=>{if(!d.o.some(y=>y[0]===l.n))d.o.push([l.n,l.poids||1,{}])});
+ const i=t.findIndex(x=>x.n==='Objectif');PERSO.extra.forEach((x,k)=>t.splice(i+k,0,JSON.parse(JSON.stringify(x))));return t}
+appliquerPerso();T=construireT();
 const ligTable=()=>({n:'Lignée',o:[['Sans lignée',8]].concat(LIG.map(l=>[l.nom,1.5]))}),etapes=()=>(LIG.length?[ligTable()]:[]).concat(T.filter(t=>!t.vie)),tous=()=>lieux().concat(WORLD.sites.map(s=>s.n)),anCourant=()=>C.an0+Math.floor(C.t/12),tv=()=>T.find(t=>t.vie),lieux=()=>((T.find(t=>t.n==='Décor')||{o:[]}).o).map(x=>x[0]);
 const table=()=>C.rep.length<etapes().length?etapes()[C.rep.length]:tv();
 const age=()=>C.age0+Math.floor(C.t/12),sai=()=>SAI[C.t%12],rnd=n=>Math.floor(Math.random()*n);
@@ -141,7 +147,7 @@ const ding=()=>{bip(660,.5,.07,'sine');setTimeout(()=>bip(990,.7,.06,'sine'),90)
 let TIC=0;const tic=k=>{const n=performance.now();if(n-TIC<90)return;TIC=n;bip(380+20*(k%6),.04,.012,'sine')};
 $('son').textContent='Son : '+(MUET?'non':'oui');$('son').onclick=()=>{MUET=!MUET;ecrire('muet',MUET);$('son').textContent='Son : '+(MUET?'non':'oui')};
 const STORY=(t,v)=>(t.n==='Lignée'?(v==='Sans lignée'?'Aucun grand nom derrière lui : tout reste à écrire.':(LIG.find(l=>l.nom===v)||{}).txt):'')||HIST[v]||({'Trait de caractère':'Un trait qui marquera ses choix : '+v.toLowerCase()+'.','Défaut':'Son défaut, '+v.toLowerCase()+', lui jouera des tours.','Décor':'Sa vie commence ici : '+v+'.','Objectif':'Son but : '+v.toLowerCase()+'.'}[t.n]||'');
-function modal(cat,titre,texte,liste,ok){const m=$('md');$('mca').textContent=cat;$('mti').textContent=titre;$('mtx').textContent=texte;$('mli').innerHTML=(liste||[]).map(x=>'<li>'+esc(x)+'</li>').join('');
+function modal(cat,titre,texte,liste,ok){const m=$('md');$('mca').textContent=cat;$('mti').textContent=titre;$('mtx').className='';$('mtx').textContent=texte;$('mli').innerHTML=(liste||[]).map(x=>'<li>'+esc(x)+'</li>').join('');
  $('mem').innerHTML=cat==='Race'?iconeSVG(titre,64):'<div class="gl">'+esc(titre.charAt(0))+'</div>';m.hidden=false;$('mok').onclick=()=>{m.hidden=true;ok&&ok()};$('mok').focus()}
 function resume(){const k=Object.keys(S).sort((a,b)=>C.st[b]-C.st[a]);modal('Caractéristiques','Votre personnage',S[k[0]]+' est son point fort, '+S[k[4]]+' son point faible.',Object.keys(S).map(x=>S[x]+' : '+C.st[x]),()=>ui())}
 $('go').onclick=()=>{
@@ -175,6 +181,6 @@ function edit(){const t=edt()[+$('sl').value||0];$('ed').value=t.o.map(x=>{const
 $('sl').onchange=edit;
 $('sv').onclick=()=>{const o=$('ed').value.split('\n').map(l=>{const p=l.split('|').map(s=>s.trim()),w=parseFloat((p[1]||'').replace(',','.')),m={};
  (p[2]||'').split(';').forEach(s=>{const k=s.lastIndexOf('=');if(k>0){const v=parseFloat(s.slice(k+1).replace(',','.'));if(!isNaN(v))m[s.slice(0,k).trim()]=v}});const x=[p[0],w>0?w:1,m];if(p[3])x.push(p[3]);return x}).filter(x=>x[0]);
- if(!o.length)return alert('Ajoutez au moins une option.');edt()[+$('sl').value||0].o=o;built=false;ecrire('t',T);ui()};
-$('rd').onclick=()=>{if(confirm('Remettre toutes les tables d\u2019origine ?')){T=JSON.parse(JSON.stringify(DEF));built=false;ecrire('t',T);menu();ui()}};
+ if(!o.length)return alert('Ajoutez au moins une option.');const tb=edt()[+$('sl').value||0];tb.o=o;const ex=PERSO.extra.find(x=>x.n===tb.n);if(ex)ex.o=o;else PERSO.tables[tb.n]=o;built=false;ecrire('perso',PERSO);ui()};
+$('rd').onclick=()=>{if(confirm('Remettre toutes les tables d\u2019origine ?')){PERSO.tables={};ecrire('perso',PERSO);T=construireT();built=false;menu();ui()}};
 menu();ui();

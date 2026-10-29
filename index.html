@@ -4,7 +4,10 @@
 <meta name="color-scheme" content="light dark">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Roulette JDR"><title>Roulette JDR</title>
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#12151c">
+<link rel="stylesheet" href="style.css?v=10">
 </head><body><main>
 <div class="haut"><h1>Roulette JDR</h1><button id="son">Son : oui</button></div>
 <div class="nomrow"><span id="ico"></span><input id="nom" placeholder="Nom du personnage" aria-label="Nom du personnage"></div>
@@ -19,8 +22,10 @@
 <h2>Inventaire</h2><ul id="inv"></ul>
 <h2>Journal de vie</h2><ul id="j"></ul>
 <div class="l"><button id="cop">Copier</button><button id="raz">Nouveau personnage</button></div>
+<div class="l"><button id="rec">Lire le récit</button></div>
 <h2>Lieux découverts</h2><ul id="mn"></ul>
 <h2>Panthéon</h2><ul id="pan"></ul>
+<section id="adm" hidden><h2>Atelier</h2></section>
 <details><summary>Modifier les tables</summary>
 <p style="color:var(--m);font-size:14px">Une option par ligne : <b>texte | poids | Réponse=multiplicateur; … | requis</b><br>Le multiplicateur s'applique si le personnage a déjà cette réponse, ou si l'un de ses deux derniers événements, un objet de son inventaire, un état ou son lieu porte ce nom (0 = exclu, 3 = trois fois plus probable). Un quatrième champ facultatif, | requis, verrouille l'événement tant que cette condition n'est pas remplie. Un événement commençant par « Voyage » ouvre la carte ; les options de « Décor » sont les lieux.</p>
 <select id="sl" aria-label="Table"></select>
@@ -32,8 +37,9 @@
 <div id="plein" hidden><svg id="mp" viewBox="0 0 200 120" data-z="m"></svg>
 <div class="top"><b id="mt"></b><button id="mf">Fermer</button></div>
 <div class="bas"><button data-w="205">Monde</button><button data-w="80">Pays</button><button data-w="24">Ville</button></div></div>
-<script src="outils.js?v=9"></script>
-<script src="donnees.js?v=9"></script>
-<script src="carte.js?v=9"></script>
-<script src="jeu.js?v=9"></script>
+<script src="outils.js?v=10"></script>
+<script src="donnees.js?v=10"></script>
+<script src="carte.js?v=10"></script>
+<script src="jeu.js?v=10"></script>
+<script src="admin.js?v=10"></script>
 </body></html>

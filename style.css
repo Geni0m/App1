@@ -84,3 +84,6 @@ body[data-s=printemps]{--f:#edf3e4;--f2:#f4f1e6}body[data-s=été]{--f:#f7efd6;-
 @media(prefers-reduced-motion:reduce){.carte,.gl,#res.pop,.num,.cf{animation:none}}
 
 [hidden]{display:none!important}
+
+.long{white-space:pre-wrap;text-align:left;max-height:50vh;overflow:auto;font-size:14px;color:var(--e)}
+#adm{margin-top:24px;border-top:1px solid var(--l);padding-top:4px}#adm input[type=file]{padding:8px}
