@@ -69,7 +69,7 @@ function atelier(){
  lieuxMenu()}
 atelier();chargerCarte();
 /* L'atelier se révèle avec l'adresse #admin ou 5 touchers rapides sur le titre */
-if(location.hash==='#admin')$('adm').hidden=false;
-let tp=0,tt=0;document.querySelector('h1').onclick=()=>{const n=Date.now();tp=n-tt<700?tp+1:1;tt=n;if(tp>=5){$('adm').hidden=!$('adm').hidden;tp=0}};
+const voirAtelier=()=>{$('adm').hidden=false;$('adm').scrollIntoView()};const hAdmin=()=>{if(/^#admin$/i.test(location.hash))voirAtelier()};hAdmin();addEventListener('hashchange',hAdmin);
+let tp=0,tt=0;document.querySelector('h1').onclick=()=>{const n=Date.now();tp=n-tt<700?tp+1:1;tt=n;if(tp>=5){if($('adm').hidden)voirAtelier();else $('adm').hidden=true;tp=0}};
 /* ----- Hors ligne ----- */
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
