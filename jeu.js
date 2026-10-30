@@ -2,7 +2,8 @@
 const nouveau=()=>({nom:'',rep:[],vie:[],pos:null,trail:[],st:{},pv:0,pvm:0,en:0,enm:0,inv:[],or:0,fl:[],comp:[],vis:[],rel:{Marchands:0,Couronne:0,Pègre:0,Peuple:0},cic:[],us:{},fat:0,cd:0,nem:'',ally:'',mnd:null,succ:[],expl:[],dec:0,boss:0,an0:0,lig:null,ligTrait:'',ligTx:[],fonde:'',obj:'',qs:0,t:0,age0:20,meteo:'Clair',fin:null,arch:0});
 let PERSO=lire('perso',{tables:{},ev:[],efx:{},hist:{},etag:{},lieux:[],pos:{},extra:[]}),T=null,C=lire('c',nouveau()),PAN=lire('pan',[]),rot=0,occ=false,cur=[];
 let WORLD=lire('monde',{annee:1200,sites:[]}),LIG=lire('lig',[]);WORLD.sites.forEach(s=>P[s.n]=[s.x,s.y]);
-function appliquerPerso(){Object.assign(EF,PERSO.efx);Object.assign(HIST,PERSO.hist);Object.assign(ETAG,PERSO.etag);PERSO.lieux.forEach(l=>{P[l.n]=[l.x,l.y]});Object.keys(PERSO.pos).forEach(n=>{P[n]=PERSO.pos[n]})}
+const SB0=JSON.parse(JSON.stringify(SB));
+function appliquerPerso(){Object.keys(SB).forEach(k=>{if(!SB0[k])delete SB[k]});Object.keys(SB0).forEach(k=>{SB[k]=JSON.parse(JSON.stringify(SB0[k]))});Object.assign(SB,PERSO.sb||{});Object.assign(EF,PERSO.efx);Object.assign(HIST,PERSO.hist);Object.assign(ETAG,PERSO.etag);PERSO.lieux.forEach(l=>{P[l.n]=[l.x,l.y]});Object.keys(PERSO.pos).forEach(n=>{P[n]=PERSO.pos[n]})}
 function construireT(){const t=JSON.parse(JSON.stringify(DEF));t.forEach(x=>{if(PERSO.tables[x.n])x.o=PERSO.tables[x.n]});
  const v=t.find(x=>x.vie);PERSO.ev.forEach(e=>{if(!v.o.some(y=>y[0]===e[0]))v.o.push(e)});
  const d=t.find(x=>x.n==='Décor');PERSO.lieux.forEach(l=>{if(!d.o.some(y=>y[0]===l.n))d.o.push([l.n,l.poids||1,{}])});
