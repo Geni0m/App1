@@ -1,7 +1,7 @@
 /* v7.js : mécaniques de la V7 (chargé avant jeu.js ; tout ce qui touche C / WORLD n'est lu qu'à l'exécution) */
 const REG=Object.assign({fs:1,vit:1,anim:1,j:0,auto:0},lire('reg',{}));
 let STAT=Object.assign({n:0,v:0,races:{},jobs:{},morts:{},maxAge:0},lire('stats',{}));
-const DIFF={a:5,b:9,c:3,d:2};
+const DIFF={a:6,b:9,c:3,d:2};
 const nomS=()=>(C.nom||'Le personnage')+(C.sur?' '+C.sur:'');
 
 /* ---------- Surnoms ---------- */
@@ -60,6 +60,8 @@ function apresAction(v,ok,perte,dt,tx){
  if(C.cmp){C.cmp.ag+=dt/12;
   if(v==="Mission de l'allié"&&ok&&C.cmp.niv<4){C.cmp.niv++;tx.push('Votre compagnon progresse (niveau '+C.cmp.niv+')')}
   if((!ok&&COMBATS.includes(v)&&Math.random()<.18)||C.cmp.ag>(C.cmp.ty==='Animal'?15:80)){tx.push('Votre compagnon '+C.cmp.n+' meurt');C.cmp=null}}
+if(v==="Dressage d'une bête"&&ok&&!C.cmp){const an=['Loup apprivoisé','Faucon dressé','Cheval rétif','Chat des ruines','Ours orphelin','Renard rusé'][rnd(6)];C.cmp={n:an,ty:'Animal',niv:1,ag:rnd(4)};tx.push('Compagnon : '+an+' vous suit désormais')}
+ if(v==="Partie de dés"&&!ok){const m=Math.min(6,C.or);if(m){C.or-=m;tx.push('Mise perdue : or -'+m)}}
  if(v==="Naissance d'un enfant"){const n=NOMS1[rnd(NOMS1.length)];C.enf=C.enf||[];C.enf.push({n,an:anCourant()});tx.push('Naissance de '+n)}
  if(v==='Rumeur entendue')rumeur(tx);
  rangMaj(tx);repMaj(v,ok,tx);

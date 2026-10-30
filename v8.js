@@ -84,6 +84,6 @@ function banniere(){try{banR()}catch(e){}}
 function banR(){const b=$('bk');if(!b)return;const n=Date.now(),l=REG.lb||0,util=STAT.n>0||C.vie.length>5;b.hidden=!((n-l)>7*864e5&&util);
  if(!b.hidden){b.innerHTML='<b>Sauvegarde de sécurité</b><br>'+(l?'Dernière : il y a '+Math.floor((n-l)/864e5)+' jours.':'Aucune sauvegarde téléchargée.')+'<br><button id="bk-b">Télécharger maintenant</button>';
   $('bk-b').onclick=()=>{telecharger();REG.lb=Date.now();ecrire('reg',REG);banniere()}}}
-if($('un'))$('un').onclick=annuler;
+if($('un'))$("un").onclick=annuler;
 if($('pan'))$('pan').addEventListener('click',e=>{const li=e.target.closest&&e.target.closest('li[data-p]');if(!li)return;const x=PAN[+li.dataset.p];if(!x)return;
  modal('Panthéon',x.nom,'',[],null);$('mtx').textContent=x.rec||x.bio||'';$('mtx').className='long'});
