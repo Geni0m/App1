@@ -73,9 +73,9 @@ function ouvrirCarte(){if(!C.pos)return;monde();$('plein').hidden=false;$('mf').
 function voyage(ev,de,d){monde();const A=pos(de),B=pos(d),dist=Math.hypot(B[0]-A[0],B[1]-A[1]),h=Math.min(170,Math.max(60,dist*1.4+30))*innerHeight/innerWidth;
  $('plein').hidden=false;$('mf').textContent='Fermer';$('mt').textContent=ev+' : '+de+' vers '+d;
  C.trail.pop();dyn(de);C.trail.push([de,d]);vue(A[0],A[1],h);occ=true;let lx=A[0],ly=A[1];
- tw(3800,u=>{const x=A[0]+(B[0]-A[0])*u,y=A[1]+(B[1]-A[1])*u;tok(x,y);vue(x,y,h);
+ tw(3800*vcf(),u=>{const x=A[0]+(B[0]-A[0])*u,y=A[1]+(B[1]-A[1])*u;tok(x,y);vue(x,y,h);
   if(Math.hypot(x-lx,y-ly)>2.2){lx=x;ly=y;$('pas').insertAdjacentHTML('beforeend','<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r=".45" fill="var(--a)" opacity=".8"/>')}},
-  ()=>cam(B[0],B[1],24*innerHeight/innerWidth,1400,()=>{occ=false;$('mf').textContent='Continuer';$('mt').textContent=(C.fin==='mort'?'Fin du voyage : ':'Arrivée : ')+d+', '+pays(B);ui()}))}
+  ()=>cam(B[0],B[1],24*innerHeight/innerWidth,1400*vcf(),()=>{occ=false;$('mf').textContent='Continuer';$('mt').textContent=(C.fin==='mort'?'Fin du voyage : ':'Arrivée : ')+d+', '+pays(B);ui()}))}
 /* Scène animée sur place : combat, marché, tempête, repos */
 function scene(k,fin){monde();const q=pos(C.pos);$('plein').hidden=false;$('mf').textContent='Passer';$('mt').textContent=C.pos;dyn();vue(q[0],q[1],20*innerHeight/innerWidth);
  const e={combat:'<g class="fl"><path d="M-4-4L4 4M4-4L-4 4" stroke="#fff" stroke-width="1.8"/><path d="M-4-4L4 4M4-4L-4 4" stroke="#b02a2a" stroke-width=".8"/></g>',

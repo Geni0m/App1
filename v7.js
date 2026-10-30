@@ -1,7 +1,7 @@
 /* v7.js : mécaniques de la V7 (chargé avant jeu.js ; tout ce qui touche C / WORLD n'est lu qu'à l'exécution) */
 const REG=Object.assign({fs:1,vit:1,anim:1,j:0,auto:0},lire('reg',{}));
 let STAT=Object.assign({n:0,v:0,races:{},jobs:{},morts:{},maxAge:0},lire('stats',{}));
-const DIFF={a:3,b:8,c:3,d:2};
+const DIFF={a:5,b:9,c:3,d:2};
 const nomS=()=>(C.nom||'Le personnage')+(C.sur?' '+C.sur:'');
 
 /* ---------- Surnoms ---------- */
@@ -169,7 +169,7 @@ function partagerImage(){const W=1080,H=1500,c=document.createElement('canvas');
 function appliquerReg(){const z=REG.fs;document.querySelectorAll('main,.carte').forEach(e=>{e.style.zoom=z});document.body.classList.toggle('calme',!REG.anim);
  const j=$('jt');if(j)j.textContent=REG.j?'Fermer':'Ouvrir';const a=$('au');if(a)a.textContent='Lecture auto : '+(REG.auto?'oui':'non')}
 function sauverReg(){ecrire('reg',REG);appliquerReg();if(typeof ui==='function'&&typeof C!=='undefined')ui()}
-function initReg(){const s=(id,k)=>{const e=$(id);if(!e)return;e.value=String(REG[k]);e.onchange=()=>{REG[k]=+e.value;sauverReg()}};s('rg-fs','fs');s('rg-vit','vit');s('rg-anim','anim');
+function initReg(){const s=(id,k)=>{const e=$(id);if(!e)return;e.value=String(REG[k]);e.onchange=()=>{REG[k]=+e.value;sauverReg()}};s('rg-fs','fs');s('rg-vit','vit');if(REG.vc===undefined)REG.vc=1;s('rg-anim','anim');s('rg-vc','vc');
  if($('jt'))$('jt').onclick=()=>{REG.j=REG.j?0:1;sauverReg()};if($('au'))$('au').onclick=()=>{REG.auto=REG.auto?0:1;sauverReg()};
  if($('pt'))$('pt').onclick=partagerTexte;if($('pi'))$('pi').onclick=partagerImage;appliquerReg()}
 let autoDepuis=0;

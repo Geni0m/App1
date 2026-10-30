@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#12151c">
-<link rel="stylesheet" href="style.css?v=15">
+<link rel="stylesheet" href="style.css?v=16">
 </head><body><main>
 <div class="haut"><h1>Roulette JDR</h1><button id="son">Son : oui</button><button id="au">Lecture auto : non</button></div>
 <div class="nomrow"><span id="ico"></span><input id="nom" placeholder="Nom du personnage" aria-label="Nom du personnage"></div>
@@ -17,18 +17,20 @@
 <div id="leg"></div>
 <button class="go" id="go">Lancer la roulette</button>
 <div id="res" aria-live="polite"></div><div id="act"></div>
-<div class="l"><button id="vc" hidden>Ouvrir la carte</button></div>
+<div class="l"><button id="vc" hidden>Ouvrir la carte</button><button id="un" hidden>Annuler le dernier tirage</button></div>
 <h2>Fiche du personnage</h2><ul id="fi"></ul>
 <h2>Inventaire</h2><ul id="inv"></ul>
 <h2>Journal de vie <button id="jt" class="mini">Ouvrir</button></h2><ul id="j" hidden></ul>
 <div class="l"><button id="cop">Copier</button><button id="raz">Nouveau personnage</button></div>
 <div class="l"><button id="rec">Lire le récit</button><button id="pt">Partager le texte</button><button id="pi">Partager l'image</button></div>
 <h2>Lieux découverts</h2><ul id="mn"></ul>
+<div id="bk" class="calme" hidden></div>
 <h2>Panthéon</h2><ul id="pan"></ul>
 <h2>Statistiques</h2><ul id="stt"></ul>
 <details id="reg"><summary>Réglages</summary>
 <label>Taille du texte <select id="rg-fs"><option value="0.9">Petit</option><option value="1">Normal</option><option value="1.15">Grand</option><option value="1.3">Très grand</option></select></label>
 <label>Vitesse de la roulette <select id="rg-vit"><option value="1.5">Lente</option><option value="1">Normale</option><option value="0.6">Rapide</option></select></label>
+<label>Vitesse de la carte <select id="rg-vc"><option value="1">Normale</option><option value="0.5">Rapide</option><option value="0.15">Très rapide</option></select></label>
 <label>Animations <select id="rg-anim"><option value="1">Complètes</option><option value="0">Réduites</option></select></label>
 </details>
 <section id="adm" hidden><h2>Atelier</h2></section>
@@ -43,10 +45,11 @@
 <div id="plein" hidden><svg id="mp" viewBox="0 0 200 120" data-z="m"></svg>
 <div class="top"><b id="mt"></b><button id="mf">Fermer</button></div>
 <div class="bas"><button data-w="205">Monde</button><button data-w="80">Pays</button><button data-w="24">Ville</button></div></div>
-<script src="outils.js?v=15"></script>
-<script src="donnees.js?v=15"></script>
-<script src="carte.js?v=15"></script>
-<script src="v7.js?v=15"></script>
-<script src="jeu.js?v=15"></script>
-<script src="admin.js?v=15"></script>
+<script src="outils.js?v=16"></script>
+<script src="donnees.js?v=16"></script>
+<script src="carte.js?v=16"></script>
+<script src="v7.js?v=16"></script>
+<script src="v8.js?v=16"></script>
+<script src="jeu.js?v=16"></script>
+<script src="admin.js?v=16"></script>
 </body></html>

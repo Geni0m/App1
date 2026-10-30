@@ -9,7 +9,7 @@ const P={'Cité portuaire':[36,80],'Village de montagne':[156,28],'Capitale en r
 const VILLES=['Cité portuaire','Capitale en révolte'];   /* lieux où le personnage achète seul */
 /* Quêtes : suite d'étapes [texte, condition, clé]. La clé sert de contexte (« Étape:Carte ») pour favoriser des événements. */
 const QU={
-'Retrouver la Relique':[['Obtenir la Carte au trésor',()=>C.inv.includes('Carte au trésor'),'Carte'],['Atteindre : Désert aux ruines',()=>C.pos==='Désert aux ruines','Ruines'],['Rapporter la Relique',()=>C.inv.includes('Relique'),'Relique']],
+'Retrouver la Relique':[['Obtenir la Carte au trésor',()=>C.inv.includes('Carte au trésor'),'Carte'],['Atteindre : Désert aux ruines',()=>atteint('Désert aux ruines'),'Ruines'],['Rapporter la Relique',()=>C.inv.includes('Relique'),'Relique']],
 'Venger sa famille':[['Se faire un ennemi',()=>C.fl.includes('Ennemi juré')||C.vie.some(e=>e.t==='Vengeance de l\'ennemi'),'Ennemi'],['Survivre à sa vengeance',()=>C.vie.some(e=>e.t==='Vengeance de l\'ennemi'&&e.ok),'Vengeance']]};
 const DEF0=[
 {n:'Race',o:[['Humain',4],['Elfe',2],['Nain',2],['Orc',2],['Halfelin',2]]},
@@ -19,7 +19,7 @@ const DEF0=[
 {n:'Défaut',o:[['Joueur',2,{'Cupide':3,'Curieux':1}],['Menteur',3,{'Voleur':3,'Cupide':2,'Loyal':.2}],['Colérique',3,{'Têtu':2,'Rancunier':3,'Généreux':.5,'Orc':2}],['Orgueilleux',3,{'Noble déchu':3,'Têtu':2,'Peureux':.2,'Elfe':2}],['Ivrogne',2,{'Aubergiste':3,'Soldat':2,'Mercenaire':2,'Nain':2}],['Naïf',3,{'Généreux':3,'Curieux':2,'Cupide':.3}]]},
 {n:'Décor',o:[['Cité portuaire',3,{'Marchand':3,'Contrebandier':4,'Étranger exilé':2}],['Village de montagne',3,{'Paysan':3,'Forgeron':3,'Guérisseur':2,'Nain':3}],['Capitale en révolte',2,{'Érudit':3,'Noble déchu':3,'Voleur':2}],['Forêt interdite',2,{'Guérisseur':2,'Curieux':2,'Elfe':4}],['Désert aux ruines',1,{'Érudit':2,'Mercenaire':2,'Étranger exilé':3}],['Forteresse assiégée',2,{'Soldat':4,'Mercenaire':3,'Fils de soldat':3,'Orc':2}]]},
 ...Object.keys(S).map(k=>({n:S[k],stat:k,o:[]})),
-{n:'Objectif',o:[['Retrouver la Relique',2,{'Érudit':3,'Curieux':2}],['Venger sa famille',2,{'Fils de soldat':2,'Rancunier':3}],['Atteindre : Désert aux ruines',1,{'Érudit':2}],['Atteindre : Capitale en révolte',2,{'Noble déchu':2}],['Atteindre : Forteresse assiégée',2,{'Soldat':2}],['Survivre à 12 événements',2],['Réunir 40 pièces d\'or',3,{'Voleur':2,'Marchand':2,'Cupide':2}]]},
+{n:'Objectif',o:[['Retrouver la Relique',2,{'Érudit':3,'Curieux':2}],['Venger sa famille',2,{'Fils de soldat':2,'Rancunier':3}],['Atteindre : Désert aux ruines',1,{'Érudit':2,'Désert aux ruines':0}],['Atteindre : Capitale en révolte',2,{'Noble déchu':2,'Capitale en révolte':0}],['Atteindre : Forteresse assiégée',2,{'Soldat':2,'Forteresse assiégée':0}],['Survivre à 12 événements',2],['Réunir 30 pièces d\'or',3,{'Voleur':2,'Marchand':2,'Cupide':2}]]},
 {n:'Événement de vie',vie:1,o:[
 ['Voyage lointain',3,{'Curieux':2,'Mercenaire':2,'Étranger exilé':2,'Contrebandier':2,'Un héritage inattendu':2,'Une rencontre décisive':1.5,'Un coup de chance':2,'Voyage lointain':.3,'Voyage forcé':.3,'Une maladie':.3,'Épuisé':.2,'Neige':.4,'Hiver':.6,'Printemps':1.5,'Étape:Ruines':4}],
 ['Voyage forcé',1,{'Voleur':2,'Contrebandier':2,'Capitale en révolte':3,'Forteresse assiégée':3,'Une trahison':4,'Une dette':3,'Une maladie':2,'Voyage forcé':.3,'Ennemi juré':3,'Épuisé':.2}],
@@ -52,11 +52,11 @@ const DEF0=[
 const EF={
 'Voyage lointain':{Esp:1},'Voyage forcé':{Agi:1},'Une rencontre décisive':{Cha:1},'Une trahison':{Cha:-1,Esp:1,fl:'Ennemi juré'},'Un héritage inattendu':{or:12},'Une maladie':{PV:-3,EN:-2,jet:['End',10]},'Un coup de chance':{or:6},'Une dette':{Cha:-1,or:-6},'Un deuil':{Esp:1,PV:-1,EN:-1},
 'Repos à l\'auberge':{EN:5,PV:2,or:-2,sc:'repos'},'Soins d\'un guérisseur':{PV:5,or:-3},
-'Embuscade':{PV:-4,or:3,fl:'Ennemi juré',jet:['Agi',10],sc:'combat'},'Combat de rue':{PV:-3,or:4,jet:['For',10],sc:'combat'},'Vengeance de l\'ennemi':{PV:-5,For:1,uf:'Ennemi juré',jet:['For',11],sc:'combat'},
+'Embuscade':{PV:-4,or:3,fl:'Ennemi juré',jet:['Agi',10],sc:'combat'},'Combat de rue':{PV:-3,or:4,jet:['For',7],sc:'combat'},'Vengeance de l\'ennemi':{PV:-5,For:1,uf:'Ennemi juré',jet:['For',8],sc:'combat'},
 'Rencontre d\'un allié':{fl:'Allié',Cha:1},'Mission de l\'allié':{it:'Carte au trésor',EN:-2,uf:'Allié'},
 'Marché florissant':{or:8,Cha:1,sc:'marche'},'Tempête en mer':{PV:-3,EN:-2,jet:['End',10],sc:'tempete'},
-'Fouille des ruines':{it:'Relique',EN:-1,jet:['Esp',9]},'Piège des ruines':{PV:-4,jet:['Agi',10]},'Chasse au trésor':{or:15,EN:-2,jet:['Esp',8]},
-'Tournoi':{For:1,or:10,PV:-2,jet:['For',11],sc:'combat'},'Banquet':{EN:4,Cha:1,or:-3,sc:'marche'},'Source dans la forêt':{EN:4,PV:1},'Sortie de la forteresse':{PV:-3,Agi:1,jet:['For',10],sc:'combat'}};
+'Fouille des ruines':{it:'Relique',EN:-1,jet:['Esp',7]},'Piège des ruines':{PV:-4,jet:['Agi',10]},'Chasse au trésor':{or:15,EN:-2,jet:['Esp',8]},
+'Tournoi':{For:1,or:10,PV:-2,jet:['For',6],sc:'combat'},'Banquet':{EN:4,Cha:1,or:-3,sc:'marche'},'Source dans la forêt':{EN:4,PV:1},'Sortie de la forteresse':{PV:-3,Agi:1,jet:['For',10],sc:'combat'}};
 
 /* Textes affichés dans la « carte du destin » à chaque tirage */
 const HIST={
@@ -169,7 +169,7 @@ const EVN=[
 ['Négociation tendue',2,{'Commerçant':2.5,'Noble déchu':2,'Capitale en révolte':1.5}],
 ['Cambriolage',2,{'Roublard':4,'Voleur':3,'Félin':1.5,'Cité portuaire':1.5}],
 ['Épreuve d\'honneur',2,{'Combattant':3,'Drakéen':1.5,'Orc':1.5}]];
-Object.assign(EF,{'Commande importante':{or:10,Esp:1,jet:['Esp',9]},'Vision étrange':{Esp:1,EN:-1},'Cours improvisé':{or:6,Cha:1},'Concours de cuisine':{or:8,Cha:1,sc:'marche',jet:['Cha',9]},
+Object.assign(EF,{'Commande importante':{or:10,Esp:1,jet:['Esp',6]},'Vision étrange':{Esp:1,EN:-1},'Cours improvisé':{or:6,Cha:1},'Concours de cuisine':{or:8,Cha:1,sc:'marche',jet:['Cha',9]},
  'Chasse au gibier':{EN:2,it:'Ration',jet:['Agi',9]},'Négociation tendue':{or:7,Cha:1,jet:['Cha',10]},'Cambriolage':{or:12,PV:-3,jet:['Agi',11]},'Épreuve d\'honneur':{For:1,or:5,PV:-2,jet:['For',10],sc:'combat'}});
 Object.assign(HIST,{'Gnome':'Inventeurs minuscules aux idées immenses : ils réparent tout, et cassent parfois davantage.','Démon':'Sang d\'enfer et fierté ombrageuse : on les soupçonne de tous les maux, ils en tirent parti.','Drakéen':'Fiers descendants des dragons, couverts d\'écailles, d\'honneur et de colère contenue.','Félin':'Peuple souple et discret des toits et des steppes : curieux, indépendant, jamais domestiqué.','Sylvain':'Nés dans les bois anciens, plus proches des arbres que des villes : patients comme la sève.',
 'Combattant':'La vie se règle par l\'acier, la discipline et le courage.','Voyageur':'Les routes sont sa maison et l\'horizon sa promesse.','Artisan':'Des mains qui façonnent : bois, métal, fil et patience.','Commerçant':'Offre, demande et bon sens : le monde est un grand marché.','Roublard':'Ruse, discrétion et opportunités : la loi est une suggestion.','Soigneur':'Il écoute les corps, les peines, et les plantes qui les apaisent.','Mystique':'Rêves, signes et puissances invisibles guident son pas.',
@@ -180,24 +180,26 @@ Object.assign(TR,{'Elfe':{'Source dans la forêt':1.5,'Banquet':1.2,'Vision étr
 const OBJ=[
 ['Retrouver la Relique',2,{'Érudit':3,'Curieux':2,'Gnome':1.5}],
 ['Venger sa famille',2,{'Fils de soldat':2,'Rancunier':3,'Démon':1.3}],
-['Atteindre : Désert aux ruines',1,{'Érudit':2,'Cartographe':2},[{t:'lieu',v:'Désert aux ruines'}]],
-['Atteindre : Capitale en révolte',2,{'Noble déchu':2,'Espion':2},[{t:'lieu',v:'Capitale en révolte'}]],
-['Atteindre : Forteresse assiégée',2,{'Combattant':2},[{t:'lieu',v:'Forteresse assiégée'}]],
-['Atteindre : Village de montagne',1.5,{'Nain':2,'Artisan':1.5},[{t:'lieu',v:'Village de montagne'}]],
-['Atteindre : Forêt interdite',1.5,{'Elfe':3,'Sylvain':3,'Mystique':2},[{t:'lieu',v:'Forêt interdite'}]],
-['Atteindre : Cité portuaire',1.5,{'Commerçant':2,'Marin':3},[{t:'lieu',v:'Cité portuaire'}]],
+['Atteindre : Désert aux ruines',1,{'Érudit':2,'Cartographe':2,'Désert aux ruines':0},[{t:'lieu',v:'Désert aux ruines'}]],
+['Atteindre : Capitale en révolte',2,{'Noble déchu':2,'Espion':2,'Capitale en révolte':0},[{t:'lieu',v:'Capitale en révolte'}]],
+['Atteindre : Forteresse assiégée',2,{'Combattant':2,'Forteresse assiégée':0},[{t:'lieu',v:'Forteresse assiégée'}]],
+['Atteindre : Village de montagne',1.5,{'Nain':2,'Artisan':1.5,'Village de montagne':0},[{t:'lieu',v:'Village de montagne'}]],
+['Atteindre : Forêt interdite',1.5,{'Elfe':3,'Sylvain':3,'Mystique':2,'Forêt interdite':0},[{t:'lieu',v:'Forêt interdite'}]],
+['Atteindre : Cité portuaire',1.5,{'Commerçant':2,'Marin':3,'Cité portuaire':0},[{t:'lieu',v:'Cité portuaire'}]],
 ['Survivre à 16 événements',2,{},[{t:'vie',n:16}]],
-['Réunir 40 pièces d\'or',3,{'Commerçant':3,'Roublard':2,'Cupide':2,'Halfelin':1.5},[{t:'or',n:40}]],
-['Maîtriser un art (niveau 4)',2,{'Artisan':3,'Érudit':2,'Mystique':2,'Gnome':1.5},[{t:'comp',n:4}]],
-['Explorer le monde (5 lieux)',2,{'Voyageur':4,'Curieux':2,'Félin':1.5,'Elfe':1.3},[{t:'lieux',n:5}]],
-['Remporter 2 tournois',1.5,{'Combattant':3,'Orc':2,'Drakéen':2},[{t:'ev',v:'Tournoi',n:2}]],
+['Réunir 30 pièces d\'or',3,{'Commerçant':3,'Roublard':2,'Cupide':2,'Halfelin':1.5},[{t:'or',n:30}]],
+['Maîtriser un art (niveau 3)',2,{'Artisan':3,'Érudit':2,'Mystique':2,'Gnome':1.5},[{t:'comp',n:3}]],
+['Explorer le monde (4 lieux)',2,{'Voyageur':4,'Curieux':2,'Félin':1.5,'Elfe':1.3},[{t:'lieux',n:4}]],
+['Remporter un tournoi',1.5,{'Combattant':3,'Orc':2,'Drakéen':2},[{t:'ev',v:'Tournoi',n:1}]],
 ['Conclure 3 marchés',1.5,{'Commerçant':4,'Halfelin':2,'Gnome':1.5},[{t:'ev',v:'Marché florissant',n:3}]],
 ['Devenir irrésistible (Charisme 9)',1.5,{'Noble déchu':2,'Démon':2,'Commerçant':1.5},[{t:'stat',k:'Cha',n:9}]],
-['Devenir un colosse (Force 10)',1.5,{'Orc':2,'Nain':1.5,'Combattant':2,'Drakéen':1.5},[{t:'stat',k:'For',n:10}]],
-['Gagner 3 combats',2,{'Combattant':3,'Mercenaire':1.5,'Orc':1.5},[{t:'tag',v:'combat',n:3}]],
+['Devenir un colosse (Force 8)',1.5,{'Orc':2,'Nain':1.5,'Combattant':2,'Drakéen':1.5},[{t:'stat',k:'For',n:8}]],
+['Gagner 2 combats',2,{'Combattant':3,'Mercenaire':1.5,'Orc':1.5},[{t:'tag',v:'combat',n:2}]],
 ['Recevoir 2 visions',1,{'Mystique':4,'Démon':2},[{t:'ev',v:'Vision étrange',n:2}]],
 ['Réussir 2 commandes',1,{'Artisan':4,'Nain':1.5},[{t:'ev',v:'Commande importante',n:2}]]];
 const OBJD={};OBJ.forEach(o=>{if(o[3])OBJD[o[0]]=o[3]});
+/* anciens noms (parties en cours) */
+[['Maîtriser un art (niveau 4)','Maîtriser un art (niveau 3)'],['Remporter 2 tournois','Remporter un tournoi'],['Devenir un colosse (Force 10)','Devenir un colosse (Force 8)'],['Devenir un colosse (Force 9)','Devenir un colosse (Force 8)'],['Gagner 3 combats','Gagner 2 combats'],['Explorer le monde (5 lieux)','Explorer le monde (4 lieux)'],['Réunir 40 pièces d\'or','Réunir 30 pièces d\'or']].forEach(a=>OBJD[a[0]]=OBJD[a[1]]);
 /* ===================== V6 : contenu supplémentaire ===================== */
 RACES.push(["Gobelin",1.2],["Minotaure",1],["Lutin",1],["Revenant",.8]);
 Object.assign(SB,{"Gobelin":{Agi:2,Esp:1,For:-2},"Minotaure":{For:2,End:2,Agi:-2,Cha:-1},"Lutin":{Agi:2,Cha:2,End:-2,For:-2},"Revenant":{End:2,Esp:1,Cha:-2}});
@@ -405,3 +407,78 @@ Object.assign(REC,{
 "Mariage":["{n} se marie.","{n} se marie dans la tristesse."],
 "Naissance d'un enfant":["{n} devient parent.","{n} devient parent dans des conditions difficiles."],
 "Commandement":["{n} prend la tête d'un groupe et se fait obéir.","{n} prend un commandement, mais perd le contrôle."]});
+
+/* ===================== V8 : variété (race, métier, chaînes, saisons) ===================== */
+DEF.find(t=>t.vie).o.push(
+["Journée de travail",3,{"Voyage lointain":.5,"Épuisé":.4,"Blessé":.5}],
+["Chant des anciens",1.8,{"Forêt interdite":2}],["Concours de force",1.8,{"Village de montagne":1.5,"Forteresse assiégée":1.5}],
+["Soirée de taverne",1.8,{"Cité portuaire":1.5,"Ivrogne":2,"Banquet":1.5}],["Gadget instable",1.5,{}],
+["Pacte dans l'ombre",1.2,{"Capitale en révolte":2}],["Chasse en meute",1.6,{"Forêt interdite":2}],["Mémoire des défunts",1.2,{}],
+["Embrouille de ruelle",1.8,{"Capitale en révolte":2,"Cité portuaire":1.5}],["Cercle des herbes",1.6,{"Forêt interdite":2}],
+["Tour de passe-passe",1.6,{"Banquet":1.5,"Marché florissant":1.5}],
+["Client difficile",2,{"Cité portuaire":1.5}],["Livraison urgente",1.8,{}],["Patrouille",1.8,{"Forteresse assiégée":2,"Capitale en révolte":1.5}],
+["Épidémie au village",1.4,{"Village de montagne":2}],["Manuscrit rare",1.5,{"Capitale en révolte":1.5,"Désert aux ruines":1.5}],
+["Pièce d'orfèvrerie",1.4,{}],["Cérémonie",1.6,{}],["Dressage d'une bête",1.4,{"Forêt interdite":1.5}],["Contrat de prime",1.4,{}],["Partie de dés",1.5,{"Cité portuaire":1.5}],
+["Lettre mystérieuse",1.2,{}],["Lettre déchiffrée",4,{},"Lettre"],["Dette de jeu",.9,{"Joueur":3,"Cupide":1.5}],["Le créancier revient",4,{},"Créancier"],
+["Un disciple se présente",3,{},"Gradé"],["Succès de l'élève",4,{},"Élève"],
+["Fête des récoltes",.3,{"Automne":8,"Village de montagne":1.5}],["Hiver rigoureux",.3,{"Hiver":8}],["Pluie torrentielle",.3,{"Pluie":8,"Orage":6}],["Incendie",1,{}]);
+Object.assign(EF,{
+"Journée de travail":{or:4},"Chant des anciens":{EN:3,PV:1},"Concours de force":{or:8,jet:["For",10],EN:-1},"Soirée de taverne":{EN:3,PV:1,or:-2,sc:"marche"},
+"Gadget instable":{or:10,jet:["Esp",10],PV:-2},"Pacte dans l'ombre":{or:12,jet:["Cha",10],PV:-3},"Chasse en meute":{it:"Ration",EN:2,jet:["Agi",9]},
+"Mémoire des défunts":{Esp:1,EN:-1},"Embrouille de ruelle":{or:8,jet:["Agi",10],PV:-2},"Cercle des herbes":{PV:3,EN:3},"Tour de passe-passe":{or:6,jet:["Cha",9]},
+"Client difficile":{or:8,jet:["Cha",9],EN:-1},"Livraison urgente":{or:10,EN:-2,jet:["End",9]},"Patrouille":{or:5,jet:["Esp",9],PV:-2},
+"Épidémie au village":{or:10,jet:["Esp",10],PV:-3},"Manuscrit rare":{or:6,jet:["Esp",9],it:"Livre"},"Pièce d'orfèvrerie":{or:14,jet:["Esp",10],EN:-1},
+"Cérémonie":{EN:2,PV:1},"Dressage d'une bête":{jet:["Cha",9],EN:-1},"Contrat de prime":{or:14,jet:["For",10],PV:-3},"Partie de dés":{or:10,jet:["Cha",9]},
+"Lettre mystérieuse":{fl:"Lettre"},"Lettre déchiffrée":{jet:["Esp",9],uf:"Lettre",it:"Carte au trésor",or:5},"Dette de jeu":{fl:"Créancier",or:6},
+"Le créancier revient":{jet:["Cha",10],uf:"Créancier",or:-8,PV:-3},"Un disciple se présente":{fl:"Élève",Cha:1},"Succès de l'élève":{or:10,uf:"Élève",Cha:1},
+"Fête des récoltes":{EN:3,or:3,PV:1,sc:"marche"},"Hiver rigoureux":{PV:-2,EN:-2,jet:["End",9]},"Pluie torrentielle":{EN:-2,jet:["Agi",8]},"Incendie":{PV:-3,or:-4,jet:["End",10]}});
+Object.assign(ETAG,{"Chant des anciens":"mystique","Concours de force":"combat","Soirée de taverne":"hospitalité","Gadget instable":"artisanat","Pacte dans l'ombre":"ruse","Chasse en meute":"survie","Mémoire des défunts":"mystique","Embrouille de ruelle":"ruse","Cercle des herbes":"soin","Tour de passe-passe":"social","Client difficile":"commerce","Livraison urgente":"voyage","Patrouille":"combat","Épidémie au village":"soin","Manuscrit rare":"savoir","Pièce d'orfèvrerie":"artisanat","Cérémonie":"mystique","Dressage d'une bête":"survie","Contrat de prime":"combat","Partie de dés":"ruse","Lettre mystérieuse":"savoir","Lettre déchiffrée":"savoir","Dette de jeu":"commerce","Le créancier revient":"social","Fête des récoltes":"hospitalité","Hiver rigoureux":"survie","Pluie torrentielle":"voyage","Incendie":"survie"});
+Object.assign(REL,{"Épidémie au village":{Peuple:2},"Cérémonie":{Peuple:1},"Succès de l'élève":{Peuple:1},"Patrouille":{Couronne:1},"Livraison urgente":{Marchands:1},"Client difficile":{Marchands:1},"Contrat de prime":{Pègre:-1},"Partie de dés":{Pègre:1},"Embrouille de ruelle":{Pègre:1}});
+Object.assign(EREQ,{
+"Chant des anciens":["Elfe","Sylvain","Druide"],"Concours de force":["Orc","Minotaure","Drakéen","Nain","Forgeron","Gladiateur","Soldat"],
+"Soirée de taverne":["Nain","Gnome","Halfelin","Aubergiste","Ivrogne","Orc"],"Gadget instable":["Gnome","Lutin","Alchimiste","Bijoutier","Charpentier"],
+"Pacte dans l'ombre":["Démon","Revenant","Contrebandier","Menteur","Cupide"],"Chasse en meute":["Félin","Orc","Gobelin","Chasseur","Éclaireur"],
+"Mémoire des défunts":["Revenant","Démon","Médium","Prêtre"],"Embrouille de ruelle":["Gobelin","Halfelin","Lutin","Voleur","Orphelin des rues"],
+"Cercle des herbes":["Sylvain","Elfe","Druide","Herboriste","Guérisseur","Sage-femme"],"Tour de passe-passe":["Lutin","Halfelin","Gobelin","Voleur","Marchand ambulant"],
+"Client difficile":["Commerçant","Artisan","Aubergiste","Cuisinier","Boulanger","Marchand ambulant","Changeur"],"Livraison urgente":["Messager","Caravanier","Marchand ambulant","Éclaireur","Garde de caravane","Guide"],
+"Patrouille":["Soldat","Mercenaire","Garde de caravane","Chevalier errant","Archer"],"Épidémie au village":["Guérisseur","Apothicaire","Herboriste","Sage-femme","Soigneur"],
+"Manuscrit rare":["Érudit","Scribe","Bibliothécaire","Cartographe","Mystique"],"Pièce d'orfèvrerie":["Bijoutier","Forgeron","Charpentier","Tisserand"],
+"Cérémonie":["Prêtre","Moine","Druide","Médium"],"Dressage d'une bête":["Éleveur","Chasseur","Archer","Druide","Éclaireur"],
+"Contrat de prime":["Chasseur de primes","Mercenaire","Espion","Gladiateur"],"Partie de dés":["Joueur","Cupide","Contrebandier","Voleur","Mercenaire","Gladiateur"]});
+Object.assign(HIST,{
+"Journée de travail":"Un métier, ce sont d'abord des journées ordinaires, bien remplies.",
+"Chant des anciens":"Un chant très vieux monte du sous-bois ; il le reconnaît sans l'avoir jamais appris.","Concours de force":"On aligne les costauds sur la place : bras de fer, pierres à soulever, paris.",
+"Soirée de taverne":"Chopes, chants, histoires qui grossissent à chaque tour.","Gadget instable":"Un rouage de trop, un ressort mal réglé : l'invention est prête, ou presque.",
+"Pacte dans l'ombre":"Une proposition glissée à voix basse : on offre beaucoup, en échange d'un détail.","Chasse en meute":"On chasse mieux à plusieurs, surtout quand chacun a des crocs.",
+"Mémoire des défunts":"Des voix anciennes remontent : des noms, des dettes, des adieux.","Embrouille de ruelle":"Une ruelle, un badaud pressé, une bourse qui change de main.",
+"Cercle des herbes":"Autour d'un feu d'herbes, on partage tisanes et savoirs.","Tour de passe-passe":"Une pièce disparaît, puis revient d'une oreille : la foule applaudit.",
+"Client difficile":"Un client trouve tout trop cher, trop lent, pas assez bien.","Livraison urgente":"Un colis, une échéance, un chemin boueux.",
+"Patrouille":"Nuit froide sur les remparts, et quelqu'un qui remue dans le noir.","Épidémie au village":"La fièvre court de maison en maison ; on attend quelqu'un qui sache.",
+"Manuscrit rare":"Un manuscrit qu'on croyait perdu, et dont chaque ligne a du prix.","Pièce d'orfèvrerie":"Une commande de prix : chaque détail compte.",
+"Cérémonie":"Les fidèles attendent, et il faut dire les mots justes.","Dressage d'une bête":"Une bête méfiante, de la patience, un peu de nourriture.",
+"Contrat de prime":"Un nom, une récompense, une piste froide à réchauffer.","Partie de dés":"Les dés roulent, les mises montent, les visages se ferment.",
+"Lettre mystérieuse":"Une lettre sans signature, écrite dans un code étrange.","Lettre déchiffrée":"Les signes se mettent en place : le message a un sens.",
+"Dette de jeu":"Une soirée de trop : la dette est lourde et le créancier patient.","Le créancier revient":"Le créancier est là, poli et inflexible.",
+"Un disciple se présente":"Quelqu'un frappe à la porte : on voudrait apprendre de lui.","Succès de l'élève":"L'élève réussit seul ce qu'on lui a appris.",
+"Fête des récoltes":"Les granges sont pleines, les tables dressées, la danse commence.","Hiver rigoureux":"Le gel mord, les routes se ferment, il faut tenir.",
+"Pluie torrentielle":"Le ciel se vide : les chemins deviennent des ruisseaux.","Incendie":"De la fumée, des cris : la maison voisine brûle."});
+Object.assign(REC,{
+"Journée de travail":["{n} exerce son métier de {job} et la journée est bonne.","{n} exerce son métier de {job}, mais la journée est mauvaise."],
+"Chant des anciens":["{n} entend le chant des anciens et s'y ressource.","{n} entend le chant des anciens et s'en trouve troublé."],
+"Concours de force":["{n} remporte un concours de force.","{n} perd un concours de force."],"Soirée de taverne":["{n} passe une joyeuse soirée de taverne.","{n} passe une soirée de taverne qui tourne mal."],
+"Gadget instable":["Le gadget de {n} fonctionne, contre toute attente.","Le gadget de {n} explose."],"Pacte dans l'ombre":["{n} conclut un pacte dans l'ombre, et en tire profit.","{n} conclut un pacte dans l'ombre, et le regrette."],
+"Chasse en meute":["{n} chasse en meute et rapporte du gibier.","{n} chasse en meute, mais la proie s'échappe."],"Mémoire des défunts":["{n} écoute la mémoire des défunts et en garde un enseignement.","{n} écoute la mémoire des défunts et en sort bouleversé."],
+"Embrouille de ruelle":["{n} réussit une embrouille de ruelle.","{n} se fait repérer lors d'une embrouille de ruelle."],"Cercle des herbes":["{n} rejoint un cercle des herbes et en revient régénéré.","{n} rejoint un cercle des herbes, sans grand effet."],
+"Tour de passe-passe":["{n} épate la foule avec un tour de passe-passe.","{n} rate un tour de passe-passe devant la foule."],"Client difficile":["{n} vient à bout d'un client difficile.","{n} perd patience face à un client difficile."],
+"Livraison urgente":["{n} livre un colis à temps.","{n} arrive trop tard avec un colis."],"Patrouille":["{n} fait sa patrouille sans incident.","{n} est surpris pendant sa patrouille."],
+"Épidémie au village":["{n} aide un village frappé par la fièvre.","{n} ne parvient pas à endiguer la fièvre."],"Manuscrit rare":["{n} met la main sur un manuscrit rare.","{n} laisse filer un manuscrit rare."],
+"Pièce d'orfèvrerie":["{n} réalise une pièce d'orfèvrerie remarquable.","{n} abîme une pièce d'orfèvrerie."],"Cérémonie":["{n} conduit une cérémonie qui touche les fidèles.","{n} trébuche pendant une cérémonie."],
+"Dressage d'une bête":["{n} apprivoise une bête.","{n} échoue à dresser une bête."],"Contrat de prime":["{n} remplit un contrat de prime.","{n} échoue à remplir un contrat de prime."],
+"Partie de dés":["{n} gagne une partie de dés.","{n} perd une partie de dés."],"Lettre mystérieuse":["{n} reçoit une lettre mystérieuse.","{n} reçoit une lettre mystérieuse."],
+"Lettre déchiffrée":["{n} déchiffre la lettre mystérieuse.","{n} ne parvient pas à déchiffrer la lettre."],"Dette de jeu":["{n} s'endette au jeu.","{n} s'endette au jeu."],
+"Le créancier revient":["{n} règle sa dette de jeu.","{n} ne peut pas rembourser son créancier."],"Un disciple se présente":["Un disciple se présente et {n} le prend sous son aile.","Un disciple se présente et {n} le prend sous son aile."],
+"Succès de l'élève":["L'élève de {n} réussit brillamment.","L'élève de {n} réussit brillamment."],"Fête des récoltes":["{n} profite de la fête des récoltes.","{n} profite de la fête des récoltes."],
+"Hiver rigoureux":["{n} traverse un hiver rigoureux.","{n} souffre d'un hiver rigoureux."],"Pluie torrentielle":["{n} traverse une pluie torrentielle.","{n} est trempé par une pluie torrentielle."],
+"Incendie":["{n} aide à éteindre un incendie.","{n} est brûlé en voulant éteindre un incendie."]});
+/* lieu atteint : une fois arrivé quelque part par un voyage, c'est acquis */
+const atteint=v=>((C.arr||C.vis.slice(1)).includes(v));
