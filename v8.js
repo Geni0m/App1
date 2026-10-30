@@ -4,16 +4,16 @@ const vcf=()=>REG.vc===undefined?1:REG.vc;
 
 /* ---------- À faire : lisible pour l'objectif en cours ---------- */
 function afaire(e){if(!e)return '';const s=e[3];if(!s)return e[0];const p=progres(s);
- const L={lieu:'atteindre '+s.v+(atteint(s.v)?' (déjà fait)':' (pas encore atteint)'),vie:'vivre '+s.n+' événements',or:'réunir '+s.n+' pièces d’or',ev:'réussir « '+s.v+' » '+s.n+' fois',tag:'réussir '+s.n+' actions de type '+s.v,comp:'porter une compétence au niveau '+s.n,lieux:'visiter '+s.n+' lieux',stat:'atteindre '+s.n+' en '+(S[s.k]||s.k)}[s.t]||e[0];
+ const L={lieu:'atteindre '+s.v+(atteint(s.v)?' (atteint : il faut encore y vivre un événement)':' (pas encore atteint)'),vie:'vivre '+s.n+' événements',or:'réunir '+s.n+' pièces d’or',ev:'réussir « '+s.v+' » '+s.n+' fois',tag:'réussir '+s.n+' actions de type '+s.v,comp:'porter une compétence au niveau '+s.n,lieux:'visiter '+s.n+' lieux',stat:'atteindre '+s.n+' en '+(S[s.k]||s.k)}[s.t]||e[0];
  return L+(p&&s.t!=='lieu'?' ('+p[0]+'/'+p[1]+')':'')}
 
 /* ---------- Coup de pouce de l'étape en cours (tous objectifs) ---------- */
-const OB={a:4,b:3.5,c:2,d:2.4};
+const OB={a:5,b:5,c:2,d:2.4};
 function objBoost(n){if(!C.obj||C.fin)return 1;const q=etq(),e=q[C.qs],s=e&&e[3],k=e&&e[2];let m=1;
  if(k==='Ennemi'&&n==='Une trahison')m=4;
  if(k==='Vengeance'&&n==='Vengeance de l\u2019ennemi'.replace('\u2019',"'"))m=6;
- if(k==='Relique'&&n==='Fouille des ruines')m=3;
- if(k==='Carte'&&['Rencontre d\'un allié','Mission de l\'allié','Lettre mystérieuse','Lettre déchiffrée'].includes(n))m=3;
+ if(k==='Relique'&&n==='Fouille des ruines')m=6;
+ if(k==='Carte'&&['Rencontre d\'un allié','Mission de l\'allié','Lettre mystérieuse','Lettre déchiffrée'].includes(n))m=5;
  if(!s)return m;const ef=EF[n]||{};
  if(s.t==='ev'&&n===s.v)m=OB.a;
  else if(s.t==='tag'&&ETAG[n]===s.v)m=OB.b;
@@ -79,7 +79,7 @@ function annuler(){if(!UNDO||occ)return;restoreAll(UNDO,null);UNDO=null;ecrire('
 
 /* ---------- Sauvegarde automatique et rappel ---------- */
 function autoSauve(){try{autoS()}catch(e){}}
-function autoS(){if(typeof idb!=='function'||typeof exporter!=='function')return;const n=Date.now();if(n-(REG.la||0)<45000)return;REG.la=n;idb('set','auto',exporter())}
+function autoS(){if(typeof idb!=='function'||typeof exporter!=='function')return;const n=Date.now();if(n-(REG.la||0)<45000)return;REG.la=n;ecrire('reg',REG);idb('set','auto',exporter())}
 function banniere(){try{banR()}catch(e){}}
 function banR(){const b=$('bk');if(!b)return;const n=Date.now(),l=REG.lb||0,util=STAT.n>0||C.vie.length>5;b.hidden=!((n-l)>7*864e5&&util);
  if(!b.hidden){b.innerHTML='<b>Sauvegarde de sécurité</b><br>'+(l?'Dernière : il y a '+Math.floor((n-l)/864e5)+' jours.':'Aucune sauvegarde téléchargée.')+'<br><button id="bk-b">Télécharger maintenant</button>';

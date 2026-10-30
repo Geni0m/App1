@@ -36,7 +36,7 @@ function choix(v){const o=CHOIX[v],e=EF[v];if(!o||!e||!e.jet)return null;const a
 const RANGS={Combattant:["Vétéran","Capitaine","Commandant"],Voyageur:["Guide confirmé","Maître-guide","Légende des routes"],Érudit:["Docte","Maître","Grand savant"],Artisan:["Compagnon","Maître artisan","Grand maître"],Commerçant:["Négociant","Grand négociant","Magnat"],Roublard:["Malin","Maître voleur","Ombre légendaire"],Soigneur:["Praticien","Grand guérisseur","Sage"],Mystique:["Initié","Adepte","Grand mystique"]};
 const titreRang=()=>{const ar=(C.rep.find(x=>x[0]==='Archétype')||[])[1];return (C.rang||0)>0?(RANGS[ar]||[])[C.rang-1]||'':''};
 function rangMaj(tx){const k=C.comp[0];if(!k)return;const n=niv(k),r=n>=7?3:n>=5?2:n>=3?1:0;
- if(r>(C.rang||0)){C.rang=r;tx.push('Promotion : '+titreRang());C.pvm++;C.pv++;C.or+=5*r;if(!C.fl.includes('Gradé'))C.fl.push('Gradé')}}
+ if(r>(C.rang||0)){C.rang=r;tx.push('Promotion : '+titreRang());C.pvm++;C.pv++;C.or+=5*r;if(!C.fl.includes('Gradé'))C.fl.push('Gradé');if(r>=2&&!C.fl.includes('Maître'))C.fl.push('Maître')}}
 const BLES=[["Jambe brisée",{Agi:-1},6],["Bras blessé",{For:-1},5],["Fièvre",{End:-1,Esp:-1},4],["Côtes fêlées",{End:-1},5]];
 function blessure(tx,nom){const b=nom?BLES.find(x=>x[0]===nom):BLES[rnd(BLES.length)];C.bl=C.bl||[];if(!b||C.bl.some(x=>x.n===b[0]))return;C.bl.push({n:b[0],s:b[1],t:b[2]});tx.push('Blessure durable : '+b[0]+' ('+b[2]+' actions)')}
 const COMBATS=["Embuscade","Combat de rue","Vengeance de l'ennemi","Duel avec le rival","Tournoi","Épreuve d'honneur","Sortie de la forteresse"];
@@ -176,7 +176,7 @@ function initReg(){const s=(id,k)=>{const e=$(id);if(!e)return;e.value=String(RE
  if($('pt'))$('pt').onclick=partagerTexte;if($('pi'))$('pi').onclick=partagerImage;appliquerReg()}
 let autoDepuis=0;
 setInterval(()=>{if(!REG.auto||typeof C==='undefined')return;const md=!$('md').hidden,pl=!$('plein').hidden,n=Date.now();
- if(md){autoDepuis=autoDepuis||n;if(n-autoDepuis>3200){autoDepuis=0;$('mok').click()}return}
- if(pl){autoDepuis=autoDepuis||n;if(n-autoDepuis>3000&&!occ&&!PLACE){autoDepuis=0;$('mf').click()}return}
+ if(md){autoDepuis=autoDepuis||n;if(n-autoDepuis>3200*(REG.pa||1)){autoDepuis=0;$('mok').click()}return}
+ if(pl){autoDepuis=autoDepuis||n;if(n-autoDepuis>3000*(REG.pa||1)&&!occ&&!PLACE){autoDepuis=0;$('mf').click()}return}
  autoDepuis=0;if(!occ&&!C.fin&&cur.length&&!$('go').disabled)$('go').click()},900);
 initReg();

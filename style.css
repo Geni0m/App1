@@ -98,3 +98,10 @@ body[data-s=printemps]{--f:#edf3e4;--f2:#f4f1e6}body[data-s=été]{--f:#f7efd6;-
 
 .bar{flex-wrap:wrap}.bar>*{flex:1 1 40%}#pan li[hidden]{display:none}#hm li{font-size:14px}#hm b{color:var(--e)}
 .carte{max-height:88vh;overflow-y:auto}.carte li{text-align:left}
+
+html[data-th=clair]{--f:#f3f1ec;--s:#fff;--e:#1d2330;--m:#667085;--l:#d8d4ca;--a:#b8862d;--ai:#fff;--mer:#bcd0dc;--terre:#e8e2cf;--rel:#b9b196;--arb:#6f8f58;--tro:#7a5a3a;color-scheme:light}
+html[data-th=sombre]{--f:#12151c;--s:#1a1f29;--e:#ecebe6;--m:#9aa3b2;--l:#2d3442;--a:#d9a441;--ai:#1a1305;--mer:#1b2d3b;--terre:#2b2e26;--rel:#4a4c3e;--arb:#47654a;--tro:#6b5538;color-scheme:dark}
+html[data-th=parchemin]{--f:#efe0bf;--s:#f8edd2;--e:#3b2a14;--m:#7a6540;--l:#d2bd8b;--a:#8c5a1c;--ai:#fff7e0;--mer:#c9d3c4;--terre:#ead9b0;--rel:#b9a77c;--arb:#7a8f58;--tro:#7a5a3a;color-scheme:light}
+html[data-th=parchemin] body[data-s]{--f:#efe0bf;--f2:#f8edd2}
+html[data-th=clair] body[data-s=printemps]{--f:#edf3e4}html[data-th=sombre] body[data-s]{--f:#12151c;--f2:#12151c}
+#rc li,#lo li{font-size:14px}#rc b,#lo b{display:block;color:var(--e)}

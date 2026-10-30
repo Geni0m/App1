@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#12151c">
-<link rel="stylesheet" href="style.css?v=17">
+<link rel="stylesheet" href="style.css?v=18">
 </head><body><main>
 <div class="haut"><h1>Roulette JDR</h1><button id="son">Son : oui</button><button id="au">Lecture auto : non</button></div>
 <div class="nomrow"><span id="ico"></span><input id="nom" placeholder="Nom du personnage" aria-label="Nom du personnage"></div>
@@ -26,12 +26,18 @@
 <h2>Lieux découverts</h2><ul id="mn"></ul>
 <div id="bk" class="calme" hidden></div>
 <h2>Panthéon</h2><div class="l"><select id="pf-f" aria-label="Issue"><option value="">Toutes issues</option><option value="victoire">Victoires</option><option value="mort">Morts</option></select><select id="pf-r" aria-label="Race"><option value="">Toutes races</option></select></div><ul id="pan"></ul>
+<div class="l"><button id="pe">Exporter le panthéon</button></div>
 <h2>Histoire du monde</h2><ul id="hm"></ul>
+<h2>Records</h2><ul id="rc"></ul>
+<details><summary><b>Livre d'or des succès</b></summary><ul id="lo"></ul></details>
 <h2>Statistiques</h2><ul id="stt"></ul>
 <details id="reg"><summary>Réglages</summary>
 <label>Taille du texte <select id="rg-fs"><option value="0.9">Petit</option><option value="1">Normal</option><option value="1.15">Grand</option><option value="1.3">Très grand</option></select></label>
 <label>Vitesse de la roulette <select id="rg-vit"><option value="1.5">Lente</option><option value="1">Normale</option><option value="0.6">Rapide</option></select></label>
 <label>Vitesse de la carte <select id="rg-vc"><option value="1">Normale</option><option value="0.5">Rapide</option><option value="0.15">Très rapide</option></select></label>
+<label>Thème <select id="rg-th"><option value="">Automatique</option><option value="clair">Clair</option><option value="sombre">Sombre</option><option value="parchemin">Parchemin</option></select></label>
+<label>Pause de la lecture auto <select id="rg-pa"><option value="1">Normale</option><option value="2">Longue</option><option value="3">Très longue</option></select></label>
+<p id="sv-i" style="color:var(--m);font-size:14px"></p><button id="sv-r">Restaurer la copie automatique</button>
 <label>Animations <select id="rg-anim"><option value="1">Complètes</option><option value="0">Réduites</option></select></label>
 </details>
 <section id="adm" hidden><h2>Atelier</h2></section>
@@ -46,12 +52,13 @@
 <div id="plein" hidden><svg id="mp" viewBox="0 0 200 120" data-z="m"></svg>
 <div class="top"><b id="mt"></b><button id="mf">Fermer</button></div>
 <div class="bas"><button data-w="205">Monde</button><button data-w="80">Pays</button><button data-w="24">Ville</button></div></div>
-<script src="outils.js?v=17"></script>
-<script src="donnees.js?v=17"></script>
-<script src="carte.js?v=17"></script>
-<script src="v7.js?v=17"></script>
-<script src="v8.js?v=17"></script>
-<script src="v9.js?v=17"></script>
-<script src="jeu.js?v=17"></script>
-<script src="admin.js?v=17"></script>
+<script src="outils.js?v=18"></script>
+<script src="donnees.js?v=18"></script>
+<script src="carte.js?v=18"></script>
+<script src="v7.js?v=18"></script>
+<script src="v8.js?v=18"></script>
+<script src="v9.js?v=18"></script>
+<script src="v10.js?v=18"></script>
+<script src="jeu.js?v=18"></script>
+<script src="admin.js?v=18"></script>
 </body></html>

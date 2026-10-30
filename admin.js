@@ -27,6 +27,7 @@ function recit(){
   const ph2=ph.startsWith(nom)?ph:ph.charAt(0).toLowerCase()+ph.slice(1);
   t.push('À '+m[2]+' ans, '+(sa[m[1].toLowerCase()]||'')+', '+ph2+' '+o.join(' '))});
  const d=C.vie[C.vie.length-1];
+ recitPlus().forEach(x=>t.push(x));
  t.push(C.fin==='mort'?nom+' meurt à '+age()+' ans.'+(d?' Sa dernière épreuve : '+lo(d.t)+'.':''):C.fin==='victoire'?'Objectif accompli : « '+C.obj+' ». '+nom+' peut regarder sa vie avec fierté.':'L\u2019histoire '+(/^[AEIOUYÉÈH]/i.test(nom)?'d\u2019':'de ')+nom+' n\u2019est pas terminée.');
  if(C.fonde)t.push('De '+nom+' naît une lignée : la '+C.fonde+'.');
  return t.filter(Boolean).join('\n\n')}
@@ -81,6 +82,13 @@ function atelier(){
   $('v-t').textContent=(tot-m)+' sans image sur '+tot+'\n\n'+L.join('\n')};
  sec('Sauvegarde automatique','<p style="color:var(--m);font-size:14px">Une copie est gardée automatiquement sur cet appareil pendant que vous jouez. Utile si une manipulation efface les données.</p><button id="x-r">Restaurer la sauvegarde automatique</button>');
  $('x-r').onclick=async()=>{const t=await idb('get','auto');if(!t)return alert('Aucune sauvegarde automatique pour l\u2019instant.');importer(t)};
+ $('sv-r').onclick=()=>$('x-r').click();
+ sec('Code de transfert (autre appareil)','<p style="color:var(--m);font-size:14px">Copiez un code court sur cet appareil, collez-le sur l\u2019autre dans la zone ci-dessous, puis importez.</p><div class="l"><button id="t-c">Copier mon code</button></div><textarea id="t-t" placeholder="Collez ici un code de transfert" style="min-height:70px"></textarea><button id="t-i">Importer ce code</button>');
+ $('t-c').onclick=async()=>{try{const c=await codeTransfert();await navigator.clipboard.writeText(c);$('t-c').textContent='Copié ('+Math.round(c.length/1000)+' ko)'}catch(x){alert('Copie impossible : '+x.message)}setTimeout(()=>$('t-c').textContent='Copier mon code',2500)};
+ $('t-i').onclick=async()=>{try{importer(await lireCode($('t-t').value))}catch(x){alert('Code illisible.')}};
+ sec('Test automatique','<p style="color:var(--m);font-size:14px">Fait vivre 30 personnages fictifs et signale toute erreur du jeu (création, vie, mort, récit, affichage). Ta partie n\u2019est pas touchée.</p><button id="z-b">Lancer le test</button><pre id="z-t" style="white-space:pre-wrap;font-size:12px"></pre>');
+ $('z-b').onclick=()=>{$('z-t').textContent='Test en cours...';autotest(30,t=>{$('z-t').textContent=t})};
+ const vb=$('v-b');if(vb){const cp=document.createElement('button');cp.textContent='Copier la liste des manquants';cp.onclick=()=>{const t=($('v-t').textContent||'').split('\n').filter(x=>x.startsWith('\u2717')).map(x=>x.replace(/^\u2717 /,'')).join('\n');if(!t)return alert('Affichez d\u2019abord la liste.');try{navigator.clipboard.writeText(t);cp.textContent='Copié'}catch(x){}setTimeout(()=>cp.textContent='Copier la liste des manquants',1500)};vb.parentNode.insertBefore(cp,vb.nextSibling)}
  sec('Caractéristiques (bonus)','<p style="color:var(--m);font-size:14px">Bonus ou malus appliqués aux tirages de Force, Agilité… selon la race, l\u2019archétype, l\u2019origine, le métier ou le trait. +1 décale la moyenne d\u2019environ 1,3 point ; 0 = aucun effet.</p><select id="b-n"></select><div class="l" id="b-s"></div><div class="l"><button class="go" id="b-ok">Enregistrer</button><button id="b-rz">Valeur d\u2019origine</button></div>');
  const bnoms=()=>{const r=[];['Race','Archétype','Origine','Métier','Trait de caractère'].forEach(n=>{const t=T.find(x=>x.n===n);if(t)t.o.forEach(o=>{if(!r.includes(o[0]))r.push(o[0])})});Object.keys(SB).forEach(k=>{if(!r.includes(k))r.push(k)});return r};
  const bfill=()=>{const n=$('b-n').value,b=SB[n]||{};$('b-s').innerHTML=Object.keys(S).map(k=>'<label style="font-size:14px">'+S[k]+'<input type="number" step="1" min="-3" max="3" id="b-'+k+'" value="'+(b[k]||0)+'"></label>').join('')};

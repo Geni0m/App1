@@ -236,6 +236,7 @@ Object.assign(SKM,{
 const CAD0=[['Une bourse bénie',3,{'Commerçant':2}],['Un don d\'expérience',3,{'Érudit':1.5,'Mystique':1.5}],['Un souffle de vigueur',3],['Une grâce d\'endurance',2,{'Voyageur':1.5}],['La force des ancêtres',2,{'Combattant':2,'Nain':1.5}],['Une parole d\'or',2,{'Commerçant':1.5,'Noble déchu':1.5}],['Un esprit éveillé',2,{'Érudit':2,'Gnome':1.5}],['Un cheval fidèle',2,{'Voyageur':2}],['Un compagnon à quatre pattes',2,{'Chasseur':2,'Félin':1.5}],['Un talisman béni',1.5,{'Mystique':2}],['Une arme bénie',1.5,{'Combattant':2}],['Une amitié précieuse',2,{'Généreux':2}]];
 const CAD={'Une bourse bénie':{or:25},'Un don d\'expérience':{xp:4},'Un souffle de vigueur':{pvm:3},'Une grâce d\'endurance':{End:1,enm:2},'La force des ancêtres':{For:1},'Une parole d\'or':{Cha:1},'Un esprit éveillé':{Esp:1},'Un cheval fidèle':{it:'Cheval'},'Un compagnon à quatre pattes':{it:'Chien fidèle'},'Un talisman béni':{it:'Talisman béni'},'Une arme bénie':{it:'Épée bénie'},'Une amitié précieuse':{fl:'Allié'}};
 Object.assign(HIST,{'Un don d\'expérience':'Un souvenir qui n\'est pas à lui : des gestes appris sans les avoir jamais faits.','Un cheval fidèle':'Un cheval s\'approche, calme, comme s\'il l\'attendait depuis toujours.','Un talisman béni':'Un pendentif tiède : il protège un peu de tout.'});
+const DESTIN0=[['Aucun destin',12],['Béni des dieux',1],['Maudit',1],['Marqué du sceau',1],['Étoile du berger',1]];
 function construire(){
  const old=DEF0.find(t=>t.n==='Métier').o,om={};old.forEach(x=>om[x[0]]=x);
  const arcs=Object.keys(MET),mt=[];
@@ -244,7 +245,7 @@ function construire(){
  DEF0.forEach(t=>{
   if(t.n==='Race')out.push({n:'Race',o:RACES.map(r=>[r[0],r[1]])});
   else if(t.n==='Métier')out.push({n:'Métier',o:mt});
-  else if(t.n==='Objectif')out.push({n:'Objectif',o:OBJ.map(o=>[o[0],o[1],o[2]||{}])},{n:'Cadeau divin',o:CAD0});
+  else if(t.n==='Objectif')out.push({n:'Objectif',o:OBJ.map(o=>[o[0],o[1],o[2]||{}])},{n:'Destin',o:DESTIN0},{n:'Cadeau divin',o:CAD0});
   else if(t.vie){const v=t.o.find(x=>x[0]==='Voyage lointain')[2];v['Étape:Lieu']=2.5;v['Étape:Explorer']=3;t.o.push(...EVN);t.o.forEach(x=>{x[2]=x[2]||{};const g=ETAG[x[0]];if(g)x[2]['Étape:Tag:'+g]=1.8});OBJ.forEach(o=>(o[3]||[]).forEach(s=>{if(s.t==='ev'){const e=t.o.find(x=>x[0]===s.v);if(e)e[2]['Étape:Ev:'+s.v]=4}}));out.push(t)}
   else out.push(t);
   if(t.n==='Origine')out.push({n:'Archétype',o:Object.keys(ARCH).map(a=>[a,ARCH[a][0],ARCH[a][1]])})});
@@ -482,3 +483,49 @@ Object.assign(REC,{
 "Incendie":["{n} aide à éteindre un incendie.","{n} est brûlé en voulant éteindre un incendie."]});
 /* lieu atteint : une fois arrivé quelque part par un voyage, c'est acquis */
 const atteint=v=>((C.arr||C.vis.slice(1)).includes(v));
+
+/* ===================== V10 ===================== */
+DEF.find(t=>t.vie).o.push(
+["Retour du rival",3,{},"Rival"],["Leçon du mentor",3,{},"Mentor"],["Lettre de l'être aimé",3,{},"Amour"],
+["Querelle de lignées",3,{},"Lignée rivale"],["Soutien de la lignée alliée",3,{},"Lignée alliée"],
+["Faiblesse de l'âge",3,{},"Âgé"],["Testament",2,{},"Âgé"],["Conseil aux jeunes",2,{},"Âgé"],
+["Chanson de taverne",2,{"Cité portuaire":1.5,"Soirée de taverne":3},"Légende"],["Fantôme croisé",1.5,{"Désert aux ruines":2,"Forêt interdite":1.5},"Légende"],["Épée célèbre aperçue",1.5,{"Forteresse assiégée":1.5},"Légende"],
+["Épreuve de maîtrise",3,{},"Gradé"],["Chef-d'œuvre",2,{},"Maître"],
+["Réconciliation tardive",.1,{}],["Le prêteur patient",.1,{}],["Écho d'un ancien ami",.1,{}],["Visite du convalescent",.1,{}],["Retour des brigands",.1,{}],["Veillée de souvenirs",.1,{}],["Le voisin soupçonneux",.1,{}]);
+Object.assign(EF,{
+"Retour du rival":{jet:["Agi",9],or:6,PV:-2,sc:"combat"},"Leçon du mentor":{xp:1,EN:1,Esp:1},"Lettre de l'être aimé":{EN:2,PV:1,Cha:1},
+"Querelle de lignées":{jet:["Cha",9],PV:-1,or:-2},"Soutien de la lignée alliée":{or:6,EN:1},
+"Faiblesse de l'âge":{PV:-2,EN:-2,jet:["End",8]},"Testament":{EN:1},"Conseil aux jeunes":{Cha:1,EN:1},
+"Chanson de taverne":{EN:2,Cha:1,or:2},"Fantôme croisé":{Esp:1,EN:-1,jet:["Esp",8]},"Épée célèbre aperçue":{or:5,Esp:1},
+"Épreuve de maîtrise":{jet:["Esp",8],or:8,xp:1},"Chef-d'œuvre":{or:20,Cha:1},
+"Réconciliation tardive":{Cha:1,EN:2},"Le prêteur patient":{or:-5,jet:["Cha",8]},"Écho d'un ancien ami":{or:4,EN:2},"Visite du convalescent":{PV:2,or:3},
+"Retour des brigands":{PV:-3,or:5,jet:["Agi",9],sc:"combat"},"Veillée de souvenirs":{EN:2,Esp:1},"Le voisin soupçonneux":{or:-3,jet:["Cha",8]}});
+Object.assign(ETAG,{"Retour du rival":"combat","Leçon du mentor":"savoir","Épreuve de maîtrise":"savoir","Chef-d'œuvre":"artisanat","Chanson de taverne":"hospitalité","Fantôme croisé":"mystique","Le prêteur patient":"commerce","Retour des brigands":"combat"});
+Object.assign(HIST,{
+"Retour du rival":"Un visage connu, un sourire sans chaleur : le rival est de retour.","Leçon du mentor":"Le mentor est là, et il a encore quelque chose à apprendre à son élève.",
+"Lettre de l'être aimé":"Une lettre au papier froissé, écrite d'une main qu'on reconnaît entre toutes.","Querelle de lignées":"Deux lignées se croisent, et les vieilles rancunes aussi.",
+"Soutien de la lignée alliée":"Une main se tend, celle d'une lignée amie de longue date.","Faiblesse de l'âge":"Le corps proteste : il n'a plus vingt ans.",
+"Testament":"On pense à ce qu'on laissera, et à qui.","Conseil aux jeunes":"Les jeunes écoutent, parfois, ce que l'âge a appris.",
+"Chanson de taverne":"Au fond de la salle, quelqu'un entonne une chanson sur un héros disparu.","Fantôme croisé":"Une silhouette pâle, un nom murmuré : une légende ne dort jamais tout à fait.",
+"Épée célèbre aperçue":"Une lame dont on parle depuis des générations, enfin sous les yeux.","Épreuve de maîtrise":"Les pairs observent : il faut prouver que le rang est mérité.",
+"Chef-d'œuvre":"Des années de gestes, résumées en une seule pièce.","Réconciliation tardive":"Une vieille querelle s'éteint enfin, faute de combattants.",
+"Le prêteur patient":"La dette n'était pas oubliée, seulement mise de côté.","Écho d'un ancien ami":"Une voix du passé, comme si les années n'avaient pas compté.",
+"Visite du convalescent":"Celui qu'on a aidé revient, debout, avec un panier.","Retour des brigands":"Ils sont revenus, plus nombreux, et rancuniers.",
+"Veillée de souvenirs":"Autour d'un feu, on se rappelle ceux qui ne sont plus là.","Le voisin soupçonneux":"Un regard en coin, une porte qui se ferme trop vite."});
+Object.assign(REC,{
+"Retour du rival":["{n} tient tête au rival qui reparaît.","{n} perd la manche contre son rival."],"Leçon du mentor":["{n} reçoit une leçon de son mentor.","{n} reçoit une leçon de son mentor."],
+"Lettre de l'être aimé":["{n} reçoit une lettre de l'être aimé.","{n} reçoit une lettre de l'être aimé."],"Querelle de lignées":["{n} apaise une querelle entre lignées.","{n} se heurte à une lignée rivale."],
+"Soutien de la lignée alliée":["{n} reçoit l'aide d'une lignée alliée.","{n} reçoit l'aide d'une lignée alliée."],"Faiblesse de l'âge":["{n} sent l'âge peser, mais tient bon.","{n} cède un instant à la faiblesse de l'âge."],
+"Testament":["{n} met ses affaires en ordre.","{n} met ses affaires en ordre."],"Conseil aux jeunes":["{n} conseille les plus jeunes.","{n} conseille les plus jeunes."],
+"Chanson de taverne":["{n} entend une chanson sur un héros d'autrefois.","{n} entend une chanson sur un héros d'autrefois."],"Fantôme croisé":["{n} croise un fantôme sans trembler.","{n} s'enfuit devant un fantôme."],
+"Épée célèbre aperçue":["{n} aperçoit une épée célèbre.","{n} aperçoit une épée célèbre."],"Épreuve de maîtrise":["{n} réussit l'épreuve de maîtrise.","{n} échoue à l'épreuve de maîtrise."],
+"Chef-d'œuvre":["{n} achève son chef-d'œuvre.","{n} achève son chef-d'œuvre."],"Réconciliation tardive":["{n} se réconcilie enfin.","{n} se réconcilie enfin."],
+"Le prêteur patient":["{n} règle ce qu'il doit au prêteur.","{n} ne peut payer le prêteur."],"Écho d'un ancien ami":["{n} retrouve un ancien ami.","{n} retrouve un ancien ami."],
+"Visite du convalescent":["{n} reçoit la visite de celui qu'il a aidé.","{n} reçoit la visite de celui qu'il a aidé."],"Retour des brigands":["{n} repousse les brigands revenus.","{n} subit le retour des brigands."],
+"Veillée de souvenirs":["{n} veille et se souvient.","{n} veille et se souvient."],"Le voisin soupçonneux":["{n} calme un voisin soupçonneux.","{n} se brouille avec un voisin soupçonneux."]});
+Object.assign(MONDE,{
+'Grande foire':{t:'Les marchands affluent : étals, spectacles et bonnes affaires.',w:{'Marché florissant':2.2,'Tour de passe-passe':2,'Client difficile':1.6,'Embuscade':.7}},
+'Éclipse':{t:'Le soleil s\u2019éteint en plein jour : superstitions et visions.',w:{'Vision étrange':2.5,'Cérémonie':2,'Mémoire des défunts':2,'Fantôme croisé':2}},
+'Paix des rois':{t:'Les couronnes s\u2019accordent : routes sûres, tournois et fêtes.',w:{'Tournoi':2.2,'Banquet':1.8,'Embuscade':.5,'Patrouille':.6}},
+'Brigandage':{t:'Les routes ne sont plus sûres, les bourses encore moins.',w:{'Embuscade':2,'Cambriolage':1.8,'Retour des brigands':3,'Livraison urgente':.7}}});
+const CHAIN={'Une trahison':['Réconciliation tardive'],'Une dette':['Le prêteur patient'],'Une rencontre décisive':["Écho d'un ancien ami"],'Une maladie':['Visite du convalescent'],'Embuscade':['Retour des brigands'],'Un deuil':['Veillée de souvenirs'],'Cambriolage':['Le voisin soupçonneux']};
