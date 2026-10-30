@@ -198,6 +198,38 @@ const OBJ=[
 ['Recevoir 2 visions',1,{'Mystique':4,'Démon':2},[{t:'ev',v:'Vision étrange',n:2}]],
 ['Réussir 2 commandes',1,{'Artisan':4,'Nain':1.5},[{t:'ev',v:'Commande importante',n:2}]]];
 const OBJD={};OBJ.forEach(o=>{if(o[3])OBJD[o[0]]=o[3]});
+/* ===================== V6 : contenu supplémentaire ===================== */
+RACES.push(["Gobelin",1.2],["Minotaure",1],["Lutin",1],["Revenant",.8]);
+Object.assign(SB,{"Gobelin":{Agi:2,Esp:1,For:-2},"Minotaure":{For:2,End:2,Agi:-2,Cha:-1},"Lutin":{Agi:2,Cha:2,End:-2,For:-2},"Revenant":{End:2,Esp:1,Cha:-2}});
+Object.assign(RSK,{"Gobelin":["Débrouille de bidonville","ruse"],"Minotaure":["Charge du labyrinthe","combat"],"Lutin":["Tour de passe-passe","social"],"Revenant":["Froid du tombeau","survie"]});
+Object.assign(HIST,{
+"Gobelin":"Petit, vif et sous-estimé : le gobelin survit là où d'autres se plaignent, et il sait toujours où se cacher.",
+"Minotaure":"Une force colossale, un passé de labyrinthes et de cris. Les villes le regardent de travers avant de le laisser passer.",
+"Lutin":"Léger comme une rumeur, taquin comme un mauvais présage. Le lutin charme avant de se faire prendre.",
+"Revenant":"Mort une fois déjà, il est revenu sans savoir pourquoi. Il ne ressent plus le froid, ni tout à fait le reste."});
+Object.assign(ARCH.Roublard[1],{"Gobelin":3,"Lutin":2.5});Object.assign(ARCH.Combattant[1],{"Minotaure":3,"Gobelin":.7,"Lutin":.3});
+Object.assign(ARCH.Mystique[1],{"Revenant":3,"Lutin":1.5});Object.assign(ARCH.Artisan[1],{"Gobelin":1.5,"Minotaure":.8});
+Object.assign(ARCH.Voyageur[1],{"Lutin":1.5,"Revenant":1.3});Object.assign(ARCH.Érudit[1],{"Minotaure":.4});Object.assign(ARCH.Soigneur[1],{"Lutin":1.5,"Minotaure":.5});
+MET.Combattant.push(["Archer",2],["Chevalier errant",1]);
+MET.Voyageur.push(["Éclaireur",1.5],["Caravanier",1.5]);
+MET.Érudit.push(["Bibliothécaire",1.5]);
+MET.Artisan.push(["Boulanger",1.5],["Bijoutier",1]);
+MET.Commerçant.push(["Cuisinier",1.5],["Éleveur",1.5]);
+MET.Roublard.push(["Chasseur de primes",1]);
+MET.Soigneur.push(["Sage-femme",1.5],["Herboriste",1.5]);
+MET.Mystique.push(["Médium",1],["Druide",1.5],["Moine",1.5]);
+Object.assign(MX,{"Archer":{"Elfe":2,"Sylvain":1.5},"Druide":{"Sylvain":3,"Elfe":1.5},"Cuisinier":{"Halfelin":2},"Chevalier errant":{"Humain":1.5,"Noble déchu":3},"Médium":{"Revenant":3},"Chasseur de primes":{"Orc":1.5,"Minotaure":1.5},"Bijoutier":{"Nain":2,"Gnome":1.5},"Éclaireur":{"Félin":1.5,"Elfe":1.5}});
+Object.assign(INV,{"Archer":"Arc","Chevalier errant":"Épée","Éclaireur":"Arc","Caravanier":"Ration","Bibliothécaire":"Livre","Boulanger":"Ration","Bijoutier":"Marteau","Cuisinier":"Ration","Éleveur":"Bâton","Chasseur de primes":"Dague","Sage-femme":"Potion de soin","Herboriste":"Potion de soin","Médium":"Livre","Druide":"Bâton","Moine":"Bâton"});
+Object.assign(SKM,{
+"Archer":sk("Tir à longue portée:combat,Œil de lynx:survie"),"Chevalier errant":sk("Chevalerie:combat,Éloquence de cour:social"),
+"Éclaireur":sk("Reconnaissance:voyage,Embuscade tendue:ruse"),"Caravanier":sk("Conduite d'attelage:voyage,Troc de route:commerce"),
+"Bibliothécaire":sk("Classement:savoir,Mémoire des textes:savoir"),"Boulanger":sk("Pétrissage:artisanat,Fournée du matin:hospitalité"),
+"Bijoutier":sk("Sertissage:artisanat,Œil de joaillier:commerce"),"Cuisinier":sk("Cuisine:hospitalité,Épices rares:commerce"),
+"Éleveur":sk("Dressage:survie,Soin des bêtes:soin"),"Chasseur de primes":sk("Traque:survie,Cordes et menottes:combat"),
+"Sage-femme":sk("Accouchement:soin,Parole rassurante:social"),"Herboriste":sk("Cueillette:soin,Teintures:artisanat"),
+"Médium":sk("Voix des morts:mystique,Lecture des gens:social"),"Druide":sk("Langue des bêtes:mystique,Cycles de la nature:survie"),
+"Moine":sk("Méditation:mystique,Arts martiaux:combat")});
+
 /* Cadeau divin : un seul tirage, à la création */
 const CAD0=[['Une bourse bénie',3,{'Commerçant':2}],['Un don d\'expérience',3,{'Érudit':1.5,'Mystique':1.5}],['Un souffle de vigueur',3],['Une grâce d\'endurance',2,{'Voyageur':1.5}],['La force des ancêtres',2,{'Combattant':2,'Nain':1.5}],['Une parole d\'or',2,{'Commerçant':1.5,'Noble déchu':1.5}],['Un esprit éveillé',2,{'Érudit':2,'Gnome':1.5}],['Un cheval fidèle',2,{'Voyageur':2}],['Un compagnon à quatre pattes',2,{'Chasseur':2,'Félin':1.5}],['Un talisman béni',1.5,{'Mystique':2}],['Une arme bénie',1.5,{'Combattant':2}],['Une amitié précieuse',2,{'Généreux':2}]];
 const CAD={'Une bourse bénie':{or:25},'Un don d\'expérience':{xp:4},'Un souffle de vigueur':{pvm:3},'Une grâce d\'endurance':{End:1,enm:2},'La force des ancêtres':{For:1},'Une parole d\'or':{Cha:1},'Un esprit éveillé':{Esp:1},'Un cheval fidèle':{it:'Cheval'},'Un compagnon à quatre pattes':{it:'Chien fidèle'},'Un talisman béni':{it:'Talisman béni'},'Une arme bénie':{it:'Épée bénie'},'Une amitié précieuse':{fl:'Allié'}};
@@ -244,14 +276,108 @@ const SITES=['Grotte','Forteresse en ruines','Temple englouti','Tour oubliée','
 const SNOMS=['de Brannoc','des Murmures','du Corbeau','de l\'Ombre','des Trois Vents','de la Dernière Lune','du Roi Pâle','des Cendres'];
 /* Succès : [nom, condition(C), gain immédiat (transmis aux héritiers si la lignée est fondée)] */
 const SUCC=[
-['Survivant',c=>c.vie.length>=20,{or:10}],
-['Fortuné',c=>c.or>=60,{st:{Cha:1}}],
-['Mille lieues',c=>c.vis.length>=6,{st:{End:1}}],
-['Maître d\'un art',c=>c.comp.some(k=>Math.floor(Math.sqrt(k.xp))>=5),{xp:2}],
-['Ami du monde',c=>Math.max(c.rel.Peuple,c.rel.Marchands,c.rel.Couronne)>=4,{or:10}],
-['Vengeance accomplie',c=>c.vie.some(e=>e.t==='Vengeance de l\'ennemi'&&e.ok),{st:{For:1}}],
-['Découvreur',c=>c.dec>0,{st:{Esp:1}}],
-['Tueur de gardien',c=>c.boss>0,{st:{For:1}}]];
+["Premier vainqueur",c=>c.fin==='victoire',{or:15},"Le premier de tous les personnages à atteindre son objectif."],
+["Première âme perdue",c=>c.fin==='mort',{xp:2},"Le premier de tous à mourir."],
+["Mort-né",c=>c.fin==='mort'&&c.vie.length<=1,{st:{End:1}},"Mort dès la toute première action."],
+["Chanceux insolent",c=>c.fin==='victoire'&&c.vie.length<=2,{or:20},"Objectif atteint en deux actions ou moins."],
+["Première bourse pleine",c=>c.or>=50,{st:{Cha:1}},"Le premier à posséder plus de 50 pièces d'or."],
+["Fortune de roi",c=>c.or>=120,{or:20},"Le premier à posséder plus de 120 pièces d'or."],
+["Découvreur",c=>c.dec>0,{st:{Esp:1}},"Le premier à découvrir un lieu oublié."],
+["Tueur de gardien",c=>c.boss>0,{st:{For:1}},"Le premier à vaincre un gardien."],
+["Premier maître",c=>c.comp.some(k=>Math.floor(Math.sqrt(k.xp))>=5),{xp:2},"Le premier à porter une compétence au niveau 5."],
+["Vétéran",c=>c.vie.length>=25,{st:{End:1}},"Le premier à vivre 25 événements."],
+["Mille lieues",c=>c.vis.length>=6,{st:{End:1}},"Le premier à visiter 6 lieux différents."],
+["Vieux sage",c=>c.fin==='mort'&&age()>=70,{st:{Esp:1}},"Le premier à mourir de vieillesse."],
+["Ami du monde",c=>Math.max(c.rel.Peuple,c.rel.Marchands,c.rel.Couronne)>=4,{or:10},"Le premier à gagner une confiance complète d'un groupe."],
+["Haï de tous",c=>Math.min(c.rel.Peuple,c.rel.Marchands,c.rel.Couronne,c.rel.Pègre)<=-4,{st:{Cha:-1,Agi:1}},"Le premier à être détesté par tout un groupe."],
+["Marqué à vie",c=>(c.cic||[]).length>=2,{pvm:2},"Le premier à porter deux cicatrices."],
+["Vengeance accomplie",c=>c.vie.some(e=>e.t==="Vengeance de l'ennemi"&&e.ok),{st:{For:1}},"Le premier à triompher de son ennemi juré."],
+["Colosse",c=>Object.values(c.st).some(v=>v>=10),{xp:1},"Le premier à atteindre 10 dans une caractéristique."],
+["Victoire à l'arraché",c=>c.fin==='victoire'&&c.pv<=2,{or:15},"Victoire avec 2 points de vie ou moins."]];
 DEF.find(t=>t.vie).o.push(['Piste d\'un lieu oublié',2,{'Voyageur':2,'Érudit':1.5,'Curieux':2,'Étape:Explorer':2}],['Explorer le site',8,{},'Site']);
 Object.assign(ETAG,{'Piste d\'un lieu oublié':'savoir','Explorer le site':'savoir'});
 Object.assign(HIST,{'Piste d\'un lieu oublié':'Un vieux récit, une carte effacée : un lieu oublié se dessine enfin.','Explorer le site':'Entre les pierres et l\'ombre, quelque chose attend d\'être trouvé.'});
+
+/* ----- V6 : logique des événements, descriptions, combinaisons, récit ----- */
+const EREQ={
+"Commande importante":["Artisan","Forgeron","Charpentier","Tisserand","Boulanger","Bijoutier","Alchimiste","Apothicaire","Herboriste","tag:artisanat"],
+"Vision étrange":["Mystique","Prêtre","Devin","Médium","Druide","Moine","Démon","Revenant","Curieux","tag:mystique"],
+"Cours improvisé":["Érudit","Scribe","Bibliothécaire","Cartographe","Prêtre","Moine","Guérisseur","Chevalier errant"],
+"Concours de cuisine":["Aubergiste","Cuisinier","Boulanger","Marchand ambulant","Généreux","tag:hospitalité"],
+"Chasse au gibier":["Chasseur","Archer","Éclaireur","Guide","Éleveur","Druide","Chasseur de primes","obj:Arc"],
+"Négociation tendue":["Commerçant","Marchand","Noble déchu","Changeur","Aubergiste","Mercenaire","Espion","Caravanier","Marchand ambulant","Cupide"],
+"Cambriolage":["Roublard","Voleur","Contrebandier","Espion","Orphelin des rues","Cupide","Menteur","Gobelin"],
+"Épreuve d'honneur":["Combattant","Soldat","Gladiateur","Garde de caravane","Chevalier errant","Mercenaire","Fils de soldat","Loyal","Orc","Drakéen","Minotaure"]};
+/* Compétences éveillées par une situation + un profil : [événement, réussite exigée, profil (tout est requis), nom, domaine, description] */
+const UNL2=[
+["Concours de cuisine",true,["Orc","Aubergiste"],"Festin de guerre","hospitalité","Des plats pour des tablées entières, copieux et bruyants."],
+["Concours de cuisine",true,["Cuisinier"],"Palais d'or","hospitalité","Un goût sûr : doser, assaisonner, impressionner."],
+["Concours de cuisine",true,["Halfelin"],"Gourmandise sacrée","hospitalité","Un art de la table transmis de génération en génération."],
+["Chasse au gibier",true,["Elfe"],"Tir silencieux","survie","Abattre sans bruit, sans effrayer le reste de la forêt."],
+["Chasse au gibier",true,["Orc"],"Traque brutale","survie","Poursuivre une proie jusqu'à l'épuisement."],
+["Chasse au gibier",true,["Félin"],"Bond du prédateur","survie","Une attaque soudaine, venue de nulle part."],
+["Commande importante",true,["Nain","Forgeron"],"Maître de forge naine","artisanat","Un travail du métal que seuls les nains osent signer."],
+["Commande importante",true,["Gnome"],"Mécanisme ingénieux","artisanat","Ajouter un rouage là où personne n'y aurait pensé."],
+["Commande importante",true,["Orc"],"Forge brutale","artisanat","Solide avant d'être beau."],
+["Cambriolage",true,["Halfelin"],"Pas de souris","ruse","Ne jamais faire grincer une lame de parquet."],
+["Cambriolage",true,["Gobelin"],"Instinct de rat","ruse","Trouver la sortie avant d'entrer."],
+["Négociation tendue",true,["Démon"],"Marché infernal","social","Un contrat dont chaque clause est un piège poli."],
+["Négociation tendue",true,["Cupide"],"Âpreté au gain","commerce","Ne jamais lâcher une pièce sans en reprendre deux."],
+["Épreuve d'honneur",true,["Drakéen"],"Fierté draconique","combat","Ne pas reculer devant un défi."],
+["Épreuve d'honneur",true,["Minotaure"],"Charge aveugle","combat","Foncer, cornes en avant."],
+["Vision étrange",true,["Elfe"],"Songe des anciens","mystique","Entrevoir la mémoire des forêts."],
+["Vision étrange",true,["Revenant"],"Murmure des morts","mystique","Entendre ce que les défunts n'ont pas fini de dire."],
+["Cours improvisé",true,["Orc"],"Pédagogie rugueuse","social","Enseigner par l'exemple, et parfois par le choc."],
+["Cours improvisé",true,["Gnome"],"Savoir bavard","savoir","Expliquer trois fois plus que nécessaire."],
+["Une maladie",true,["Guérisseur"],"Immunité acquise","soin","Avoir déjà vu pire, et en être revenu."],
+["Embuscade",true,["Éclaireur"],"Œil de faucon","survie","Repérer l'ennemi avant qu'il ne bouge."],
+["Tournoi",true,["Chevalier errant"],"Lance de justice","combat","Un coup franc, une cause défendue."],
+["Voyage lointain",true,["Caravanier"],"Chemins de commerçant","voyage","Connaître les bons relais et les bons prix."],
+["Marché florissant",true,["Cuisinier"],"Étal réputé","commerce","Un nom qui attire les clients."],
+["Tempête en mer",true,["Marin"],"Loup de mer","voyage","Garder le cap quand tout le monde vomit."],
+["Fouille des ruines",true,["Gnome"],"Œil d'archéologue","savoir","Voir une histoire dans trois cailloux."],
+["Fouille des ruines",true,["Cartographe"],"Relevé des ruines","savoir","Dessiner ce qu'on a vu avant de l'oublier."],
+["Un deuil",undefined,["Prêtre"],"Parole de consolation","social","Trouver le mot qui apaise sans mentir."],
+["Une trahison",undefined,["Rancunier"],"Mémoire des offenses","social","Ne rien oublier, ni personne."],
+["Repos à l'auberge",true,["Aubergiste"],"Œil de l'hôte","hospitalité","Savoir ce dont chaque client a besoin."],
+["Repos à l'auberge",true,["Orc"],"Chants de taverne","social","Chanter fort, chanter faux, chanter ensemble."]];
+const TAGD={combat:"Aide aux jets de combat : frapper, parer, tenir.",voyage:"Aide aux jets de voyage : routes, rythme, orientation.",social:"Aide aux jets sociaux : parler, convaincre, plaire.",commerce:"Aide aux jets de commerce : prix, contrats, flair.",survie:"Aide aux jets de survie : endurer, se cacher, s'en sortir.",hospitalité:"Aide aux jets d'accueil et de cuisine.",soin:"Aide aux jets de soin : plantes, pansements, remèdes.",savoir:"Aide aux jets de savoir : recherche, mémoire, étude.",ruse:"Aide aux jets de ruse : discrétion, tromperie, agilité.",artisanat:"Aide aux jets d'artisanat : fabriquer, réparer, bâtir.",mystique:"Aide aux jets mystiques : rites, visions, présages."};
+const SKD={"Discipline":"La rigueur du soldat : tenir sa position et obéir sous la pression.","Marche forcée":"Avancer longtemps sans s'épuiser.","Escrime pragmatique":"Se battre pour gagner, pas pour la beauté du geste.","Négociation de contrat":"Obtenir de meilleures conditions sur chaque engagement.","Vigilance":"Repérer le danger avant qu'il ne frappe.","Bouclier":"Parer et protéger.","Jeu d'arène":"Se battre devant du public, au rythme de la foule.","Charisme de foule":"Se faire acclamer.","Pistage":"Suivre une trace, un gibier, un fuyard.","Tir précis":"Toucher sa cible à distance.","Lecture des routes":"Choisir le bon chemin selon le terrain.","Camp de fortune":"Passer la nuit dehors sans trop souffrir.","Nœuds et voiles":"Manœuvrer sur l'eau.","Gros temps":"Tenir bon quand la mer se fâche.","Course longue":"Courir loin, vite, longtemps.","Discrétion":"Passer inaperçu.","Recherche":"Trouver l'information dans les livres et les archives.","Rhétorique":"Convaincre par la parole.","Calligraphie":"Écrire proprement et vite.","Faux et usage de faux":"Imiter une écriture, un sceau.","Relevés":"Cartographier un terrain.","Orientation":"Ne pas se perdre.","Forge":"Travailler le métal.","Armes de qualité":"Fabriquer des armes qui durent.","Charpente":"Bâtir en bois.","Résistance":"Encaisser les efforts.","Tissage fin":"Tisser des étoffes de qualité.","Marchandage de tissus":"Vendre du tissu au meilleur prix.","Marchandage":"Discuter chaque prix.","Réseau de routes":"Connaître les relais et ceux qui y vivent.","Qualité des plats":"Cuisiner des plats appréciés.","Écoute des rumeurs":"Entendre ce qui se dit dans les coins.","Évaluation":"Estimer la valeur d'un objet d'un coup d'œil.","Calcul":"Compter juste et vite.","Crochetage":"Ouvrir ce qui est fermé.","Fuite":"Disparaître au bon moment.","Cachettes":"Dissimuler un objet, un colis, soi-même.","Corruption":"Graisser la bonne patte.","Déguisement":"Prendre une autre identité.","Interrogatoire":"Faire parler quelqu'un.","Herboristerie":"Connaître les plantes qui soignent.","Chirurgie de fortune":"Soigner une blessure avec presque rien.","Mélanges":"Préparer des remèdes.","Poisons et antidotes":"Savoir ce qui tue et ce qui sauve.","Rites":"Accomplir des cérémonies.","Réconfort":"Apaiser les autres.","Transmutation":"Transformer la matière.","Distillation":"Extraire l'essence des choses.","Augures":"Lire l'avenir.","Lecture des gens":"Deviner les intentions des autres.","Ténacité humaine":"Continuer quand tout invite à s'arrêter.","Sens de la forêt":"Se mouvoir dans les bois comme chez soi.","Œil du forgeron":"Juger la qualité d'un métal à sa couleur.","Fureur tribale":"Une rage de clan, qui monte dans le combat.","Chance du petit peuple":"Passer entre les gouttes.","Ingéniosité":"Trouver une solution là où il n'y en a pas.","Regard infernal":"Un regard qui fait réfléchir avant de répondre.","Souffle de feu":"L'héritage d'un sang de dragon.","Pas de velours":"Se déplacer sans bruit.","Racines profondes":"Une endurance qui vient de la terre.","Débrouille de bidonville":"Vivre de peu et de ruse.","Charge du labyrinthe":"Foncer tête baissée.","Tour de passe-passe":"Tromper l'œil, charmer l'esprit.","Froid du tombeau":"Ne plus craindre ni la fatigue ni le froid.","Art de la guerre":"Penser un combat comme une manœuvre.","Sens de l'orientation":"Savoir toujours où l'on est.","Mémoire d'archiviste":"Retenir ce que l'on a lu.","Main sûre":"Une main qui ne tremble pas.","Sens des affaires":"Flairer le bon coup.","Doigts agiles":"Une dextérité rare.","Mains apaisantes":"Des gestes qui soulagent.","Intuition":"Sentir ce qui se prépare.","Bagarre":"Savoir se battre, sans plus.","Pied sûr":"Marcher sans trébucher.","Bagout":"Parler pour s'en sortir.","Marchandage de fortune":"Obtenir un meilleur prix à l'instinct.","Système D":"S'en sortir avec ce qu'on a.","Cuisine de campagne":"Un repas honnête avec peu.","Premiers secours":"Les gestes qui évitent le pire.","Curiosité":"Aller voir de plus près.","Débrouillardise":"Se tirer de situations délicates.","Bricolage":"Réparer, ajuster, bricoler.","Intuition naissante":"Une impression qu'il ne sait pas expliquer.","Instinct de survie":"Des réflexes appris dans la douleur.","Sens du duel":"Lire l'adversaire.","Gloire d'arène":"Un nom connu des gradins.","Lecture des ruines":"Comprendre ce que les pierres racontent.","Flair du marché":"Sentir quand acheter, quand vendre.","Pied marin":"Rester debout sur le pont.","Haine froide":"Une colère maîtrisée, durable.","Constitution de fer":"Un corps qui encaisse les maladies.","Méfiance":"Ne plus se fier au premier venu.","Tir à longue portée":"Tirer loin et juste.","Œil de lynx":"Voir ce que les autres ne voient pas.","Chevalerie":"Se battre selon un code.","Éloquence de cour":"Parler avec les puissants.","Reconnaissance":"Explorer avant les autres.","Embuscade tendue":"Préparer un piège.","Conduite d'attelage":"Mener bêtes et chariots.","Troc de route":"Échanger sur le chemin.","Classement":"Ranger pour retrouver.","Mémoire des textes":"Citer de mémoire.","Pétrissage":"Travailler la pâte.","Fournée du matin":"Nourrir tout un village avant l'aube.","Sertissage":"Monter une pierre sur un bijou.","Œil de joaillier":"Reconnaître un faux au premier regard.","Cuisine":"Préparer de bons plats.","Épices rares":"Savoir où trouver le goût.","Dressage":"Se faire obéir des bêtes.","Soin des bêtes":"Soigner les animaux.","Traque":"Retrouver quelqu'un qui se cache.","Cordes et menottes":"Maîtriser sans tuer.","Accouchement":"Aider à mettre au monde.","Parole rassurante":"Calmer ceux qui paniquent.","Cueillette":"Cueillir les bonnes plantes.","Teintures":"Colorer étoffes et peaux.","Voix des morts":"Parler aux défunts.","Langue des bêtes":"Se faire comprendre des animaux.","Cycles de la nature":"Lire les saisons.","Méditation":"Rester calme au cœur du chaos.","Arts martiaux":"Se battre sans arme."};
+const REC={
+"Voyage forcé":["Chassé de {de}, {n} gagne {vers} et s'y installe tant bien que mal.","Contraint de quitter {de}, {n} arrive à {vers} épuisé."],
+"Une rencontre décisive":["{n} fait une rencontre qui change le cours de sa vie.","{n} croise la mauvaise personne au mauvais moment."],
+"Une trahison":["{n} est trahi par quelqu'un de proche, mais en tire une leçon.","{n} est trahi par quelqu'un de proche et en sort durement touché."],
+"Un héritage inattendu":["Un héritage inattendu tombe dans les mains de {n}.","L'héritage promis à {n} se réduit à presque rien."],
+"Une maladie":["{n} tombe malade mais finit par se rétablir.","{n} tombe malade et n'en sort pas indemne."],
+"Un coup de chance":["La chance sourit enfin à {n}.","Un coup de chance tourne court pour {n}."],
+"Une dette":["{n} rembourse une vieille dette sans y laisser sa chemise.","Une vieille dette rattrape {n}, qui doit payer le prix fort."],
+"Un deuil":["{n} perd un proche et trouve la force de continuer.","{n} perd un proche et peine à s'en relever."],
+"Repos à l'auberge":["{n} fait halte à l'auberge et reprend des forces.","{n} passe une nuit agitée à l'auberge."],
+"Soins d'un guérisseur":["Un guérisseur soigne {n} et le remet sur pied.","Les soins d'un guérisseur ne suffisent pas à soulager {n}."],
+"Embuscade":["{n} déjoue une embuscade et s'en sort vainqueur.","{n} tombe dans une embuscade et s'en sort blessé."],
+"Combat de rue":["{n} sort vainqueur d'une bagarre de rue.","{n} perd une bagarre de rue."],
+"Vengeance de l'ennemi":["Son ennemi jure de se venger ; {n} lui tient tête et l'emporte.","Son ennemi se venge, et {n} en paie le prix."],
+"Rencontre d'un allié":["{n} se lie d'amitié avec un allié précieux.","{n} croit trouver un allié, mais l'alliance ne tient pas."],
+"Mission de l'allié":["{n} accomplit une mission pour son allié.","La mission confiée par son allié échoue."],
+"Marché florissant":["{n} profite d'un marché florissant pour faire de bonnes affaires.","{n} arrive trop tard sur un marché florissant."],
+"Tempête en mer":["{n} traverse une tempête en mer et en réchappe.","{n} essuie une tempête en mer et y laisse des plumes."],
+"Fouille des ruines":["{n} fouille des ruines et en rapporte quelque chose.","{n} fouille des ruines sans rien trouver d'utile."],
+"Piège des ruines":["{n} évite de justesse un piège des ruines.","{n} tombe dans un piège des ruines."],
+"Chasse au trésor":["Guidé par une carte, {n} met la main sur un trésor.","{n} suit une carte au trésor, mais la piste est fausse."],
+"Tournoi":["{n} remporte un tournoi.","{n} est éliminé lors d'un tournoi."],
+"Banquet":["{n} est convié à un banquet et s'y fait des relations.","Un banquet tourne mal pour {n}."],
+"Source dans la forêt":["{n} trouve une source dans la forêt et s'y ressource.","{n} cherche une source dans la forêt et s'y perd."],
+"Sortie de la forteresse":["{n} mène une sortie hors de la forteresse et repousse l'assaillant.","La sortie hors de la forteresse tourne mal pour {n}."],
+"Commande importante":["{n} honore une commande importante, à la satisfaction du client.","{n} manque une commande importante."],
+"Vision étrange":["{n} a une vision étrange dont il garde le souvenir.","Une vision étrange laisse {n} troublé."],
+"Cours improvisé":["{n} improvise un cours et transmet un peu de son savoir.","{n} improvise un cours qui tourne à la confusion."],
+"Concours de cuisine":["{n} participe à un concours de cuisine et épate les juges.","{n} participe à un concours de cuisine et rate son plat."],
+"Chasse au gibier":["{n} part à la chasse et rapporte du gibier.","{n} rentre bredouille d'une chasse."],
+"Négociation tendue":["{n} mène une négociation tendue à son avantage.","Une négociation tendue tourne mal pour {n}."],
+"Cambriolage":["{n} réussit un cambriolage sans se faire prendre.","{n} se fait presque prendre lors d'un cambriolage."],
+"Épreuve d'honneur":["{n} relève une épreuve d'honneur et en sort grandi.","{n} échoue à une épreuve d'honneur."],
+"Un rival entre en scène":["Un rival entre en scène ; {n} garde la tête froide.","Un rival entre en scène et prend l'avantage sur {n}."],
+"Duel avec le rival":["{n} affronte son rival en duel et l'emporte.","{n} perd son duel contre son rival."],
+"Piste d'un lieu oublié":["{n} suit la piste d'un lieu oublié et le découvre.","{n} suit une piste, mais elle s'efface."],
+"Explorer le site":["{n} explore le site découvert et en tire profit.","{n} explore le site et y laisse des forces."]};
+const RDESC={"Humain":"Taille moyenne, peau et cheveux de toutes teintes : on lui trouve toujours un air de famille avec quelqu'un.","Elfe":"Grand et fin, les oreilles pointues, le regard clair. Il bouge sans bruit.","Nain":"Petit, large, barbu, les mains marquées par le travail du métal.","Orc":"Grand, massif, la peau verte, des crocs qui dépassent. Il se tient droit, comme pour se faire respecter.","Halfelin":"Petit, rond, pieds nus et cheveux bouclés. Un sourire tranquille.","Gnome":"Minuscule, coiffé d'un bonnet pointu, toujours en train de bricoler quelque chose.","Démon":"Peau rouge sombre, petites cornes, regard perçant. On ne sait jamais s'il plaisante.","Drakéen":"Écailles vertes, crête osseuse, une fierté de dragon dans le regard.","Félin":"Oreilles de chat, moustaches fines, démarche souple, yeux qui captent la lumière.","Sylvain":"Peau mêlée d'écorce, feuilles dans les cheveux : on le croirait né d'un arbre.","Gobelin":"Petit, vert, les oreilles larges, les yeux qui ne s'arrêtent jamais.","Minotaure":"Immense, tête de taureau, cornes recourbées. Il baisse la tête pour passer les portes.","Lutin":"Minuscule, pointu, un éclat malicieux dans l'œil. Il flotte plus qu'il ne marche.","Revenant":"Pâle, froid au toucher, le regard vide de ceux qui ont déjà vu l'autre côté."};

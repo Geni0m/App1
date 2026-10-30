@@ -1,6 +1,6 @@
 /* carte.js : icônes de race, carte plein écran (monde, pays, ville), voyages et scènes animées */
 const NS='http://www.w3.org/2000/svg';
-const RC={Humain:'#e0b48a',Elfe:'#ecd6bd',Nain:'#d9a273',Orc:'#7fa650',Halfelin:'#e8c19a',Gnome:'#e6b89a',Démon:'#c0504d',Drakéen:'#5fa68a',Félin:'#d9a35c',Sylvain:'#8aa05a'};
+const RC={Humain:'#e0b48a',Elfe:'#ecd6bd',Nain:'#d9a273',Orc:'#7fa650',Halfelin:'#e8c19a',Gnome:'#e6b89a',Démon:'#c0504d',Drakéen:'#5fa68a',Félin:'#d9a35c',Sylvain:'#8aa05a',Gobelin:'#8fb04a',Minotaure:'#a8794f',Lutin:'#e9c9d8',Revenant:'#b9c7cf'};
 function icone(r){
  const c=RC[r]||RC.Humain,yeux='<circle cx="-2.2" cy="-.4" r=".75" fill="#222"/><circle cx="2.2" cy="-.4" r=".75" fill="#222"/>';
  let ar='',av='';
@@ -13,6 +13,10 @@ function icone(r){
  else if(r==='Drakéen'){ar='<path d="M-1.6 -6l1.6-4 1.6 4zM-4.2 -5l.8-3 1.7 3zM1.6 -5l1.7-3 .8 3z" fill="#2e7d65"/>';av='<path d="M-3 3.6q3 1.4 6 0" stroke="#1d4d3d" fill="none" stroke-width=".6"/>'}
  else if(r==='Félin'){ar='<path d="M-5.5 -3l-1-6 4 3zM5.5 -3l1-6-4 3z" fill="'+c+'" stroke="#3b2a1a" stroke-width=".4"/>';av='<path d="M-6 1.6h-4M-6 3h-4M6 1.6h4M6 3h4" stroke="#222" stroke-width=".3"/><path d="M-1 2l1 1 1-1z" fill="#c55"/>'}
  else if(r==='Sylvain'){av='<path d="M-4 -5q1-4 4-4 3 0 4 4-4-2-8 0z" fill="#4f8a3e"/><path d="M-2 -6q2-3 5-1" stroke="#2f5a26" fill="none" stroke-width=".5"/>'}
+ else if(r==='Gobelin'){ar='<path d="M-5.5 -.5l-6-3.5 1.2 5.4zM5.5 -.5l6-3.5-1.2 5.4z" fill="'+c+'" stroke="#3b2a1a" stroke-width=".4"/>';av='<path d="M-1.6 3.4l.6-1.6.6 1.6zM1 3.4l.6-1.6.6 1.6z" fill="#fff"/>'}
+ else if(r==='Minotaure'){ar='<path d="M-4.6 -4q-2.5-4.5-6.2-3.6M4.6 -4q2.5-4.5 6.2-3.6" stroke="#efe6d2" stroke-width="1.5" fill="none" stroke-linecap="round"/>';av='<ellipse cx="0" cy="2.5" rx="2.8" ry="2" fill="#c99a76"/><circle cx="-1" cy="2.6" r=".4" fill="#222"/><circle cx="1" cy="2.6" r=".4" fill="#222"/>'}
+ else if(r==='Lutin'){ar='<path d="M-5.5 0q-8-7-6 1.5 1.5 3 6-.5zM5.5 0q8-7 6 1.5-1.5 3-6-.5z" fill="#cdeaf7" stroke="#7aa9c2" stroke-width=".3" opacity=".85"/><path d="M-5 -3l-3-3 4.5 1zM5 -3l3-3-4.5 1z" fill="'+c+'"/>';av='<path d="M-5.5 -3.2L0 -9.5l5.5 6.3q-5.5-2.3-11 0z" fill="#7a5ac0"/>'}
+ else if(r==='Revenant'){av='<circle cx="-2.2" cy="-.4" r="1.2" fill="#0e1418"/><circle cx="2.2" cy="-.4" r="1.2" fill="#0e1418"/><path d="M-2.2 3.4h4.4M-1 3v.8M1 3v.8" stroke="#334" stroke-width=".35"/><path d="M-6 -1.4a6 6 0 0 1 12 0q-6-2-12 0z" fill="#59656c"/>'}
  else av='<path d="M-6.2 -1a6.2 6.2 0 0 1 12.4 0q-6.2-3.5-12.4 0z" fill="#6b4a2b"/>';
  return ar+'<circle r="6" fill="'+c+'" stroke="#3b2a1a" stroke-width=".5"/>'+yeux+av}
 const iconeSVG=(r,px)=>'<svg viewBox="-11 -11 22 22" width="'+px+'" height="'+px+'" aria-hidden="true">'+icone(r)+'</svg>';
@@ -86,3 +90,4 @@ addEventListener('resize',()=>vue(V.cx,V.cy,V.h));
 mp.addEventListener('click',ev=>{if(!PLACE)return;const pt=mp.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;const q=pt.matrixTransform(mp.getScreenCTM().inverse()),
  x=Math.max(2,Math.min(198,+q.x.toFixed(1))),y=Math.max(2,Math.min(118,+q.y.toFixed(1))),n=PLACE.n;PLACE=null;
  PERSO.pos[n]=[x,y];P[n]=[x,y];const l=PERSO.lieux.find(z=>z.n===n);if(l){l.x=x;l.y=y}ecrire('perso',PERSO);built=false;$('plein').hidden=true;ui()});
+const portrait=(r,px)=>'<svg viewBox="-12 -12 24 24" width="'+px+'" height="'+px+'" aria-hidden="true"><defs><radialGradient id="pgr" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#000" stop-opacity=".25"/></radialGradient></defs><circle r="11.6" fill="'+(RC[r]||RC.Humain)+'" opacity=".35"/><circle r="11.6" fill="url(#pgr)"/><path d="M-10 11.5q1-8 10-8t10 8z" fill="#5a4a6a" stroke="#3b2a1a" stroke-width=".4"/><g transform="translate(0 -1.5) scale(1.35)">'+icone(r)+'</g></svg>';

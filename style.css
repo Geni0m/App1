@@ -87,3 +87,6 @@ body[data-s=printemps]{--f:#edf3e4;--f2:#f4f1e6}body[data-s=été]{--f:#f7efd6;-
 
 .long{white-space:pre-wrap;text-align:left;max-height:50vh;overflow:auto;font-size:14px;color:var(--e)}
 #adm{margin-top:24px;border-top:1px solid var(--l);padding-top:4px}#adm input[type=file]{padding:8px}
+.mim img{width:100%;max-height:210px;object-fit:cover;border-radius:12px;margin:0 0 10px;border:1px solid var(--a)}
+.sk{all:unset;cursor:pointer;color:var(--a);text-decoration:underline dotted;padding:2px 0;-webkit-tap-highlight-color:transparent}
+#fi details summary{cursor:pointer}

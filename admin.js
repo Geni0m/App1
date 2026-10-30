@@ -12,16 +12,20 @@ function recit(){
   (g('Trait de caractère')?nom+' est '+lo(g('Trait de caractère'))+(g('Défaut')?', mais '+lo(g('Défaut')):'')+'.':'')+(g('Décor')?' Son histoire commence ici : '+g('Décor')+'.':''),
   C.lig?nom+' porte l\u2019héritage de la '+C.lig.nom+'.':''];
  C.vie.filter(e=>e.t!=='Objet').forEach(e=>{
-  const m=e.txt.match(/^([^,]+), (\d+) ans : (.*)$/);if(!m)return;const r=m[3],o=[];
-  const vg=r.match(/: (.+?) vers (.+?)(?: \(| \[|$)/);if(vg)o.push(nom+' prend la route : '+vg[1]+' vers '+vg[2]+'.');
-  if(r.includes(': réussi'))o.push(nom+' s\u2019en tire à son avantage.');else if(r.includes(': raté'))o.push('Cela tourne mal.');
-  let x=r.match(/Vie (-\d+)/);if(x)o.push(nom+' y laisse '+(-x[1])+' points de vie.');
+  const m=e.txt.match(/^([^,]+), (\d+) ans : (.*)$/);if(!m)return;const r=m[3],o=[],ok=e.ok!==false;
+  const vg=r.match(/: (.+?) vers (.+?)(?: \(| \[|$)/),de=vg?vg[1]:'',vers=vg?vg[2]:'';
+  let ph=(REC[e.t]||[])[ok?0:1];
+  if(!ph&&/^voyage lointain/i.test(e.t)&&vg)ph=ok?'{n} part de {de} et rejoint {vers}.':'{n} part de {de} pour {vers}, mais le chemin l\u2019éprouve.';
+  ph=ph?ph.replace(/\{n\}/g,nom).replace(/\{de\}/g,de).replace(/\{vers\}/g,vers):(HIST[e.t]||e.t+'.');
+  let x=r.match(/Vie (-\d+)/);if(x)o.push('Il perd '+(-x[1])+' point'+(x[1]<-1?'s':'')+' de vie dans l\u2019affaire.');
   x=r.match(/Or \+(\d+)/);if(x)o.push('La bourse gagne '+x[1]+' pièces d\u2019or.');
-  x=r.match(/Succès : ([^(]+)\(/);if(x)o.push('Cet exploit lui vaut un titre : « '+x[1].trim()+' ».');
-  x=r.match(/Nouvelle compétence : ([^,\]]+)/);if(x)o.push('Une nouvelle corde à son arc : '+x[1]+'.');
+  x=r.match(/Succès mondial[^:]*: ([^(\],]+)/);if(x)o.push('Cet exploit lui vaut un titre, que personne avant lui n\u2019avait porté : « '+x[1].trim()+' ».');
+  x=r.match(/Compétence (?:éveillée|débloquée) : ([^,\]\(]+)/);if(x)o.push('Il y gagne un nouveau savoir-faire : '+x[1].trim()+'.');
+  x=r.match(/Nouvelle compétence : ([^,\]]+)/);if(x)o.push('Il y apprend : '+x[1].trim()+'.');
   x=r.match(/Découverte : ([^(]+)\(/);if(x)o.push(nom+' découvre : '+x[1].trim()+'.');
   x=r.match(/Le monde change : ([^ (]+)/);if(x)o.push('Le monde bascule : '+x[1].toLowerCase()+'.');
-  t.push('À '+m[2]+' ans, '+(sa[m[1].toLowerCase()]||'')+'. '+(HIST[e.t]||e.t+'.')+' '+o.join(' '))});
+  const ph2=ph.startsWith(nom)?ph:ph.charAt(0).toLowerCase()+ph.slice(1);
+  t.push('À '+m[2]+' ans, '+(sa[m[1].toLowerCase()]||'')+', '+ph2+' '+o.join(' '))});
  const d=C.vie[C.vie.length-1];
  t.push(C.fin==='mort'?nom+' meurt à '+age()+' ans.'+(d?' Sa dernière épreuve : '+lo(d.t)+'.':''):C.fin==='victoire'?'Objectif accompli : « '+C.obj+' ». '+nom+' peut regarder sa vie avec fierté.':'L\u2019histoire '+(/^[AEIOUYÉÈH]/i.test(nom)?'d\u2019':'de ')+nom+' n\u2019est pas terminée.');
  if(C.fonde)t.push('De '+nom+' naît une lignée : la '+C.fonde+'.');
@@ -53,6 +57,15 @@ function atelier(){
  sec('Nouvel événement','<input id="e-n" placeholder="Nom"><textarea id="e-t" placeholder="Histoire (une ou deux phrases)" style="min-height:70px"></textarea><div class="l"><input id="e-w" type="number" value="2" step="0.5" aria-label="Poids">'+sel('e-g',TAGS)+'</div><input id="e-m" placeholder="Réponse=multiplicateur; …"><input id="e-r" placeholder="Requis (état, lieu, objet…)"><div class="l"><input id="e-pv" type="number" placeholder="Vie ±"><input id="e-en" type="number" placeholder="Énergie ±"><input id="e-or" type="number" placeholder="Or ±"></div><div class="l">'+sel('e-s',['Aucun jet'].concat(Object.values(S)))+'<input id="e-d" type="number" value="10" aria-label="Difficulté du jet"></div><input id="e-i" placeholder="Objet gagné (facultatif)"><button class="go" id="e-ok">Ajouter l\u2019événement</button>');
  sec('Nouvelle table de création','<input id="t-n" placeholder="Nom (par exemple Passion)"><button class="go" id="t-ok">Créer la table</button><p style="color:var(--m);font-size:14px">Elle s\u2019insère avant « Objectif ». Modifiez ensuite ses options dans « Modifier les tables ».</p>');
  sec('Ma carte et mes lieux','<p style="color:var(--m);font-size:14px">Importez votre propre carte (PNG, JPG, WebP ou SVG). Elle remplace le décor dessiné ; les lieux, les voyages et les animations restent par-dessus.</p><input id="c-f" type="file" accept="image/*"><div class="l"><button id="c-x">Retirer l\u2019image</button></div><h2>Placer un lieu</h2><select id="c-l"></select><button class="go" id="c-p">Placer sur la carte</button><h2>Nouveau lieu</h2><input id="c-n" placeholder="Nom du lieu"><button class="go" id="c-a">Ajouter puis placer</button>');
+ sec('Illustrations','<p style="color:var(--m);font-size:14px">Associez une image à un événement ou à une race. Elle s\u2019affiche à chaque tirage. Stockée sur cet appareil. Ou bien déposez sur GitHub un fichier <b>img/ev-nom.jpg</b> ou <b>img/race-nom.jpg</b> (nom indiqué ci-dessous).</p><select id="i-n"></select><p id="i-s" style="font-size:13px;color:var(--m)"></p><input id="i-f" type="file" accept="image/*"><div class="l"><button id="i-x">Retirer l\u2019image</button></div>');
+ const inoms=()=>RACES.map(r=>['race',r[0]]).concat((T.find(x=>x.vie)||{o:[]}).o.map(o=>['ev',o[0]]));
+ $('i-n').innerHTML=inoms().map((x,i)=>'<option value="'+i+'">'+(x[0]==='race'?'Race : ':'Événement : ')+esc(x[1])+'</option>').join('');
+ const icur=()=>inoms()[+$('i-n').value||0],ikey=()=>icur()[0]+'-'+slug(icur()[1]);
+ const ishow=()=>{$('i-s').textContent='Nom de fichier GitHub : img/'+ikey()+'.jpg'};$('i-n').onchange=ishow;ishow();
+ $('i-f').onchange=e=>{const f=e.target.files[0];if(!f)return;const key=ikey(),im=new Image();im.onload=()=>{const k=Math.min(1,900/im.width),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);c.toBlob(b=>idb('set','img-'+key,b).then(()=>{delete IMC[key];alert('Image enregistrée.')}),'image/jpeg',.85)};im.src=URL.createObjectURL(f)};
+ $('i-x').onclick=()=>idb('del','img-'+ikey()).then(()=>{delete IMC[ikey()];alert('Image retirée.')});
+ sec('Monde','<p style="color:var(--m);font-size:14px">Remet à zéro les succès mondiaux (les titres redeviennent libres) et l\u2019héritage des races. Les lieux découverts et les lignées sont conservés.</p><button id="w-r">Réinitialiser succès et héritages</button>');
+ $('w-r').onclick=()=>{if(!confirm('Libérer tous les succès mondiaux et effacer l\u2019héritage des races ?'))return;WORLD.succ={};ecrire('monde',WORLD);Object.keys(RH).forEach(k=>delete RH[k]);ecrire('raceh',RH);ui();alert('Fait.')};
  sec('Sauvegarde','<div class="l"><button id="s-d">Télécharger</button><button id="s-c">Copier</button></div><input id="s-f" type="file" accept=".json,application/json"><textarea id="s-t" placeholder="Ou collez ici une sauvegarde" style="min-height:70px"></textarea><button id="s-i">Importer le texte collé</button>');
  sec('Caractéristiques (bonus)','<p style="color:var(--m);font-size:14px">Bonus ou malus appliqués aux tirages de Force, Agilité… selon la race, l\u2019archétype, l\u2019origine, le métier ou le trait. +1 décale la moyenne d\u2019environ 1,3 point ; 0 = aucun effet.</p><select id="b-n"></select><div class="l" id="b-s"></div><div class="l"><button class="go" id="b-ok">Enregistrer</button><button id="b-rz">Valeur d\u2019origine</button></div>');
  const bnoms=()=>{const r=[];['Race','Archétype','Origine','Métier','Trait de caractère'].forEach(n=>{const t=T.find(x=>x.n===n);if(t)t.o.forEach(o=>{if(!r.includes(o[0]))r.push(o[0])})});Object.keys(SB).forEach(k=>{if(!r.includes(k))r.push(k)});return r};
