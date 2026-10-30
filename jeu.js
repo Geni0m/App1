@@ -19,7 +19,7 @@ const etq=()=>{const o=C.obj;if(QU[o])return QU[o];const d=OBJD[o];return d?d.ma
 function avancer(){const q=etq();while(C.qs<q.length&&q[C.qs][1]())C.qs++;return q.length>0&&C.qs>=q.length&&C.vie.length>0}
 /* ----- Tirage pondéré : réponses précédentes, deux derniers événements, objets, états, lieu, météo, saison, étape de quête ----- */
 function poids(t){
- if(t.stat){const b=C.rep.reduce((s,r)=>s+((SB[r[1]]||{})[t.stat]||0),0);return[2,3,4,5,6,7,8,9].map(v=>({t:String(v),w:Math.exp(-((v-5.5)**2)/6)*Math.exp(.22*b*(v-5.5))}))}
+ if(t.stat){const b=C.rep.reduce((s,r)=>s+((SB[r[1]]||{})[t.stat]||0),0);return[2,3,4,5,6,7,8,9].map(v=>({t:String(v),w:Math.exp(-((v-5.5)**2)/6)*Math.exp(.4*b*(v-5.5))}))}
  const ev=t.vie?C.vie.filter(e=>e.t!=='Objet').slice(-2).map(e=>e.t):[],a=C.rep.map(r=>r[1]);let cx=[];
  if(t.vie){cx=ev.concat(C.fl,C.inv,[C.pos,C.meteo,cap(sai())],WORLD.sites.some(s=>s.n===C.pos)?['Site']:[]);if(C.en<=3)cx.push('Épuisé');if(C.pv<=4)cx.push('Blessé');const q=etq();if(C.qs<q.length)cx.push('Étape:'+q[C.qs][2])}
  a.push(...cx);const rw=cx.slice().reverse();
@@ -149,7 +149,7 @@ $('son').textContent='Son : '+(MUET?'non':'oui');$('son').onclick=()=>{MUET=!MUE
 const STORY=(t,v)=>(t.n==='Lignée'?(v==='Sans lignée'?'Aucun grand nom derrière lui : tout reste à écrire.':(LIG.find(l=>l.nom===v)||{}).txt):'')||HIST[v]||({'Trait de caractère':'Un trait qui marquera ses choix : '+v.toLowerCase()+'.','Défaut':'Son défaut, '+v.toLowerCase()+', lui jouera des tours.','Décor':'Sa vie commence ici : '+v+'.','Objectif':'Son but : '+v.toLowerCase()+'.'}[t.n]||'');
 function modal(cat,titre,texte,liste,ok){const m=$('md');$('mca').textContent=cat;$('mti').textContent=titre;$('mtx').className='';$('mtx').textContent=texte;$('mli').innerHTML=(liste||[]).map(x=>'<li>'+esc(x)+'</li>').join('');
  $('mem').innerHTML=cat==='Race'?iconeSVG(titre,64):'<div class="gl">'+esc(titre.charAt(0))+'</div>';m.hidden=false;$('mok').onclick=()=>{m.hidden=true;ok&&ok()};$('mok').focus()}
-function resume(){const k=Object.keys(S).sort((a,b)=>C.st[b]-C.st[a]);modal('Caractéristiques','Votre personnage',S[k[0]]+' est son point fort, '+S[k[4]]+' son point faible.',Object.keys(S).map(x=>S[x]+' : '+C.st[x]),()=>ui())}
+function resume(){const k=Object.keys(S).sort((a,b)=>C.st[b]-C.st[a]);modal('Caractéristiques','Votre personnage',S[k[0]]+' est son point fort, '+S[k[4]]+' son point faible.',Object.keys(S).map(x=>{const rb=((SB[(C.rep.find(r=>r[0]==='Race')||[])[1]]||{})[x]||0);return S[x]+' : '+C.st[x]+(rb?' (race '+(rb>0?'+':'')+rb+')':'')}),()=>ui())}
 $('go').onclick=()=>{
  if(occ||!cur.length)return;if(AC&&AC.state==='suspended')AC.resume();const t=table(),s=cur.reduce((a,x)=>a+x.w,0);let r=Math.random()*s,i=0,c=0;
  for(;i<cur.length-1;i++){if(r<c+cur[i].w)break;c+=cur[i].w}
