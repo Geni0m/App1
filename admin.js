@@ -7,7 +7,7 @@ function recit(){
  const g=k=>(C.rep.find(r=>r[0]===k)||[])[1]||'',nom=C.nom||'Le personnage';
  if(!C.rep.length)return 'Aucune histoire à raconter pour l\u2019instant.';
  const sa={printemps:'au printemps',été:'en été',automne:'en automne',hiver:'en hiver'};
- const t=[nom+', '+lo(g('Race'))+' '+lo(g('Métier'))+'.',
+ const t=[nomS()+', '+lo(g('Race'))+' '+lo(g('Métier'))+'.',
   [HIST[g('Origine')],HIST[g('Race')],HIST[g('Archétype')],HIST[g('Métier')]].filter(Boolean).join(' '),
   (g('Trait de caractère')?nom+' est '+lo(g('Trait de caractère'))+(g('Défaut')?', mais '+lo(g('Défaut')):'')+'.':'')+(g('Décor')?' Son histoire commence ici : '+g('Décor')+'.':''),
   C.lig?nom+' porte l\u2019héritage de la '+C.lig.nom+'.':''];
@@ -51,7 +51,7 @@ function lieuxMenu(){const s=$('c-l');if(s)s.innerHTML=tous().map(n=>'<option>'+
 
 /* ----- Atelier ----- */
 function atelier(){
- const a=$('adm'),ed=document.querySelector('main > details');if(ed)a.appendChild(ed);
+ const a=$('adm'),ed=document.querySelector('main > details:not(#reg)');if(ed)a.appendChild(ed);
  const sec=(t,h)=>{const d=document.createElement('details');d.innerHTML='<summary>'+t+'</summary>'+h;a.appendChild(d)};
  const sel=(id,l)=>'<select id="'+id+'">'+l.map(x=>'<option>'+x+'</option>').join('')+'</select>';
  sec('Nouvel événement','<input id="e-n" placeholder="Nom"><textarea id="e-t" placeholder="Histoire (une ou deux phrases)" style="min-height:70px"></textarea><div class="l"><input id="e-w" type="number" value="2" step="0.5" aria-label="Poids">'+sel('e-g',TAGS)+'</div><input id="e-m" placeholder="Réponse=multiplicateur; …"><input id="e-r" placeholder="Requis (état, lieu, objet…)"><div class="l"><input id="e-pv" type="number" placeholder="Vie ±"><input id="e-en" type="number" placeholder="Énergie ±"><input id="e-or" type="number" placeholder="Or ±"></div><div class="l">'+sel('e-s',['Aucun jet'].concat(Object.values(S)))+'<input id="e-d" type="number" value="10" aria-label="Difficulté du jet"></div><input id="e-i" placeholder="Objet gagné (facultatif)"><button class="go" id="e-ok">Ajouter l\u2019événement</button>');

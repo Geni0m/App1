@@ -381,3 +381,27 @@ const REC={
 "Piste d'un lieu oublié":["{n} suit la piste d'un lieu oublié et le découvre.","{n} suit une piste, mais elle s'efface."],
 "Explorer le site":["{n} explore le site découvert et en tire profit.","{n} explore le site et y laisse des forces."]};
 const RDESC={"Humain":"Taille moyenne, peau et cheveux de toutes teintes : on lui trouve toujours un air de famille avec quelqu'un.","Elfe":"Grand et fin, les oreilles pointues, le regard clair. Il bouge sans bruit.","Nain":"Petit, large, barbu, les mains marquées par le travail du métal.","Orc":"Grand, massif, la peau verte, des crocs qui dépassent. Il se tient droit, comme pour se faire respecter.","Halfelin":"Petit, rond, pieds nus et cheveux bouclés. Un sourire tranquille.","Gnome":"Minuscule, coiffé d'un bonnet pointu, toujours en train de bricoler quelque chose.","Démon":"Peau rouge sombre, petites cornes, regard perçant. On ne sait jamais s'il plaisante.","Drakéen":"Écailles vertes, crête osseuse, une fierté de dragon dans le regard.","Félin":"Oreilles de chat, moustaches fines, démarche souple, yeux qui captent la lumière.","Sylvain":"Peau mêlée d'écorce, feuilles dans les cheveux : on le croirait né d'un arbre.","Gobelin":"Petit, vert, les oreilles larges, les yeux qui ne s'arrêtent jamais.","Minotaure":"Immense, tête de taureau, cornes recourbées. Il baisse la tête pour passer les portes.","Lutin":"Minuscule, pointu, un éclat malicieux dans l'œil. Il flotte plus qu'il ne marche.","Revenant":"Pâle, froid au toucher, le regard vide de ceux qui ont déjà vu l'autre côté."};
+
+/* ===================== V7 : famille, rumeurs, commandement ===================== */
+DEF.find(t=>t.vie).o.push(["Rumeur entendue",2.2,{"Repos à l'auberge":3,"Aubergiste":2,"Marchand ambulant":1.5,"Cité portuaire":1.5,"Banquet":2}],
+["Rencontre amoureuse",1.6,{"Généreux":1.5,"Banquet":2.5,"Repos à l'auberge":1.5,"Noble déchu":1.3}],
+["Mariage",4,{"Banquet":1.5},"Amoureux"],
+["Naissance d'un enfant",3,{},"Marié"],
+["Commandement",3,{"Combattant":1.5,"Commerçant":1.3},"Gradé"]);
+Object.assign(EF,{"Rumeur entendue":{},"Rencontre amoureuse":{fl:"Amoureux",Cha:1},"Mariage":{fl:"Marié",uf:"Amoureux",or:-5,sc:"marche"},"Naissance d'un enfant":{or:-3,EN:-1},"Commandement":{or:8,Cha:1,jet:["Cha",9]}});
+Object.assign(ETAG,{"Rumeur entendue":"social","Rencontre amoureuse":"social","Mariage":"hospitalité","Naissance d'un enfant":"social","Commandement":"social"});
+Object.assign(REL,{"Commandement":{Peuple:1},"Mariage":{Peuple:1}});
+Object.assign(HIST,{
+"Rumeur entendue":"Au détour d'une conversation, quelqu'un parle d'un lieu, d'un secret, d'un service à rendre.",
+"Rencontre amoureuse":"Un regard, un sourire : quelque chose se noue sans que personne ne l'ait décidé.",
+"Mariage":"Une cérémonie modeste, quelques amis, et une nouvelle vie à deux.",
+"Naissance d'un enfant":"Un cri dans la maison : la vie continue autrement.",
+"Commandement":"On attend de lui des ordres, et il apprend à les donner.",
+"Héritage familial":"Un parent a laissé quelques affaires, un savoir-faire et un peu d'or.",
+"Brouillé avec les siens":"Il part sans rien demander et sans rien emporter."});
+Object.assign(REC,{
+"Rumeur entendue":["{n} tend l'oreille et recueille une rumeur qui pourrait rapporter.","{n} écoute une rumeur, mais personne ne sait rien de précis."],
+"Rencontre amoureuse":["{n} fait une rencontre qui lui fait battre le cœur.","{n} s'éprend de quelqu'un qui ne le remarque pas."],
+"Mariage":["{n} se marie.","{n} se marie dans la tristesse."],
+"Naissance d'un enfant":["{n} devient parent.","{n} devient parent dans des conditions difficiles."],
+"Commandement":["{n} prend la tête d'un groupe et se fait obéir.","{n} prend un commandement, mais perd le contrôle."]});

@@ -32,6 +32,7 @@ function tw(ms,f,fin){const t0=performance.now(),g=n=>{let u=Math.min(1,(n-t0)/m
 function cam(cx,cy,h,ms,fin){const a=V;tw(ms,u=>vue(a.cx+(cx-a.cx)*u,a.cy+(cy-a.cy)*u,a.h+(h-a.h)*u),fin)}
 /* Un bâtiment ou un repère propre à chaque lieu (visible aux zooms Pays et Ville) */
 function ville(n,x,y){const f=v=>v.toFixed(1),r=(a,b,w,h,c)=>'<rect class="mai" x="'+f(x+a)+'" y="'+f(y+b)+'" width="'+w+'" height="'+h+'" fill="'+(c||'var(--rel)')+'" stroke="var(--e)" stroke-width=".12"/>';
+ const F0=WORLD.fond.find(z=>z.n===n);if(F0){const t=F0.ty,cl={Auberge:'#b9824a',Forge:'#6b6b73',Camp:'#c9b38a',Chapelle:'#cfd6e0',Boutique:'#c26a4a'}[t]||'#a89d8f';return r(-2.4,-2,4.8,3.6,cl)+'<path class="mai" d="M'+f(x-3)+' '+f(y-2)+'L'+f(x)+' '+f(y-4.6)+'L'+f(x+3)+' '+f(y-2)+'Z" fill="#7a3b2e"/>'+(t==='Forge'?'<circle class="fu" cx="'+f(x+3.2)+'" cy="'+f(y+.6)+'" r=".6"/>':'')}
  const S0=WORLD.sites.find(z=>z.n===n);if(S0){const t=S0.ty;if(t==='Grotte')return '<ellipse class="mai" cx="'+x+'" cy="'+y+'" rx="3" ry="2" fill="#4a4a4a"/>';if(t.startsWith('Temple'))return r(-3,-2,.9,3.5,'#9fb7c4')+r(0,-3,.9,4.5,'#9fb7c4')+r(3,-1,.9,2.5,'#9fb7c4');if(t.startsWith('Tour'))return r(-1,-6,2,7,'#a89d8f');if(t.startsWith('Mine'))return r(-3,-1,6,3,'#6b5a3a');if(t.startsWith('Cimetière'))return r(-3,-1,.6,2.5,'#bbb')+r(0,-2,.6,3.5,'#bbb')+r(3,-1,.6,2.5,'#bbb');return r(-4,-3,8,6,'#a89d8f')}
  if(n==='Capitale en révolte')return r(-4,-3.5,8,5,'#b9aea0')+r(-5.2,-6,2,4.5,'#a89d8f')+r(3.2,-6,2,4.5,'#a89d8f')+r(-1,-7,2,5,'#a89d8f')+'<path class="mai" d="M0 -7v-2.6l2.2.7-2.2.7" fill="#b02a2a"/>';
  if(n==='Cité portuaire')return r(-14,3,11,1.3,'#7a5a3a')+r(-12,4.3,.5,2,'#7a5a3a')+r(-7,4.3,.5,2,'#7a5a3a')+r(6,-5,1.6,6,'#eee')+'<path class="mai" d="M5.6 -5h2.4l-1.2-2z" fill="#b02a2a"/>';
@@ -65,7 +66,7 @@ function monde(){
  +'<rect class="pl" x="-300" y="-300" width="800" height="700"/><rect class="ne" x="-300" y="-300" width="800" height="700"/><rect class="br" x="-300" y="-300" width="800" height="700"/><g id="dyn"></g>';
  mp.innerHTML=h}
 function dyn(from){let h='';C.trail.forEach(s=>{const a=pos(s[0]),b=pos(s[1]);h+='<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'" stroke="var(--a)" stroke-width=".5" stroke-dasharray="1.6 1.2"/>'});
- h+='<g id="pas"></g><g id="tk"><circle r="2.9" fill="var(--a)" stroke="var(--s)" stroke-width=".6"/><g transform="scale(.27)">'+icone(race())+'</g></g>';
+ h+=couches()+'<g id="pas"></g><g id="tk"><circle r="2.9" fill="var(--a)" stroke="var(--s)" stroke-width=".6"/><g transform="scale(.27)">'+icone(race())+'</g></g>';
  $('dyn').innerHTML=h;TP=pos(from||C.pos);mp.dataset.s=SAI[C.t%12];mp.dataset.w=C.meteo}
 function ouvrirCarte(){if(!C.pos)return;monde();$('plein').hidden=false;$('mf').textContent='Fermer';dyn();const q=pos(C.pos);
  $('mt').textContent=(C.nom?C.nom+' : ':'')+C.pos+', '+pays(q)+' ('+cap(SAI[C.t%12])+')';vue(q[0],q[1],80*innerHeight/innerWidth)}
@@ -90,4 +91,3 @@ addEventListener('resize',()=>vue(V.cx,V.cy,V.h));
 mp.addEventListener('click',ev=>{if(!PLACE)return;const pt=mp.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;const q=pt.matrixTransform(mp.getScreenCTM().inverse()),
  x=Math.max(2,Math.min(198,+q.x.toFixed(1))),y=Math.max(2,Math.min(118,+q.y.toFixed(1))),n=PLACE.n;PLACE=null;
  PERSO.pos[n]=[x,y];P[n]=[x,y];const l=PERSO.lieux.find(z=>z.n===n);if(l){l.x=x;l.y=y}ecrire('perso',PERSO);built=false;$('plein').hidden=true;ui()});
-const portrait=(r,px)=>'<svg viewBox="-12 -12 24 24" width="'+px+'" height="'+px+'" aria-hidden="true"><defs><radialGradient id="pgr" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#000" stop-opacity=".25"/></radialGradient></defs><circle r="11.6" fill="'+(RC[r]||RC.Humain)+'" opacity=".35"/><circle r="11.6" fill="url(#pgr)"/><path d="M-10 11.5q1-8 10-8t10 8z" fill="#5a4a6a" stroke="#3b2a1a" stroke-width=".4"/><g transform="translate(0 -1.5) scale(1.35)">'+icone(r)+'</g></svg>';

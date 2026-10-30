@@ -90,3 +90,7 @@ body[data-s=printemps]{--f:#edf3e4;--f2:#f4f1e6}body[data-s=été]{--f:#f7efd6;-
 .mim img{width:100%;max-height:210px;object-fit:cover;border-radius:12px;margin:0 0 10px;border:1px solid var(--a)}
 .sk{all:unset;cursor:pointer;color:var(--a);text-decoration:underline dotted;padding:2px 0;-webkit-tap-highlight-color:transparent}
 #fi details summary{cursor:pointer}
+.mini{font-size:12px;padding:3px 9px;margin-left:8px;vertical-align:middle}
+#reg label{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0}
+.calme *{animation:none!important;transition:none!important}
+#j li b{display:block}
