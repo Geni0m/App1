@@ -678,7 +678,7 @@ function monde(){
  +'<rect id="nuit" x="-300" y="-300" width="1000" height="1000" fill="#0b1b3a"/>'
  +'<rect class="pl" x="-300" y="-300" width="1000" height="1000"/><rect class="ne" x="-300" y="-300" width="1000" height="1000"/><rect class="br" x="-300" y="-300" width="1000" height="1000"/><g id="dyn"></g>';
  mp.innerHTML=h}
-function sentiers(){let h='<g class="c-s">';const T=tous();Object.keys(WORLD.sent||{}).forEach(k=>{const [a,b]=k.split('|');if(!T.includes(a)||!T.includes(b))return;const A=pos(a),B=pos(b);h+='<line x1="'+A[0]+'" y1="'+A[1]+'" x2="'+B[0]+'" y2="'+B[1]+'" stroke="var(--a)" stroke-width="'+Math.min(1.4,.25+WORLD.sent[k]*.08).toFixed(2)+'" opacity=".28"/>'});return h+'</g>'}
+function sentiers(){let h='<g class="c-s">';const T=tous();Object.keys(WORLD.sent||{}).forEach(k=>{const [a,b]=k.split('|');if(!T.includes(a)||!T.includes(b))return;const A=pos(a),B=pos(b);h+='<line x1="'+A[0]+'" y1="'+A[1]+'" x2="'+B[0]+'" y2="'+B[1]+'" stroke="var(--a)" stroke-width="'+Math.min(1.4,.25+WORLD.sent[k]*.08).toFixed(2)+'" opacity=".28"/>'});((WORLD.v12&&WORLD.v12.routes)||[]).forEach(r=>{if(!T.includes(r.a)||!T.includes(r.b))return;const A=pos(r.a),B=pos(r.b);h+='<line x1="'+A[0]+'" y1="'+A[1]+'" x2="'+B[0]+'" y2="'+B[1]+'" stroke="#d9a441" stroke-width=".8" stroke-dasharray="3 1.5" opacity=".75"/>'});return h+'</g>'}
 function humeursSVG(){let h='<g class="c-h">';tous().forEach(n=>{const u=humeur(n);if(!u)return;if(ETR.includes(n)&&!WORLD.vus.includes(n))return;const p=pos(n);h+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="5.5" fill="none" stroke="'+({'prospère':'#d9a441','en guerre':'#c0504d','en deuil':'#6b7585','en fête':'#d98ac0'}[u]||'#999')+'" stroke-width=".6" stroke-dasharray="1 .8"><title>'+esc(n+' : '+u)+'</title></circle>'});return h+'</g>'}
 function marqueurs(){let h='';if(C.tr){const p=pos(C.tr);h+='<g transform="translate('+p[0]+' '+p[1]+')"><path d="M-2 -2L2 2M2 -2L-2 2" stroke="#b02a2a" stroke-width=".8"/><title>La carte au trésor désigne ce lieu</title></g>'}
  (C.biens||[]).forEach((b,i)=>{const p=pos(b.lieu||C.pos);h+='<g class="vd" transform="translate('+(p[0]-3+i*6)+' '+(p[1]+4.5)+')"><rect x="-1.2" y="-1" width="2.4" height="2" fill="#c9a36a" stroke="#4a3320" stroke-width=".15"/><path d="M-1.6 -1L0 -2.4 1.6 -1z" fill="#7a3b2e"/><text y="3.2" style="font-size:calc(var(--k)*.55px)">'+esc(b.n)+'</text></g>'});return h}
@@ -686,7 +686,7 @@ function dyn(from){let h=sentiers();C.trail.forEach(s=>{const a=pos(s[0]),b=pos(
  h+=humeursSVG()+marqueurs()+couches()+'<g id="pas"></g><g id="tk"><circle r="2.9" fill="var(--a)" stroke="var(--s)" stroke-width=".6"/><g transform="scale(.27)">'+icone(race())+'</g></g>';
  $('dyn').innerHTML=h;TP=pos(from||C.pos);mp.dataset.s=SAI[C.t%12];mp.dataset.w=C.meteo}
 function ouvrirCarte(){if(!C.pos)return;monde();$('plein').hidden=false;$('mf').textContent='Fermer';dyn();const q=pos(C.pos);
- $('mt').textContent=(C.nom?C.nom+' : ':'')+C.pos+', '+pays(q)+' ('+cap(SAI[C.t%12])+')';vue(q[0],q[1],80*innerHeight/innerWidth)}
+ $('mt').textContent=(C.nom?C.nom+' : ':'')+C.pos+', '+pays(q)+' ('+cap(SAI[C.t%12])+')';vue(q[0],q[1],(REG.vz||80)*innerHeight/innerWidth)}
 function voyage(ev,de,d){monde();const A=pos(de),B=pos(d),dist=Math.hypot(B[0]-A[0],B[1]-A[1]),h=Math.min(430,Math.max(60,dist*1.4+30))*innerHeight/innerWidth;
  $('plein').hidden=false;$('mf').textContent='Fermer';$('mt').textContent=ev+' : '+de+' vers '+d;
  C.trail.pop();dyn(de);C.trail.push([de,d]);vue(A[0],A[1],h);occ=true;let lx=A[0],ly=A[1];
@@ -702,7 +702,7 @@ function scene(k,fin){monde();const q=pos(C.pos);$('plein').hidden=false;$('mf')
  const g=document.createElementNS(NS,'g');g.setAttribute('transform','translate('+q[0]+' '+(q[1]-6*V.h/100)+') scale('+(V.h/100*1.6)+')');g.innerHTML=e;$('dyn').appendChild(g);
  if(k==='tempete')mp.dataset.w='Orage';let ok=false;const fermer=()=>{if(ok)return;ok=true;g.remove();$('plein').hidden=true;$('mf').onclick=fermerCarte;fin()};
  $('mf').onclick=fermer;setTimeout(fermer,2600)}
-const fermerCarte=()=>{PLACE=null;$('plein').hidden=true;ui()};$('mf').onclick=fermerCarte;$('vc').onclick=ouvrirCarte;
+const fermerCarte=()=>{PLACE=null;memoZoom();$('plein').hidden=true;ui()};const memoZoom=()=>{try{const z=V.h*innerWidth/innerHeight;if(z>=14&&z<=460){REG.vz=Math.round(z);ecrire('reg',REG)}}catch(e){}};$('mf').onclick=fermerCarte;$('vc').onclick=ouvrirCarte;
 const paysTP=()=>PAYS.find(p=>TP[0]>=p.x0&&TP[0]<=p.x1&&TP[1]>=p.y0&&TP[1]<=p.y1);
 document.querySelectorAll('.bas button[data-m]').forEach(b=>b.onclick=()=>{const m=b.dataset.m,H=innerHeight/innerWidth;
  if(m==='m')cam(100,60,fitH(),700);else if(m==='p'){const p=paysTP();p?cam((p.x0+p.x1)/2,(p.y0+p.y1)/2,(p.x1-p.x0+30)*H,700):cam(100,60,222*H,700)}else cam(TP[0],TP[1],24*H,700)});
@@ -713,14 +713,17 @@ const gest=()=>{const a=[...pts.values()];return{n:a.length,x:a.reduce((t,p)=>t+
 mp.addEventListener('pointerdown',e=>{if(occ)return;try{mp.setPointerCapture(e.pointerId)}catch(x){}pts.set(e.pointerId,[e.clientX,e.clientY]);if(pts.size===1){mv=false;p0=[e.clientX,e.clientY]}g0=gest()});
 mp.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId)||occ||!g0)return;pts.set(e.pointerId,[e.clientX,e.clientY]);if(p0&&Math.hypot(e.clientX-p0[0],e.clientY-p0[1])>7)mv=true;if(!mv&&pts.size<2)return;const g=gest();if(g.n!==g0.n){g0=g;return}
  const h2=g0.d&&g.d?g0.h*g0.d/g.d:g0.h,u=g0.h/innerHeight;vue(g0.cx-(g.x-g0.x)*u,g0.cy-(g.y-g0.y)*u,h2)});
-const fin2=e=>{pts.delete(e.pointerId);g0=pts.size?gest():null;if(!pts.size&&!mv&&!PLACE){const n=Date.now();if(n-lastTap<320){cam(TP[0],TP[1],40*innerHeight/innerWidth,400);lastTap=0}else lastTap=n}};
+const fin2=e=>{if(mv)memoZoom();pts.delete(e.pointerId);g0=pts.size?gest():null;if(!pts.size&&!mv&&!PLACE){const n=Date.now();if(n-lastTap<320){cam(TP[0],TP[1],40*innerHeight/innerWidth,400);lastTap=0}else lastTap=n}};
 mp.addEventListener('pointerup',fin2);mp.addEventListener('pointercancel',fin2);
+document.addEventListener('touchmove',e=>{const p=$('plein');if(p&&!p.hidden&&e.target.closest&&e.target.closest('#plein')&&!e.target.closest('#clp'))e.preventDefault()},{passive:false});
+new MutationObserver(()=>{document.documentElement.style.overflow=$('plein').hidden?'':'hidden'}).observe($('plein'),{attributes:true,attributeFilter:['hidden']});
+if($('rc-c'))$('rc-c').onclick=()=>cam(TP[0],TP[1],V.h,450);
 mp.addEventListener('wheel',e=>{e.preventDefault();vue(V.cx,V.cy,V.h*(e.deltaY>0?1.15:.87))},{passive:false});
 function ficheLieu(n){const q=pos(n),L=[];L.push('Pays : '+pays(q));const hu=humeur(n);if(hu)L.push('Ambiance : '+hu);L.push((C.vis.includes(n)||C.pos===n)?'Ce personnage y est passé.':(WORLD.vus.includes(n)?'D\u2019autres y sont passés.':'Personne n\u2019y est encore allé.'));
  WORLD.tombes.filter(t=>t.lieu===n).forEach(t=>L.push('Tombe de '+t.nom+(t.leg?' (légende)':'')+', an '+t.an));
  const F=WORLD.fond.find(z=>z.n===n);if(F)L.push(F.ty+' fondé(e) par '+F.par+', an '+F.an);
  const S0=WORLD.sites.find(z=>z.n===n);if(S0)L.push(S0.ty+' découvert par '+S0.par+', an '+S0.an);
- (C.biens||[]).filter(b=>b.lieu===n).forEach(b=>L.push('Votre bien : '+b.n));if(C.tr===n)L.push('La carte au trésor désigne ce lieu.');
+ (C.biens||[]).filter(b=>b.lieu===n).forEach(b=>L.push('Votre bien : '+b.n));v12Lieu(n).forEach(x=>L.push(x));if(C.tr===n)L.push('La carte au trésor désigne ce lieu.');
  modal('Lieu',n,'',L,null)}
 mp.addEventListener('click',ev=>{if(mv)return;const pt=mp.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;const q=pt.matrixTransform(mp.getScreenCTM().inverse());
  if(!PLACE){const T=tous().filter(n=>!ETR.includes(n)||WORLD.vus.includes(n)),r=Math.max(4,V.h/100*7);let b=null,bd=r;T.forEach(n=>{const p=pos(n),d=Math.hypot(p[0]-q.x,p[1]-q.y);if(d<bd){bd=d;b=n}});if(b)ficheLieu(b);return}
@@ -955,8 +958,8 @@ function restoreAll(s,keep){const o=JSON.parse(s);C=o.C;WORLD=o.WORLD;LIG=o.LIG;
  WORLD.sites.forEach(x=>P[x.n]=[x.x,x.y]);WORLD.fond.forEach(x=>P[x.n]=[x.x,x.y]);built=false}
 function blankWorld(){WORLD={annee:1200,sites:[],succ:{},fond:[],tombes:[],reliques:[],ennemis:[],rep:{},prix:1,mnd:null,fam:null};LIG=[];RH={};STAT={n:0,v:0,races:{},jobs:{},morts:{},maxAge:0};PAN=[]}
 const tirer=w=>{const s=w.reduce((a,x)=>a+x.w,0);let r=Math.random()*s;for(const x of w){if(r<x.w)return x.t;r-=x.w}return w[w.length-1].t};
-function creerAlea(obj){C=nouveau();C.nom='Audit';let g=0;
- while(C.rep.length<etapes().length&&g++<40){const t=table(),v=(t.n==='Objectif'&&obj)?obj:tirer(poids(t));
+function creerAlea(obj,force,nom){C=nouveau();C.nom=nom||'Audit';let g=0;
+ while(C.rep.length<etapes().length&&g++<40){const t=table();let v=force?force(t):null;if(!v||!t.o.some(x=>x[0]===v))v=(t.n==='Objectif'&&obj)?obj:tirer(poids(t));
   C.rep.push([t.n,v]);if(t.n==='Lignée')C.lig=LIG.find(l=>l.nom===v)||null;if(t.n==='Famille')C.famOk=(v==='Héritage familial');if(t.n==='Décor')C.pos=v;if(t.stat)C.st[t.stat]=+v;
   if(C.rep.length===etapes().length){fin();if(t.n==='Cadeau divin'){donner(v);chienCmp()}}}}
 function vivre(){let g=0;while(!C.fin&&g++<160)agir(tirer(poids(tv())),'')}
@@ -999,7 +1002,7 @@ if($('pan'))$('pan').addEventListener('click',e=>{const li=e.target.closest&&e.t
  modal('Panthéon',x.nom,'',[],null);$('mtx').textContent=(x.note?'Notes : '+x.note+'\n\n':'')+(x.rec||x.bio||'');$('mtx').className='long'});
 /* v9.js : filtres du panthéon, histoire du monde, objectif détaillé, partie rapide */
 const PF={f:'',r:''};
-const panOK=x=>(!PF.f||x.fin===PF.f)&&(!PF.r||x.race===PF.r);
+const panOK=x=>(!PF.f||x.fin===PF.f)&&(!PF.r||x.race===PF.r)&&(!PF.q||(x.nom+' '+x.race+' '+x.metier+' '+(x.lig||'')+' '+(x.bio||'')).toLowerCase().includes(PF.q));
 function majPanF(){const s=$('pf-r');if(!s)return;const rs=[...new Set(PAN.map(x=>x.race))].sort();if(s.options.length-1!==rs.length){s.innerHTML='<option value="">Toutes races</option>'+rs.map(r=>'<option>'+esc(r)+'</option>').join('');s.value=PF.r}}
 if($('pf-f'))$('pf-f').onchange=e=>{PF.f=e.target.value;ui()};
 if($('pf-r'))$('pf-r').onchange=e=>{PF.r=e.target.value;ui()};
@@ -1158,7 +1161,7 @@ function recitPlus(){const o=[],V=C.vie.filter(e=>e.t!=='Objet'),nom=(C.nom||'Le
  if(pr.length)o.push('Autour de '+nom+' : '+pr.join(', ')+'.');
  if((C.biens||[]).length)o.push(nom+' possédait : '+C.biens.map(b=>b.n).join(', ')+'.');
  if(C.lrel)o.push('Sa lignée, la '+C.lig.nom+', était '+C.lrel.ty+' de la '+C.lrel.avec+'.');
- return o}
+ return o.concat(v12Recit())}
 
 /* ---- Thèmes, pause de lecture ---- */
 function appliquerTh(){document.documentElement.dataset.th=REG.th||''}
@@ -1217,12 +1220,12 @@ function paysDrift(){W10();if(Math.random()<.35){const p=PAYS[rnd(PAYS.length)],
 
 /* ---- Cohérence ---- */
 function coherence(){const o=[],rc=(C.rep[0]||[])[1];
- if(C.lig){const l=C.lig;if(l.race&&rc!=='Sang-mêlé'&&l.race!==rc)o.push('Lignée '+l.nom+' ('+l.race+') pour un personnage '+rc);if(rc==='Sang-mêlé'&&l.race!=='Sang-mêlé'&&!parents().includes(l.race))o.push('Lignée étrangère aux parents du sang-mêlé');if(rc==='Sang-mêlé'&&l.race==='Sang-mêlé'&&(l.par||[]).join('|')!==parents().slice().sort().join('|'))o.push('Lignée de sang-mêlé avec d’autres parents')}
+ if(C.ado&&!C.lig)o.push('Adopté sans lignée');if(C.lig&&!C.ado){const l=C.lig;if(l.race&&rc!=='Sang-mêlé'&&l.race!==rc)o.push('Lignée '+l.nom+' ('+l.race+') pour un personnage '+rc);if(rc==='Sang-mêlé'&&l.race!=='Sang-mêlé'&&!parents().includes(l.race))o.push('Lignée étrangère aux parents du sang-mêlé');if(rc==='Sang-mêlé'&&l.race==='Sang-mêlé'&&(l.par||[]).join('|')!==parents().slice().sort().join('|'))o.push('Lignée de sang-mêlé avec d’autres parents')}
  if(C.pnj){if(!C.pnj.lieu||!C.pnj.an)o.push('Proche sans origine');if(C.pnj.role==='amour')o.push('Amour hérité d’un autre personnage');if(C.pnj.role==='mentor'&&anCourant()-C.pnj.an>40)o.push('Mentor mort toujours présent');if(!(C.famOk||(C.lig&&C.pnj.lig===C.lig.nom)))o.push('Lien hérité sans lien familial')}
  if(C.cmp&&C.cmp.ag>(C.cmp.ty==='Animal'?15:80)+1)o.push('Compagnon trop âgé');
  if(C.lrel&&!LIG.some(x=>x.nom===C.lrel.avec))o.push('Lignée liée à une lignée inconnue');
  if(rc==='Sang-mêlé'&&parents().length<2)o.push('Sang-mêlé sans deux parents');
- if(C.descend&&C.descend.race!==rc)o.push('Descendant d’une autre race');
+ if(C.descend&&C.descend.race!==rc)o.push('Descendant d’une autre race');if(C.v12){const x=C.v12;if((x.exil||[]).includes(C.pos))o.push('Dans un lieu dont il est banni');if(x.serment&&x.serment.brise)o.push('Serment brisé toujours actif')}
  if(ETR.includes(C.pos)&&!WORLD.pays.length)o.push('Contrée étrangère non révélée');
  (C.enf||[]).forEach(e=>{if(!e.n)o.push('Enfant sans nom')});
  return o}
@@ -1235,7 +1238,6 @@ function hist11(){W10();
  const jl=$('jl');if(jl)jl.innerHTML=LIG.length?LIG.map(l=>'<li><b>'+esc(l.nom)+'</b>'+esc(l.race||'')+(l.par?' ('+l.par.map(esc).join(' / ')+')':'')+' · réputation '+repTxt(l.rep||0)+(l.rel?' · '+l.rel.ty+' de '+esc(l.rel.avec):'')+(l.union?' · unie à '+esc(l.union):'')
   +(l.quete?'<br><small>Quête : '+esc(l.quete.txt)+' ('+l.quete.prog+'/'+l.quete.need+')</small>':'')+((l.faits||[]).length?'<br><small>Accompli : '+l.faits.map(esc).join(' ; ')+'</small>':'')
   +((l.membres||[]).length?'<br><small>'+l.membres.map(m=>esc(m.nom)+' ('+m.age+' ans, '+(m.fin==='mort'?'mort':'victoire')+(m.exp?', '+esc(m.exp):'')+')').join('<br>')+'</small>':'')+'</li>').join(''):'<li>Aucune lignée pour l’instant.</li>';
- const ar=$('ar');if(ar)ar.innerHTML=LIG.length?arbreHTML(null,0):'<p>Aucune lignée pour l’instant.</p>';
  const fr=$('fr');if(fr)fr.innerHTML=RACES.map(r=>{const n=r[0],b=SB[n]||{},bs=Object.keys(S).filter(k=>b[k]).map(k=>S[k]+' '+(b[k]>0?'+':'')+b[k]).join(', ')||'aucun bonus',h=RH[n]||{},j=(STAT.rj||{})[n]||{},top=Object.keys(j).sort((x,y)=>j[y]-j[x]).slice(0,3).map(k=>k+' ×'+j[k]).join(', '),nl=LIG.filter(l=>l.race===n).length;
   return '<li><b>'+esc(n)+'</b>'+esc(bs)+'<br><small>'+(h.v||0)+' victoire(s), '+(h.m||0)+' mort(s), '+nl+' lignée(s)'+(top?' · métiers : '+esc(top):'')+'</small></li>'}).join('');
  const nt=$('nt');if(nt&&document.activeElement!==nt&&nt.value!==(C.note||''))nt.value=C.note||'';
@@ -1251,8 +1253,385 @@ setInterval(appliquerCal,800);
 if($('rg-cm')){$('rg-cm').value=String(REG.cm||1);$('rg-cm').onchange=e=>{REG.cm=+e.target.value;ecrire('reg',REG);if(typeof vue==='function')vue(V.cx,V.cy,V.h)}}
 
 /* ---- Nouveautés ---- */
-const NEWS=['Carte du monde à trois niveaux : Monde (six pays), Pays, Ville ; zoom au doigt, boutons + et -, double toucher pour recentrer','Pays lointains dans la brume : ils se dévoilent quand un personnage s’y rend','Toucher un lieu sur la carte ouvre sa fiche ; calques : tombes, fondations, ambiances, sentiers','Nouvelle race : le Sang-mêlé (deux parents tirés à la roue)','Lignées réservées à la même race ; unions entre lignées alliées ; quêtes et réputation de lignée','Proches cohérents : famille, mentor, rival ; l’amour se rencontre dans la vie','Descendants d’un personnage précédent','Voyages lointains : frontière, langue, caravanes et navires ; carte au trésor réelle','Journal et arbre des lignées, fiche de race, notes, annuler jusqu’à 3 tirages'];
-setTimeout(()=>{try{if(REG.vu!=='11'&&typeof modal==='function'){REG.vu='11';ecrire('reg',REG);modal('Nouveautés','Version 11','',NEWS,null)}}catch(e){}},1500);
+const NEWS0=['Carte du monde à trois niveaux : Monde (six pays), Pays, Ville ; zoom au doigt, boutons + et -, double toucher pour recentrer','Pays lointains dans la brume : ils se dévoilent quand un personnage s’y rend','Toucher un lieu sur la carte ouvre sa fiche ; calques : tombes, fondations, ambiances, sentiers','Nouvelle race : le Sang-mêlé (deux parents tirés à la roue)','Lignées réservées à la même race ; unions entre lignées alliées ; quêtes et réputation de lignée','Proches cohérents : famille, mentor, rival ; l’amour se rencontre dans la vie','Descendants d’un personnage précédent','Voyages lointains : frontière, langue, caravanes et navires ; carte au trésor réelle','Journal et arbre des lignées, fiche de race, notes, annuler jusqu’à 3 tirages'];
+
+/* v12a.js : données de la V12 (événements, tables, textes) */
+const REGIONS=['Royaume du Nord','Terres du Centre','Marches du Sud'].concat(PAYS.map(p=>p.n));
+const hs=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h};
+
+/* ---- Événements de vie : nom, poids, condition, effets, étiquette, histoire, récit réussi, récit raté ---- */
+const EV12=[
+["Prêter serment",2,"_Libre de serment",{Cha:1},"social","Devant témoins, une promesse qu'on ne reprend pas.","{n} prête un serment solennel.","{n} prête serment, la voix mal assurée."],
+["Serment mis à l'épreuve",3,"_Serment",{jet:["Esp",9],EN:-1},"social","Il faut maintenant prouver que la parole donnée vaut quelque chose.","{n} tient bon face à l'épreuve de son serment.","{n} vacille face à l'épreuve de son serment."],
+["Rêve prophétique",2,"_Libre de rêve",{Esp:1,EN:-1},"mystique","Un rêve trop net pour être un simple rêve.","{n} fait un rêve prophétique.","{n} fait un rêve prophétique."],
+["Prendre un élève",2.5,"_Maître possible",{Cha:1,or:-1},"savoir","Un jeune regard, avide de tout apprendre.","{n} prend un élève sous son aile.","{n} prend un élève sous son aile."],
+["Leçon à l'élève",3,"_Élève",{EN:-1,jet:["Cha",8]},"savoir","Transmettre, c'est apprendre une seconde fois.","{n} donne une belle leçon à son élève.","{n} s'impatiente face à son élève."],
+["Retrouvailles d'un ami",5,"_Ami",{EN:2,or:2},"social","Quelqu'un qui vous connaît depuis longtemps pousse la porte.","{n} retrouve un ami de longue date.","{n} retrouve un ami de longue date."],
+["Le créancier se présente",3,"_Dette",{jet:["Cha",9]},"commerce","On frappe : quelqu'un vient réclamer son dû.","{n} règle ou négocie sa dette.","{n} est durement pressé par son créancier."],
+["Une faveur due",3,"_Faveur due",{jet:["Cha",8]},"social","Il y a longtemps, vous avez rendu service. Aujourd'hui, on s'en souvient.","{n} fait honorer une faveur.","{n} découvre que la faveur est oubliée."],
+["Le secret éclate",2.5,"_Secret",{jet:["Cha",9],EN:-1},"social","Ce que vous cachiez depuis toujours finit par se savoir.","{n} survit à la révélation de son secret.","{n} souffre de la révélation de son secret."],
+["Changement de voie",2,"_Reconversion",{EN:-2,or:-3},"savoir","Tout recommencer à mi-chemin, par goût ou par nécessité.","{n} change de métier.","{n} change de métier."],
+["Face à l'éternel rival",2,"_Rival éternel",{PV:-3,or:6,jet:["For",11],sc:"combat"},"combat","Le même visage, encore, et toujours plus affûté.","{n} tient tête à son éternel rival.","{n} est dominé par son éternel rival."],
+["Bannissement",4,"_Mal vu",{Cha:-1,EN:-1},"social","On vous désigne du doigt : ici, vous n'êtes plus le bienvenu.","{n} est banni.","{n} est banni."],
+["Retour d'exil",3,"_Exilé",{jet:["Cha",9],or:-2},"social","On parle de vous laisser revenir, à certaines conditions.","{n} obtient la fin de son exil.","{n} voit sa demande de retour refusée."],
+["Audience royale",2,"_Cour",{jet:["Cha",9],or:6},"social","Le souverain reçoit, et la file est longue.","{n} est reçu par le souverain.","{n} est congédié par la cour."],
+["Querelle de succession",4,"_Couronne vacante",{jet:["Cha",10],EN:-1},"social","Le trône est vide, et chacun a son candidat.","{n} s'illustre dans la querelle de succession.","{n} se brûle les doigts dans la querelle de succession."],
+["Col fermé par la neige",3,"Hiver",{EN:-2,jet:["End",9]},"survie","La neige a bouché le col : on attend ou on force le passage.","{n} franchit le col sous la neige.","{n} reste bloqué par la neige."],
+["Fête des moissons",3,"Automne",{EN:2,or:2},"hospitalité","Les greniers sont pleins et les tables dressées dehors.","{n} profite de la fête des moissons.","{n} profite de la fête des moissons."],
+["Dégel du printemps",2.5,"Printemps",{EN:-1,or:3,jet:["Agi",8]},"survie","Les routes redeviennent boue, et les marchands reviennent.","{n} profite du dégel pour reprendre la route.","{n} s'enlise dans la boue du dégel."],
+["Canicule",2.5,"Été",{EN:-2,jet:["End",8]},"survie","L'air tremble, et l'ombre devient un trésor.","{n} supporte la canicule.","{n} souffre de la canicule."],
+["Quarantaine",4,"_Peste ici",{EN:-1,PV:1},"soin","Les portes sont closes, et la peur circule plus vite que le mal.","{n} passe la quarantaine.","{n} passe la quarantaine."],
+["Soigner les malades",3,"_Peste ici",{jet:["Esp",9],or:3,EN:-1},"soin","On manque de bras pour soigner, et vous en avez deux.","{n} soigne des malades.","{n} est dépassé par les malades."],
+["Disette locale",4,"_Famine ici",{or:-2,EN:-1},"survie","Les greniers sont vides et les prix grimpent chaque matin.","{n} traverse la disette.","{n} traverse la disette."],
+["Escarmouche de lignées",5,"_Guerre de lignée",{PV:-3,jet:["For",10],or:5,sc:"combat"},"combat","Les deux lignées en viennent aux mains, au coin d'une rue.","{n} l'emporte dans une escarmouche de lignées.","{n} subit une escarmouche de lignées."],
+["Convoi sur la route",2,"_Route",{or:5,jet:["Cha",8]},"commerce","Une route marchande, des chariots, et des places à prendre.","{n} escorte un convoi marchand.","{n} perd du temps sur la route."],
+["Légende locale",2.5,"_Légende à découvrir",{EN:1,Esp:1},"savoir","Un vieillard vous raconte ce que le lieu cache sous ses pierres.","{n} recueille une légende locale.","{n} recueille une légende locale."],
+["Rumeur à l'auberge",3,"_Auberge",{or:-1},"social","Entre deux chopes, une nouvelle circule de table en table.","{n} recueille une rumeur à l'auberge.","{n} recueille une rumeur à l'auberge."],
+["Soirée à l'auberge",3,"_Auberge",{EN:1},"hospitalité","Les dés roulent, les paris s'échangent, la nuit sera longue.","{n} passe une soirée animée à l'auberge.","{n} passe une soirée animée à l'auberge."],
+["Prêche d'un culte",2,"_Culte ici",{Esp:1},"mystique","Un prêcheur parle, et la foule s'arrête pour l'écouter.","{n} écoute le prêche d'un culte.","{n} écoute le prêche d'un culte."],
+["Rite du culte",4,"_Adepte",{PV:1,EN:1},"mystique","Les fidèles se réunissent, et vous y avez votre place.","{n} participe à un rite du culte.","{n} participe à un rite du culte."],
+["Ombre du monstre légendaire",4,"_Monstre ici",{Esp:1,EN:-1},"survie","Des traces trop larges, des bêtes qui fuient : quelque chose rôde.","{n} aperçoit l'ombre d'un monstre légendaire.","{n} aperçoit l'ombre d'un monstre légendaire."],
+["Affronter le monstre légendaire",1.5,"_Monstre ici",{PV:-6,jet:["For",15],sc:"combat"},"combat","On raconte que personne n'est revenu. Vous n'êtes pas du genre à écouter.","{n} terrasse le monstre légendaire.","{n} s'en tire de justesse face au monstre légendaire."],
+["Fouiller un domaine ruiné",6,"_Ruine ici",{jet:["Agi",9],or:4},"savoir","Un domaine laissé aux ronces, qui appartenait à quelqu'un de connu.","{n} fouille un domaine ruiné.","{n} ne trouve rien dans un domaine ruiné."]
+];
+DEF.find(t=>t.vie).o.push(...EV12.map(e=>[e[0],e[1],{},e[2]]));
+EV12.forEach(e=>{EF[e[0]]=e[3];ETAG[e[0]]=e[4];HIST[e[0]]=e[5];REC[e[0]]=[e[6],e[7]]});
+Object.assign(REL,{"Audience royale":{Couronne:1},"Querelle de succession":{Couronne:1,Peuple:-1},"Soigner les malades":{Peuple:1},"Convoi sur la route":{Marchands:1},"Escarmouche de lignées":{Peuple:-1},"Le créancier se présente":{Marchands:1}});
+
+/* ---- Traits acquis en cours de vie ---- */
+const ACQ={
+ "Aguerri":{c:()=>cnt(e=>ETAG[e.t]==='combat'&&e.ok)>=3,tag:'combat',m:1.2,w:{},t:"trois victoires au combat"},
+ "Mondain":{c:()=>cnt(e=>ETAG[e.t]==='social'&&e.ok)>=4,tag:'social',m:1.2,w:{},t:"quatre succès en société"},
+ "Vagabond":{c:()=>C.vis.length>=5,tag:'voyage',m:1.2,w:{},t:"cinq lieux visités"},
+ "Méfiant":{c:()=>cnt(e=>e.t==='Une trahison')>=1,w:{'Une trahison':.7},t:"une trahison subie"},
+ "Endurci":{c:()=>cnt(e=>e.t==='Une maladie')>=1,w:{'Une maladie':.7},t:"une maladie survécue"}};
+
+/* ---- Serments ---- */
+const SERMENTS=[{txt:"ne jamais fuir un combat",tag:'combat',mode:'faire'},{txt:"protéger les faibles",tag:'social',mode:'faire'},{txt:"ne jamais mentir",tag:'ruse',mode:'eviter'},{txt:"servir sa lignée",tag:'commerce',mode:'faire'}];
+
+/* ---- Passés cachés ---- */
+const SECRETS=[
+ {t:"enfant caché d'une maison noble",eff:tx=>{C.or+=10;C.rel.Couronne=Math.min(5,C.rel.Couronne+1);tx.push("Une maison noble le reconnaît : or +10, Couronne +1")}},
+ {t:"ancien hors-la-loi",eff:tx=>{C.rel.Pègre=Math.min(5,C.rel.Pègre+1);C.rel.Peuple=Math.max(-5,C.rel.Peuple-1);tx.push("La Pègre s'en souvient : Pègre +1, Peuple -1")}},
+ {t:"déserteur d'une vieille guerre",eff:tx=>{C.rel.Couronne=Math.max(-5,C.rel.Couronne-1);C.st.Esp=Math.min(12,C.st.Esp+1);tx.push("La Couronne ne pardonne pas : Couronne -1, Esprit +1")}},
+ {t:"seul survivant d'un massacre",eff:tx=>{C.st.Esp=Math.min(12,C.st.Esp+1);C.en=Math.max(0,C.en-2);if(!C.fl.includes('Ennemi juré')){C.fl.push('Ennemi juré');if(!C.nem)C.nem=nomPropre()}tx.push("Le passé le rattrape : Esprit +1, un ennemi juré apparaît")}},
+ {t:"ancien élève d'un mage disparu",eff:tx=>{C.st.Esp=Math.min(12,C.st.Esp+1);C.inv.push('Livre');tx.push("Un vieux grimoire revient entre ses mains : Esprit +1, + Livre")}}];
+
+/* ---- Ères du monde ---- */
+const ERES=[
+ {n:"Âge d'or",w:{'Marché florissant':1.5,'Banquet':1.4,'Tournoi':1.4,'Embuscade':.7}},
+ {n:"Âge sombre",w:{'Embuscade':1.5,'Une maladie':1.4,'Banquet':.6,'Marché florissant':.7}},
+ {n:"Ère de guerre",w:{'Combat de rue':1.4,'Sortie de la forteresse':1.6,'Embuscade':1.4,'Tournoi':.7}},
+ {n:"Ère des explorateurs",w:{'Voyage lointain':1.4,"Piste d'un lieu oublié":1.6,'Explorer le site':1.4}},
+ {n:"Ère des pestes",w:{'Une maladie':2,"Soins d'un guérisseur":1.6}}];
+
+/* ---- Légendes locales ---- */
+const LA=["On raconte que {l} fut bâti sur la tombe d'un roi sans nom.","Selon les vieux récits, {l} fut le refuge d'un peuple oublié.","On dit que {l} naquit d'un serment entre deux ennemis.","Les anciens affirment que {l} fut béni, ou maudit, par une étoile filante.","Les chroniques parlent d'un incendie que {l} aurait survécu par miracle."];
+const LB=["Depuis, une lumière étrange y apparaît certaines nuits.","On y entend parfois des chants qu'aucun vivant ne chante.","Les enfants n'y vont pas seuls après le crépuscule.","Les voyageurs y laissent une pièce, par habitude plus que par foi.","Un arbre y pousse, qui ne perd jamais ses feuilles."];
+const LC=["Qui en connaît le secret recevra, dit-on, une chance rare.","Le dernier chapitre n'est connu que de ceux qui reviennent.","On dit que le lieu choisit ceux qu'il veut garder.","Un trésor y dort, mais le lieu lui-même est le trésor.","Une porte s'y ouvre, pour qui sait l'entendre."];
+const legende=(l,i)=>[LA,LB,LC][i][(hs(l)>>>(i*3))%5].replace('{l}',l);
+
+/* ---- Rumeurs ---- */
+const RUM=[{t:"Un trésor serait enfoui à {L}",k:'lieu'},{t:"On parle d'une embuscade sur la route",k:'ev',ev:'Embuscade'},{t:"Un riche voyageur cherche un protecteur",k:'ev',ev:'Un coup de chance'},{t:"Une vieille querelle ressurgit",k:'ev',ev:'Une trahison'},{t:"Un inconnu rôde en ville",k:'ev',ev:'Une rencontre décisive'}];
+
+/* ---- Bestiaire ---- */
+const BEST={"Forêt interdite":["Loup noir","Ogre des bois","Araignée géante"],"Désert aux ruines":["Scorpion géant","Goule des sables","Momie errante"],"Cité portuaire":["Rat d'égout géant","Pirate fantôme","Crabe colossal"],"Village de montagne":["Loup des neiges","Aigle géant","Yéti"],"_":["Sanglier furieux","Brigand de grand chemin","Meute de chiens sauvages","Ours brun","Bandit des routes"]};
+const MONSTRES=["Dragon","Hydre","Léviathan","Titan de pierre","Wyrm des cendres"];
+
+/* ---- Cultes ---- */
+const CULTES=["Culte du Soleil","Ordre des Cendres","Voix de la Marée"];
+
+/* ---- Titres ---- */
+const TITRES=[
+ ["Chevalier",()=>cnt(e=>ETAG[e.t]==='combat'&&e.ok)>=4&&C.rel.Couronne>=2],
+ ["Maître de guilde",()=>cnt(e=>ETAG[e.t]==='commerce'&&e.ok)>=4&&C.rel.Marchands>=2],
+ ["Sage",()=>cnt(e=>ETAG[e.t]==='savoir'&&e.ok)>=4&&C.st.Esp>=8],
+ ["Protecteur du peuple",()=>C.rel.Peuple>=3],
+ ["Maître de l'ombre",()=>C.rel.Pègre>=3]];
+
+/* ---- Succès cachés ---- */
+const CACH=[
+ ["Tueur de monstre légendaire",()=>(C.v12||{}).tueur,{or:20},"Avoir terrassé un monstre légendaire."],
+ ["Parole d'or",()=>((C.v12||{}).tenus||0)>=1,{st:{Cha:1}},"Avoir tenu un serment jusqu'au bout."],
+ ["Conteur de légendes",()=>((C.v12||{}).legs||0)>=2,{st:{Esp:1}},"Avoir recueilli deux légendes locales."],
+ ["Cartographe",()=>C.vis.length>=8,{or:10},"Avoir visité huit lieux dans une même vie."],
+ ["Sans peur ni reproche",()=>((C.v12||{}).titre)==='Chevalier',{st:{For:1}},"Avoir été fait chevalier."],
+ ["Rêve exaucé",()=>((C.v12||{}).prophetes||0)>=1,{st:{Esp:1}},"Avoir vu une prophétie se réaliser."],
+ ["Maître et élève",()=>(C.v12||{}).eleve&&C.v12.eleve.xp>=3,{xp:1},"Avoir formé un élève pendant trois leçons."],
+ ["Survivant de catastrophe",()=>(C.v12||{}).cata,{or:8},"Avoir essuyé une catastrophe naturelle."],
+ ["Ami fidèle",()=>((C.v12||{}).amis||[]).some(a=>a.pts>=3),{st:{Cha:1}},"Avoir gagné un ami durable."]];
+/* v12b.js : logique de la V12 (chargé avant jeu.js : tout est appelé à l'exécution, jamais au chargement) */
+const W12=()=>{W10();const w=WORLD.v12=WORLD.v12||{};['guerres','fleaux','routes','ruines','eleves','cata','codex'].forEach(k=>w[k]=w[k]||[]);['best','cach','leg','vil','roy'].forEach(k=>w[k]=w[k]||{});return w};
+const X12=()=>C.v12=C.v12||{};
+const pick=a=>a[rnd(a.length)],rg=l=>paysDe(pos(l)),chro=t=>{W10();WORLD.chro.push({an:anCourant(),txt:t});WORLD.chro=WORLD.chro.slice(-400)};
+const clampR=n=>Math.max(-3,Math.min(3,n));
+const souvNom=()=>NOMS1[rnd(NOMS1.length)]+' '+['Ier','II','III','IV','le Sage','le Juste','le Bref'][rnd(7)];
+
+/* ---------- Monde : ères, royaumes, villes, monstre, fléaux ---------- */
+function monde12(){const w=W12(),an=anCourant();
+ if(!w.ere||an>=w.ere.fin){const o=ERES.filter(e=>!w.ere||e.n!==w.ere.n),e=pick(o);w.ere={n:e.n,fin:an+70+rnd(51)};if(w.ereVue)chro('Une nouvelle ère commence : '+e.n);w.ereVue=1}
+ REGIONS.forEach(r=>{let k=w.roy[r];if(!k){k=w.roy[r]={souv:souvNom(),fin:an+10+rnd(25),vacant:false}}
+  if(!k.vacant&&an>=k.fin){k.vacant=true;k.vf=an+2+rnd(4);chro('Le souverain '+k.souv+' meurt ; le trône de '+r+' est vacant')}
+  else if(k.vacant&&an>=k.vf){k.vacant=false;k.souv=souvNom();k.fin=an+15+rnd(30);chro(k.souv+' monte sur le trône de '+r)}});
+ for(let i=0;i<2;i++){const l=pick(lieux());w.vil[l]=Math.max(-3,Math.min(3,(w.vil[l]||0)+(Math.random()<.5?1:-1)));if(Math.abs(w.vil[l])===2&&Math.random()<.5)chro(l+(w.vil[l]>0?' prospère':' décline'))}
+ if(!w.dragon||(!w.dragon.vivant&&an-w.dragon.mort>120)){w.dragon={ty:pick(MONSTRES),n:NOMS1[rnd(NOMS1.length)]+' '+NOMS2[rnd(NOMS2.length)],lieu:pick(lieux().filter(x=>!VILLES.includes(x))),vivant:true,an};if(w.dragonVu)chro('Un nouveau monstre légendaire se réveille : '+w.dragon.n+' ('+w.dragon.ty+')');w.dragonVu=1}
+ else if(w.dragon.vivant&&Math.random()<.4)w.dragon.lieu=pick(lieux().filter(x=>!VILLES.includes(x)));
+ if(!w.cultes)w.cultes=CULTES.map(n=>({n,pays:pick(REGIONS.slice(0,3))}));
+ w.fleaux=w.fleaux.filter(f=>f.fin>=an-1);
+ if(w.guerres.length>6)w.guerres=w.guerres.slice(-6);
+ if(w.cata.length>8)w.cata=w.cata.slice(-8);
+ if(w.ruines.length>8)w.ruines=w.ruines.slice(-8)}
+
+function v12Debut(){const w=W12(),x=C.v12={};monde12();
+ C.ado=!!C.lig&&((C.rep.find(r=>r[0]==='Naissance')||[])[1]==='Adopté');
+ if(C.ado){C.ligTx=C.ligTx||[];C.ligTx.unshift('Adopté par la '+C.lig.nom+' : un destin rarissime');WORLD.chro.push({an:anCourant(),txt:nomS()+' est adopté par la '+C.lig.nom})}
+ if(Math.random()<.35)x.secret=Object.assign({rev:false},{i:rnd(SECRETS.length)});
+ if(w.eleves.length&&Math.random()<.25){const e=w.eleves.shift();x.maitre=e.de;C.famTx=C.famTx||[];C.famTx.push('Ancien élève de '+e.de);if(e.comp&&!C.comp.some(s=>s.n===e.comp.n)){C.comp.push({n:e.comp.n,tag:e.comp.tag,xp:4,rate:1});C.famTx.push('Compétence transmise : '+e.comp.n)}}
+ if(C.lig&&C.lig.titre){x.heritier=C.lig.titre;C.st.Cha=Math.min(12,C.st.Cha+1);C.famTx=C.famTx||[];C.famTx.push('Héritier du titre de '+C.lig.titre+' : Charisme +1')}
+ if(C.lig&&C.lig.rel&&C.lig.rel.ty==='rivale'&&!w.guerres.some(g=>!g.fin&&(g.a===C.lig.nom||g.b===C.lig.nom))&&Math.random()<.5){w.guerres.push({a:C.lig.nom,b:C.lig.rel.avec,an:anCourant(),sa:0,sb:0,fin:0});chro('La guerre éclate entre la '+C.lig.nom+' et la '+C.lig.rel.avec)}
+ if(Math.random()<.1&&!w.fleaux.some(f=>f.fin>=anCourant())){const ty=Math.random()<.5?'Peste':'Famine',pays=Math.random()<.7?rg(C.pos):pick(REGIONS);w.fleaux.push({ty,pays,fin:anCourant()+6+rnd(5)});chro((ty==='Peste'?'Une peste ravage ':'Une famine frappe ')+pays)}
+ v12Flags();ecrire('monde',WORLD)}
+
+function v12Flags(){if(!C.pos)return;const w=W12(),x=X12(),reg=rg(C.pos),ar=anCourant(),ro=w.roy[reg];
+ const f=(n,v)=>{C.fl=C.fl.filter(z=>z!==n);if(v)C.fl.push(n)},lg=!!C.lig&&w.guerres.some(g=>!g.fin&&(g.a===C.lig.nom||g.b===C.lig.nom)),cu=(w.cultes||[]).find(c=>c.pays===reg);
+ f('_Libre de serment',!x.serment);f('_Serment',!!x.serment);f('_Libre de rêve',!x.reve);f('_Maître possible',(age()>=32||C.vie.length>=7)&&!x.eleve);f('_Élève',!!x.eleve);
+ f('_Ami',(x.amis||[]).some(a=>a.pts>=3));f('_Dette',(x.dettes||[]).some(d=>d.t==='dette'));f('_Faveur due',(x.dettes||[]).some(d=>d.t==='faveur'));
+ f('_Secret',!!x.secret&&!x.secret.rev);f('_Reconversion',(age()>=36||C.vie.length>=9)&&!x.reconv);f('_Rival éternel',!!w.rival&&C.vie.length>=3);
+ f('_Mal vu',(WORLD.rep[C.pos]||0)<=-1&&!(x.exil||[]).length);f('_Exilé',(x.exil||[]).length>0);f('_Cour',VILLES.includes(C.pos));f('_Couronne vacante',!!ro&&ro.vacant);
+ f('_Peste ici',w.fleaux.some(z=>z.pays===reg&&z.ty==='Peste'&&z.fin>=ar));f('_Famine ici',w.fleaux.some(z=>z.pays===reg&&z.ty==='Famine'&&z.fin>=ar));
+ f('_Guerre de lignée',lg);f('_Route',w.routes.some(r=>r.a===C.pos||r.b===C.pos));f('_Légende à découvrir',(w.leg[C.pos]||0)<3);
+ f('_Auberge',VILLES.concat(['Village de montagne']).includes(C.pos));f('_Culte ici',!!cu&&!x.culte);f('_Adepte',!!x.culte);
+ f('_Monstre ici',!!w.dragon&&w.dragon.vivant&&w.dragon.lieu===C.pos);f('_Ruine ici',w.ruines.some(r=>r.lieu===C.pos&&!r.fouille))}
+
+/* ---------- Poids : ère, saison, fléau, ville, traits acquis, roue ---------- */
+function v12Boost(n){if(!C.pvm||C.fin)return 1;const x=C.v12||{},w=WORLD.v12||{},g=ETAG[n],s=sai();let m=1;
+ const er=w.ere&&ERES.find(e=>e.n===w.ere.n);if(er&&er.w[n])m*=er.w[n];
+ if(s==='hiver'){if(/^Voyage/.test(n))m*=.75;if(n==='Chasse au gibier')m*=.6;if(n==='Banquet')m*=1.3}
+ else if(s==='été'){if(n==='Tournoi')m*=1.4;if(n==='Marché florissant')m*=1.25}else if(s==='automne'){if(n==='Concours de cuisine')m*=1.3}else if(n==='Voyage lointain')m*=1.15;
+ const reg=C.pos?rg(C.pos):'',ar=anCourant(),fl=(w.fleaux||[]).filter(z=>z.pays===reg&&z.fin>=ar);
+ if(fl.some(z=>z.ty==='Peste')&&n==='Une maladie')m*=2.2;if(fl.some(z=>z.ty==='Famine')&&(n==='Une dette'||n==='Chasse au gibier'))m*=1.5;
+ const vl=((w.vil||{})[C.pos])||0;if(vl>=2&&n==='Marché florissant')m*=1.3;if(vl<=-2&&(n==='Une dette'||n==='Cambriolage'))m*=1.3;
+ (x.acquis||[]).forEach(a=>{const t=ACQ[a];if(!t)return;if(t.w[n])m*=t.w[n];if(t.tag&&g===t.tag)m*=t.m});
+ if(x.roue){const e=EF[n]||{},p=(e.PV>0)||(e.or>0)||(e.EN>0),q=(e.PV<0)||(e.or<0)||(e.EN<0);if(x.roue.k==='b'&&p&&!q)m*=1.5;if(x.roue.k==='m'&&q&&!p)m*=1.5}
+ return m}
+
+/* ---------- Après chaque événement ---------- */
+const clampSt=(k,d)=>{C.st[k]=Math.max(1,Math.min(12,C.st[k]+d))};
+function ami(tx){const x=X12();x.amis=x.amis||[];const c=x.amis.filter(a=>a.pts<3);let a=c.length&&Math.random()<.6?pick(c):null;
+ if(a)a.pts++;else if(x.amis.length<3){a={n:NOMS1[rnd(NOMS1.length)],pts:1};x.amis.push(a)}else return;
+ tx.push('Amitié avec '+a.n+' ('+a.pts+'/3)'+(a.pts===3?' : un ami durable':''))}
+function dette(tx,t){const x=X12();x.dettes=x.dettes||[];if(x.dettes.length>=3)return;const d={t,n:nomPropre(),m:3+rnd(5)};x.dettes.push(d);tx.push(t==='dette'?'Dette : vous devez '+d.m+' or à '+d.n:'Faveur : '+d.n+' vous doit un service ('+d.m+' or)')}
+function soiree(tx){const r=pick(['dés','pari','bagarre','rencontre','chanson']);
+ if(r==='dés'){const a=1+rnd(6),b=1+rnd(6),g=a+b>7;if(g)C.or+=3;else C.or=Math.max(0,C.or-2);tx.push('Soirée à l’auberge, jeu de dés ('+a+' + '+b+') : '+(g?'or +3':'or -2'))}
+ else if(r==='pari'){const j=jet('Cha',8);C.or=Math.max(0,C.or+(j.ok?4:-3));tx.push('Soirée à l’auberge, un pari : '+j.txt+(j.ok?' : or +4':' : or -3'))}
+ else if(r==='bagarre'){const j=jet('For',9,'combat');if(j.ok){C.or+=2;tx.push('Soirée à l’auberge, une bagarre gagnée : or +2')}else{C.pv=Math.max(1,C.pv-2);tx.push('Soirée à l’auberge, une bagarre perdue : Vie -2')}}
+ else if(r==='rencontre'){clampSt('Cha',1);tx.push('Soirée à l’auberge, une belle rencontre : Charisme +1');ami(tx)}
+ else{C.en=Math.min(C.enm,C.en+2);tx.push('Soirée à l’auberge, une chanson reprise en chœur : Énergie +2')}}
+function roue(k,n,tx){const x=X12();x.roue={k,n};tx.push('La roue est '+(k==='b'?'bénie':'maudite')+' pour '+n+' tirages')}
+
+function v12Apres(v,ok,tx){const w=W12(),x=X12(),L=C.vie.length,reg=C.pos?rg(C.pos):'',ar=anCourant();
+ /* roue bénie ou maudite : décompte */
+ if(x.roue){if(x.roue.fresh)x.roue.fresh=0;else{x.roue.n--;if(x.roue.n<=0){tx.push('La roue retrouve son cours normal');x.roue=null}}}
+ /* serments */
+ if(v==='Prêter serment'){const s=pick(SERMENTS);x.serment={txt:s.txt,tag:s.tag,mode:s.mode,tenu:0};tx.push('Serment : '+s.txt)}
+ else if(x.serment&&!x.serment.brise){const s=x.serment;
+  if(v==="Serment mis à l'épreuve"){if(ok){s.tenu+=2;tx.push('Serment tenu face à l’épreuve ('+s.tenu+'/4)')}else{s.tenu--;tx.push('Le serment vacille ('+s.tenu+'/4)')}}
+  else if(ETAG[v]===s.tag){if(s.mode==='faire'){if(ok){s.tenu++;tx.push('Serment honoré ('+s.tenu+'/4)')}else s.tenu--}else if(ok&&Math.random()<.5){s.brise=true}}
+  if(s.brise||s.tenu<=-2){x.serment=null;x.brises=(x.brises||0)+1;clampSt('Cha',-1);C.rel.Peuple=Math.max(-5,C.rel.Peuple-1);tx.push('Serment brisé : Charisme -1, Peuple -1');roue('m',4,tx)}
+  else if(s.tenu>=4){x.serment=null;x.tenus=(x.tenus||0)+1;const k=Object.keys(S)[rnd(5)];clampSt(k,1);C.rel.Peuple=Math.min(5,C.rel.Peuple+1);tx.push('Serment tenu jusqu’au bout : '+S[k]+' +1, Peuple +1');roue('b',4,tx)}}
+ /* rêves */
+ if(v==='Rêve prophétique'){const R=[['Un corbeau annonce une trahison','Une trahison'],['Une main dorée tend une bourse','Un coup de chance'],['Une ombre suit dans la brume','Embuscade'],['Une cloche sonne pour un deuil','Un deuil'],['Un visage inconnu sourit','Une rencontre décisive'],['La mer rejette un trésor','Un héritage inattendu']],r=pick(R),t=Math.random();
+  x.reve={txt:r[0],ev:r[1],vrai:t<.6,fin:L+9};if(x.reve.vrai){C.ch=C.ch||[];C.ch.push({ev:r[1],de:L+1,a:L+8})}tx.push('Rêve : '+r[0])}
+ else if(x.reve){if(v===x.reve.ev&&x.reve.vrai){x.prophetes=(x.prophetes||0)+1;C.st.Esp=Math.min(12,C.st.Esp+1);tx.push('La prophétie se réalise : Esprit +1');roue('b',3,tx);x.reve=null}
+  else if(L>=x.reve.fin){tx.push('Le rêve ne s’est pas réalisé');x.reve=null}}
+ /* élève */
+ if(v==="Prendre un élève"){x.eleve={n:NOMS1[rnd(NOMS1.length)],xp:0,comp:C.comp[0]?{n:C.comp[0].n,tag:C.comp[0].tag}:null};tx.push('Élève : '+x.eleve.n)}
+ if(v==="Leçon à l'élève"&&x.eleve){x.eleve.xp++;if(ok)C.comp.forEach(s=>s.xp+=.4);tx.push('Leçon donnée à '+x.eleve.n+' ('+x.eleve.xp+')')}
+ /* amis, dettes */
+ if(ETAG[v]&&['social','hospitalité'].includes(ETAG[v])&&ok&&Math.random()<.18&&v!=='Soirée à l\'auberge')ami(tx);
+ if(v==="Retrouvailles d'un ami"){const a=pick((x.amis||[]).filter(z=>z.pts>=3));if(a){tx.push('Avec '+a.n);if(Math.random()<.4)C.or+=3}}
+ if(v==='Une dette'&&Math.random()<.6)dette(tx,'dette');
+ if(ETAG[v]==='hospitalité'&&ok&&Math.random()<.2)dette(tx,'faveur');
+ if(v==='Le créancier se présente'){const d=(x.dettes||[]).find(z=>z.t==='dette');if(d){if(C.or>=d.m){C.or-=d.m;x.dettes.splice(x.dettes.indexOf(d),1);tx.push('Dette réglée à '+d.n+' : or -'+d.m)}else if(ok){tx.push('Délai accordé par '+d.n)}else{C.pv=Math.max(1,C.pv-2);C.or=0;x.dettes.splice(x.dettes.indexOf(d),1);tx.push('Saisie par '+d.n+' : or perdu, Vie -2')}}}
+ if(v==='Une faveur due'){const d=(x.dettes||[]).find(z=>z.t==='faveur');if(d){x.dettes.splice(x.dettes.indexOf(d),1);if(ok){C.or+=d.m+2;tx.push(d.n+' s’acquitte : or +'+(d.m+2))}else tx.push(d.n+' est introuvable')}}
+ /* secret */
+ if(v==='Le secret éclate'&&x.secret&&!x.secret.rev){const s=SECRETS[x.secret.i];x.secret.rev=true;x.secret.t=s.t;tx.push('Passé révélé : '+s.t);s.eff(tx);if(!ok){C.rel.Peuple=Math.max(-5,C.rel.Peuple-1);tx.push('La nouvelle fait jaser : Peuple -1')}}
+ /* reconversion */
+ if(v==='Changement de voie'&&!x.reconv){const cur=(C.rep.find(r=>r[0]==='Métier')||[])[1],nv=pick(Object.keys(SKM).filter(k=>k!==cur)),r=C.rep.find(z=>z[0]==='Métier');if(r){x.reconv=cur;r[1]=nv;const s0=(SKM[nv]||[])[0];if(s0&&!C.comp.some(c=>c.n===s0[0]))C.comp.push({n:s0[0],tag:s0[1],xp:1,rate:1});tx.push('Nouveau métier : '+nv+' (ancien : '+cur+')')}}
+ /* rival éternel */
+ if(v==="Face à l'éternel rival"&&w.rival){if(ok){w.rival.niv=Math.max(1,w.rival.niv-1);tx.push(w.rival.n+' recule (niveau '+w.rival.niv+')');if(w.rival.niv===1&&Math.random()<.3){chro(nomS()+' met fin à la rivalité avec '+w.rival.n);w.rival=null}}else{w.rival.niv=Math.min(5,w.rival.niv+1);tx.push(w.rival.n+' progresse (niveau '+w.rival.niv+')')}}
+ /* bannissement, exil */
+ if(v==='Bannissement'&&!(x.exil||[]).length){const c=tous().filter(z=>z!==C.pos&&!ETR.includes(z));if(c.length){const o=C.pos,d=pick(c);x.exil=[o];C.trail.push([o,d]);C.pos=d;if(!C.vis.includes(d))C.vis.push(d);tx.push('Banni de '+o+' : chassé vers '+d);chro(nomS()+' est banni de '+o)}}
+ if(v==="Retour d'exil"&&(x.exil||[]).length){if(ok){const o=x.exil.shift();WORLD.rep[o]=Math.max(WORLD.rep[o]||0,0);tx.push('Exil levé : '+o)}else clampSt('Cha',-1)}
+ /* royaume */
+ if(v==='Querelle de succession'){const k=w.roy[reg];if(k&&k.vacant&&ok){k.vacant=false;k.souv=souvNom();k.fin=ar+15+rnd(30);chro(nomS()+' pèse dans la succession : '+k.souv+' monte sur le trône de '+reg);tx.push('Votre candidat l’emporte : '+k.souv)}}
+ /* guerre de lignées */
+ if(v==='Escarmouche de lignées'&&C.lig){const g=w.guerres.find(z=>!z.fin&&(z.a===C.lig.nom||z.b===C.lig.nom));if(g){const a=g.a===C.lig.nom;if(ok){if(a)g.sa++;else g.sb++}else{if(a)g.sb++;else g.sa++}
+  WORLD.hu[C.pos]={h:'en guerre',an:ar};built=false;tx.push('Guerre de lignées : '+g.sa+' à '+g.sb);
+  if(g.sa>=3||g.sb>=3){const gn=g.sa>g.sb?g.a:g.b,pe=g.sa>g.sb?g.b:g.a;g.fin=ar;const l1=LIG.find(l=>l.nom===gn),l2=LIG.find(l=>l.nom===pe);if(l1)l1.rep=clampR((l1.rep||0)+1);if(l2)l2.rep=clampR((l2.rep||0)-1);chro('La '+gn+' triomphe de la '+pe+' après une longue guerre');tx.push('Guerre terminée : la '+gn+' l’emporte');ecrire('lig',LIG)}}}
+ /* routes commerciales */
+ if(/^voyage/i.test(v)&&C.trail.length){const t=C.trail[C.trail.length-1],k=t[0]+'|'+t[1],k2=t[1]+'|'+t[0],c=(WORLD.sent[k]||0)+(WORLD.sent[k2]||0);
+  if(c>=3&&!w.routes.some(r=>(r.a===t[0]&&r.b===t[1])||(r.a===t[1]&&r.b===t[0]))&&w.routes.length<8){w.routes.push({a:t[0],b:t[1],an:ar});chro('Une route commerciale relie '+t[0]+' et '+t[1]);tx.push('Une route commerciale s’ouvre entre '+t[0]+' et '+t[1])}
+  if(sai()==='hiver'&&(t[0]==='Village de montagne'||t[1]==='Village de montagne')){C.en=Math.max(0,C.en-2);tx.push('Col enneigé : Énergie -2')}}
+ /* légendes */
+ if(v==='Légende locale'){const n=w.leg[C.pos]||0;if(n<3){w.leg[C.pos]=n+1;x.legs=(x.legs||0)+1;tx.push('Légende de '+C.pos+' : '+legende(C.pos,n));if(n+1===3){C.or+=3;clampSt('Esp',1);tx.push('La légende est complète : Esprit +1, or +3')}}}
+ /* rumeurs */
+ if(v==="Rumeur à l'auberge"){const r=pick(RUM),vrai=Math.random()<.65;let t=r.t;
+  if(r.k==='lieu'){const c=tous().filter(z=>z!==C.pos);const L2=c.length?pick(c):C.pos;t=t.replace('{L}',L2);if(vrai&&!C.tr&&!C.trDone)C.tr=L2;x.rum={txt:t,vrai,fin:L+8,lieu:L2}}
+  else{if(vrai){C.ch=C.ch||[];C.ch.push({ev:r.ev,de:L+1,a:L+7})}x.rum={txt:t,vrai,ev:r.ev,fin:L+8}}
+  tx.push('Rumeur : '+t+' (à vérifier)')}
+ else if(x.rum){if(x.rum.ev&&v===x.rum.ev&&x.rum.vrai){tx.push('La rumeur était fondée');x.rum=null}else if(x.rum.lieu&&C.pos===x.rum.lieu&&x.rum.vrai){tx.push('La rumeur était fondée');x.rum=null}else if(L>=x.rum.fin){tx.push('La rumeur ne s’est pas confirmée');x.rum=null}}
+ if(v==="Soirée à l'auberge")soiree(tx);
+ /* cultes */
+ if(v==="Prêche d'un culte"){const c=(w.cultes||[]).find(z=>z.pays===reg),r=Math.random();if(c){if(r<.4&&!x.culte){x.culte=c.n;tx.push('Vous rejoignez : '+c.n)}else if(r<.7){C.pv=Math.min(C.pvm,C.pv+2);tx.push('Une bénédiction du culte : Vie +2')}else{C.pv=Math.max(1,C.pv-2);tx.push('Le prêche tourne à la bagarre : Vie -2')}}}
+ if(v==='Rite du culte'){x.rites=(x.rites||0)+1;if(Math.random()<.12){tx.push('Vous quittez le culte '+x.culte);x.culte=null}}
+ /* monstre légendaire */
+ if(v==='Ombre du monstre légendaire'&&w.dragon){const b=w.dragon.ty+' '+w.dragon.n;tx.push('Traces de '+b);w.best[w.dragon.ty+' légendaire']=(w.best[w.dragon.ty+' légendaire']||0)+1}
+ if(v==='Affronter le monstre légendaire'&&w.dragon&&ok){const d=w.dragon;d.vivant=false;d.mort=ar;d.par=nomS();x.tueur=true;C.or+=30;C.st.For=Math.min(12,C.st.For+1);tx.push(d.n+' ('+d.ty+') est terrassé : or +30, Force +1');chro(nomS()+' terrasse '+d.n+', '+d.ty.toLowerCase()+' légendaire');roue('b',5,tx)}
+ /* ruines */
+ if(v==='Fouiller un domaine ruiné'){const r=w.ruines.find(z=>z.lieu===C.pos&&!z.fouille);if(r){r.fouille=true;if(ok){const g=r.or||8;C.or+=g;tx.push('Dans les ruines de '+r.n+' : or +'+g);if(Math.random()<.35&&r.it){C.inv.push(r.it);tx.push('+ '+r.it)}}else tx.push('Les ruines de '+r.n+' sont déjà vides')}}
+ /* bestiaire */
+ if((ETAG[v]==='combat'||v==='Chasse au gibier')&&Math.random()<.45){const c=pick((BEST[C.pos]||[]).concat(BEST._));const n0=w.best[c]||0;w.best[c]=n0+1;tx.push('Créature croisée : '+c+(n0?'':' (nouvelle entrée du bestiaire)'))}
+ /* traits acquis, titres */
+ x.acquis=x.acquis||[];Object.keys(ACQ).forEach(a=>{if(!x.acquis.includes(a)&&ACQ[a].c()){x.acquis.push(a);tx.push('Trait acquis : '+a+' ('+ACQ[a].t+')')}});
+ if(!x.titre){const t=TITRES.find(z=>z[1]());if(t){x.titre=t[0];const k=Object.keys(S)[rnd(5)];clampSt(k,1);tx.push('Titre obtenu : '+t[0]+' ('+S[k]+' +1)');chro(nomS()+' reçoit le titre de '+t[0])}}
+ /* marques des blessures */
+ if(tx.some(z=>/^Cicatrice/.test(z))){x.marques=x.marques||[];x.marques.push(C.cic[C.cic.length-1]+' ('+v.toLowerCase()+')')}
+ /* événements du monde : fléaux, catastrophes, coups de théâtre */
+ if(!w.fleaux.some(f=>f.fin>=ar)&&L>=3&&Math.random()<.02){const ty=Math.random()<.5?'Peste':'Famine',pays=Math.random()<.7?reg:pick(REGIONS);w.fleaux.push({ty,pays,fin:ar+6+rnd(5)});chro((ty==='Peste'?'Une peste ravage ':'Une famine frappe ')+pays);tx.push((ty==='Peste'?'Une peste se déclare à ':'Une famine s’installe à ')+pays)}
+ if(L>=3&&!WORLD.seq&&Math.random()<.012){const ty=pick(['Un séisme','Une inondation','Une éruption','Un grand incendie','La tempête du siècle']),l=pick(lieux());w.cata.push({ty,lieu:l,an:ar});WORLD.hu[l]={h:'en deuil',an:ar};WORLD.seq={n:ty,fin:ar+10};built=false;chro(ty+' frappe '+l);tx.push(ty+' frappe '+l);
+  if(l===C.pos){C.pv=Math.max(1,C.pv-2);C.en=Math.max(0,C.en-2);x.cata=true;tx.push('Vous y êtes : Vie -2, Énergie -2');roue('m',3,tx)}}
+ if(L>=4&&!C.fin&&Math.random()<.012){
+  if(C.fl.includes('Allié')&&C.ally){C.fl=C.fl.filter(z=>z!=='Allié');if(!C.fl.includes('Ennemi juré'))C.fl.push('Ennemi juré');C.nem=C.ally;tx.push('Coup de théâtre : '+C.ally+' vous trahit et devient votre ennemi')}
+  else if(C.fl.includes('Ennemi juré')&&C.nem){C.fl=C.fl.filter(z=>z!=='Ennemi juré');if(!C.fl.includes('Allié'))C.fl.push('Allié');C.ally=C.nem;C.nem='';tx.push('Coup de théâtre : '+C.ally+' se rallie à vous')}
+  else if(C.or>=40){const p=Math.floor(C.or*.3);C.or-=p;tx.push('Coup de théâtre : une ruine soudaine, or -'+p)}
+  else if(C.or<=3){C.or+=12;tx.push('Coup de théâtre : un héritage de dernière minute, or +12')}}
+ /* succès cachés */
+ for(const c of CACH){if(w.cach[c[0]]||!c[1]())continue;w.cach[c[0]]={par:nomS(),an:ar};const t2=[];effet(c[2],t2);tx.push('Succès caché : '+c[0]+(t2.length?' ('+t2.join(', ')+')':''));break}
+ v12Flags();ecrire('monde',WORLD)}
+
+/* ---------- Fin de vie ---------- */
+function v12Fin(){const w=W12(),x=X12(),nom=nomS(),ar=anCourant(),mort=C.fin==='mort';
+ const O=mort?(age()>=60?['Il fait son testament et s’éteint entouré de ses proches.','Il part pour un dernier voyage, dont personne ne revient.','Il s’éteint dans l’oubli, seul avec ses souvenirs.']:['Il tombe, l’épée à la main.','Il disparaît sans laisser de traces.','Il s’éteint trop tôt, et le regret lui survit.']):['Il se retire dans la paix de ses souvenirs.','Il laisse un testament couvert de noms.','Il part pour un dernier voyage, qu’on dit sans retour.'];
+ x.finT=pick(O);
+ if(/dernier voyage/.test(x.finT)&&mort){const t=WORLD.tombes[WORLD.tombes.length-1];if(t&&t.nom===nom)t.lieu=pick(lieux())}
+ if(C.lig){const l=LIG.find(z=>z.nom===C.lig.nom);if(l){if(['Mort en héros','Mort en légende'].includes(C.mortT)&&Math.random()<.3)l.rep=clampR((l.rep||0)+1);
+  if(x.titre){l.titre=x.titre;l.faits=(l.faits||[]).concat(['Titre : '+x.titre]).slice(-6)}}}
+ if(x.eleve&&x.eleve.xp>=1&&w.eleves.length<5)w.eleves.push({n:x.eleve.n,de:nom,comp:x.eleve.comp});
+ if(C.nem&&Math.random()<.4&&!w.rival){w.rival={n:C.nem,niv:1+rnd(2),de:nom};chro(C.nem+' devient un rival légendaire de '+nom)}
+ else if(w.rival&&Math.random()<.2)w.rival.niv=Math.min(5,w.rival.niv+1);
+ if((C.or>=25||(C.biens||[]).length||(C.rang||0)>=2)&&C.pos&&Math.random()<.45&&w.ruines.length<8){const it=C.inv.find(z=>RARES.includes(z));w.ruines.push({n:'Domaine de '+nom.split(' ')[0],lieu:C.pos,de:nom,an:ar,or:6+Math.min(14,Math.floor(C.or/6)),it:it||null,fouille:false});chro('Le domaine de '+nom.split(' ')[0]+' est abandonné à '+C.pos)}
+ C.inv.filter(z=>RARES.includes(z)).forEach(z=>{if(!w.codex.some(c=>c.it===z&&c.par===nom)&&w.codex.length<30)w.codex.push({it:z,par:nom,an:ar,lieu:C.pos})});
+ if(x.culte){const c=(w.cultes||[]).find(z=>z.n===x.culte);if(c)c.fid=(c.fid||0)+1}
+ ecrire('monde',WORLD);ecrire('lig',LIG)}
+
+const v12Bio=()=>{const x=C.v12||{},o=[];if(C.ado&&C.lig)o.push('Adopté par la '+C.lig.nom+'.');if(x.titre)o.push('Titre : '+x.titre+'.');if(x.secret&&x.secret.rev)o.push('Passé caché : '+x.secret.t+'.');if(x.tenus)o.push('Serment tenu.');if(x.brises)o.push('Serment brisé.');if((x.marques||[]).length)o.push('Marques : '+x.marques.join(', ')+'.');if(x.finT)o.push(x.finT);return o.length?' '+o.join(' '):''};
+const v12Recit=()=>{const x=C.v12||{},o=[],nom=(C.nom||'Le personnage').split(' ')[0];if(C.ado&&C.lig)o.push(nom+' fut adopté par la '+C.lig.nom+', destin rarissime.');if(x.maitre)o.push(nom+' fut l’élève de '+x.maitre+'.');if(x.titre)o.push(nom+' reçut le titre de '+x.titre.toLowerCase()+'.');
+ if(x.tenus)o.push('Il tint son serment jusqu’au bout.');if(x.brises)o.push('Il brisa un serment, et ne se le pardonna pas.');if(x.secret&&x.secret.rev)o.push('Un secret fut révélé : il était '+x.secret.t+'.');
+ if((x.amis||[]).some(a=>a.pts>=3))o.push('Ses amis les plus fidèles : '+x.amis.filter(a=>a.pts>=3).map(a=>a.n).join(', ')+'.');if((x.acquis||[]).length)o.push('La vie lui apprit à devenir '+x.acquis.join(', ').toLowerCase()+'.');
+ if(x.tueur)o.push('Il terrassa un monstre légendaire.');if(x.finT)o.push(x.finT);return o};
+function v12Lieu(n){const w=W12(),o=[],r=rg(n),k=w.roy[r];if(k)o.push('Souverain de '+r+' : '+(k.vacant?'trône vacant':k.souv));
+ const v=w.vil[n]||0;if(v)o.push(v>0?'Le lieu prospère':'Le lieu décline');
+ const L=w.leg[n]||0;for(let i=0;i<L;i++)o.push('Légende : '+legende(n,i));if(L<3)o.push('Légende : '+L+'/3 recueillie'+(L>1?'s':''));
+ w.routes.filter(z=>z.a===n||z.b===n).forEach(z=>o.push('Route commerciale vers '+(z.a===n?z.b:z.a)));
+ w.ruines.filter(z=>z.lieu===n).forEach(z=>o.push((z.fouille?'Ruines fouillées : ':'Ruines : ')+z.n));
+ w.cata.filter(z=>z.lieu===n).forEach(z=>o.push(z.ty+' (an '+z.an+')'));
+ if(w.dragon&&w.dragon.vivant&&w.dragon.lieu===n)o.push('Signalé ici : '+w.dragon.ty+' légendaire');
+ const cu=(w.cultes||[]).find(z=>z.pays===r);if(cu)o.push('Culte local : '+cu.n);return o}
+/* v12c.js : interface de la V12 (fiche, sections, arbre visuel, graphiques, dynastie, exports) */
+function fiche12(){const x=C.v12;if(!x||!C.pvm)return '';const w=W12(),L=[],li=(a,b)=>L.push('<li><b>'+a+'</b>'+b+'</li>');
+ if(C.ado&&C.lig)li('Adopté','par la '+esc(C.lig.nom)+' <small>(destin rarissime)</small>');
+ if(x.titre)li('Titre',esc(x.titre));if(x.heritier)li('Héritier','du titre de '+esc(x.heritier));
+ if((x.acquis||[]).length)li('Traits acquis',x.acquis.map(esc).join(', '));
+ if(x.serment)li('Serment',esc(x.serment.txt)+' <small>('+x.serment.tenu+'/4)</small>');
+ if(x.reve)li('Rêve',esc(x.reve.txt));
+ if((x.amis||[]).length)li('Amis',x.amis.map(a=>esc(a.n)+(a.pts>=3?' (ami durable)':' ('+a.pts+'/3)')).join(', '));
+ if(x.eleve)li('Élève',esc(x.eleve.n)+' <small>('+x.eleve.xp+' leçon'+(x.eleve.xp>1?'s':'')+')</small>');if(x.maitre)li('Formé par',esc(x.maitre));
+ if((x.dettes||[]).length)li('Dettes et faveurs',x.dettes.map(d=>(d.t==='dette'?'Vous devez ':'On vous doit ')+d.m+' or'+(d.t==='dette'?' à ':' : ')+esc(d.n)).join('<br>'));
+ if(x.secret&&x.secret.rev)li('Passé révélé',esc(x.secret.t));
+ if((x.exil||[]).length)li('Exil','banni de '+x.exil.map(esc).join(', '));
+ if(x.culte)li('Culte',esc(x.culte));
+ if(x.rum)li('Rumeur',esc(x.rum.txt)+' <small>(à vérifier)</small>');
+ if((x.marques||[]).length)li('Marques',x.marques.map(esc).join('<br>'));
+ if(x.roue)li('Roue '+(x.roue.k==='b'?'bénie':'maudite'),x.roue.n+' tirage'+(x.roue.n>1?'s':''));
+ if(C.pos){const k=w.roy[rg(C.pos)];li('Ici',esc(rg(C.pos))+' · '+(k?(k.vacant?'trône vacant':'souverain : '+esc(k.souv)):'')+(w.ere?' · '+esc(w.ere.n):''))}
+ return L.join('')}
+
+/* ---------- Sections persistantes ---------- */
+const SEC12=[['best','Bestiaire'],['cod','Codex des reliques'],['cach','Succès cachés'],['mv','Monde vivant'],['leg','Livre des légendes'],['dyn','Mode dynastie'],['chr','Chronique du monde']];
+function sections12(){if($('v12-s'))return;const h=SEC12.map(([k,t])=>'<details id="v12-'+k+'"><summary><b>'+t+'</b></summary><div id="v12-'+k+'-c" class="v12c"></div></details>').join('');
+ const a=$('reg');if(a)a.insertAdjacentHTML('beforebegin','<div id="v12-s">'+h+'</div>');
+ const p=$('pan');if(p&&!$('pf-q')){p.insertAdjacentHTML('beforebegin','<input id="pf-q" placeholder="Rechercher dans le panthéon" aria-label="Recherche dans le panthéon" style="width:100%;margin:6px 0">');$('pf-q').oninput=e=>{PF.q=e.target.value.trim().toLowerCase();ui()}}
+ const d=$('v12-dyn-c');if(d)d.innerHTML='<p>Enchaîne plusieurs générations d’une même lignée, tirées au hasard, et rend un bilan. Les personnages sont ajoutés au panthéon et au monde.</p><div class="l"><select id="dy-n"><option value="3">3 générations</option><option value="5">5 générations</option><option value="8">8 générations</option></select><button id="dy-b">Lancer la dynastie</button></div><p id="dy-t" style="white-space:pre-wrap"></p>';
+ if($('dy-b'))$('dy-b').onclick=()=>dynastie(+$('dy-n').value);
+ const c=$('v12-chr-c');if(c)c.innerHTML='<div class="l"><button id="ch-b">Exporter la chronique</button></div><ul id="ch-l"></ul>';if($('ch-b'))$('ch-b').onclick=exporterChronique}
+
+function dl(nom,txt,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:type||'text/plain'}));a.download=nom;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
+function chronique(){W10();const w=W12(),E=WORLD.chro.map(e=>[e.an,e.txt]).concat(WORLD.deces.map(e=>[e.an,'Décès : '+e.n+' ('+e.txt+')']));E.sort((a,b)=>a[0]-b[0]);return E}
+function exporterChronique(){const E=chronique();if(!E.length)return alert('Aucun événement dans la chronique.');let an=null;dl('chronique.txt','Chronique du monde\n\n'+E.map(e=>{const h=e[0]!==an?(an=e[0],'\nAn '+e[0]+'\n'):'';return h+'  - '+e[1]}).join('\n'))}
+
+/* ---------- Arbre généalogique visuel ---------- */
+function arbreSVG(){if(!LIG.length)return '<p>Aucune lignée pour l’instant.</p>';
+ const kids=n=>LIG.filter(l=>n?l.parent===n:(!l.parent||!LIG.some(x=>x.nom===l.parent))),N={},ed=[];let leaf=0,md=0;
+ const rec=(l,d)=>{md=Math.max(md,d);const ks=kids(l.nom);let x;if(!ks.length)x=leaf++;else{const xs=ks.map(k=>rec(k,d+1));x=(xs[0]+xs[xs.length-1])/2;ks.forEach(k=>ed.push([l.nom,k.nom]))}N[l.nom]={l,x,d};return x};
+ kids(null).forEach(r=>rec(r,0));const W=Math.max(1,leaf)*100+20,H=(md+1)*110+20,px=n=>10+N[n].x*100+50,py=n=>20+N[n].d*110;
+ let h='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" style="max-width:none">';
+ ed.forEach(e=>{if(N[e[0]]&&N[e[1]])h+='<path d="M'+px(e[0])+' '+(py(e[0])+30)+'V'+(py(e[0])+60)+'H'+px(e[1])+'V'+py(e[1])+'" fill="none" stroke="var(--m)" stroke-width="1.5"/>'});
+ LIG.forEach(l=>{if(l.union&&N[l.nom]&&N[l.union]&&l.nom<l.union)h+='<path d="M'+px(l.nom)+' '+(py(l.nom)+15)+'L'+px(l.union)+' '+(py(l.union)+15)+'" stroke="var(--a)" stroke-width="1.5" stroke-dasharray="4 3" fill="none"/>'});
+ Object.keys(N).forEach(n=>{const o=N[n],l=o.l,x=px(n),y=py(n),nm=l.nom.replace(/^Lignée /,'').slice(0,13);
+  h+='<rect x="'+(x-46)+'" y="'+y+'" width="92" height="30" rx="7" fill="var(--s)" stroke="var(--e)" stroke-width="1"/><text x="'+x+'" y="'+(y+13)+'" text-anchor="middle" font-size="11" fill="var(--e)" style="font-weight:600">'+esc(nm)+'</text><text x="'+x+'" y="'+(y+25)+'" text-anchor="middle" font-size="9" fill="var(--m)">'+esc((l.race||'').slice(0,16))+'</text>';
+  (l.membres||[]).slice(-8).forEach((m,i)=>{h+='<circle cx="'+(x-35+i*10)+'" cy="'+(y+40)+'" r="4" fill="'+(m.fin==='mort'?'#8a8f99':'#2a8')+'"><title>'+esc(m.nom+' ('+m.age+' ans)')+'</title></circle>'});
+  if(l.titre)h+='<text x="'+x+'" y="'+(y+58)+'" text-anchor="middle" font-size="9" fill="var(--a)">'+esc(l.titre)+'</text>'});
+ return '<div style="overflow-x:auto">'+h+'</svg></div><small>Points verts : vies victorieuses, gris : morts. Pointillés : unions.</small>'}
+
+/* ---------- Graphiques ---------- */
+function barres(titre,rows,max,fmt){const m=max||Math.max(1,...rows.map(r=>r[1]));return '<b>'+esc(titre)+'</b><svg viewBox="0 0 300 '+(rows.length*20+4)+'" width="100%" role="img" aria-label="'+esc(titre)+'">'+rows.map((r,i)=>'<text x="0" y="'+(i*20+14)+'" font-size="11" fill="var(--e)">'+esc(String(r[0]).slice(0,14))+'</text><rect x="92" y="'+(i*20+4)+'" width="'+Math.max(2,r[1]/m*160)+'" height="13" rx="3" fill="var(--a)"/><text x="'+(96+Math.max(2,r[1]/m*160))+'" y="'+(i*20+14)+'" font-size="10" fill="var(--m)">'+(fmt?fmt(r):r[1])+'</text>').join('')+'</svg>'}
+function graphiques(){const s=STAT;if(!s||!s.n)return '';const R=Object.entries(s.races||{}).filter(r=>r[1].n>=1).sort((a,b)=>b[1].n-a[1].n).slice(0,8).map(([k,r])=>[k,Math.round(r.v/r.n*100),r.n]);
+ const A=[[0,29],[30,39],[40,49],[50,59],[60,99]].map(([a,b])=>[a+'–'+(b>90?'+':b)+' ans',PAN.filter(x=>x.age>=a&&x.age<=b).length]);
+ return (R.length?'<li>'+barres('Victoires par race (%)',R,100,r=>r[1]+' % (' + r[2] + ')')+'</li>':'')+(PAN.length?'<li>'+barres('Âge de fin (panthéon)',A,null,null)+'</li>':'')}
+
+/* ---------- Mise à jour de l'interface ---------- */
+function hist12(){try{h12()}catch(e){console.warn('v12',e)}}
+function h12(){sections12();const w=W12();
+ const e=$('et');if(e){e.textContent=e.textContent.replace(/ — Roue (bénie|maudite).*$/,'');const x=C.v12;if(x&&x.roue&&!C.fin&&C.rep.length>=etapes().length)e.textContent+=' — Roue '+(x.roue.k==='b'?'bénie':'maudite')+' ('+x.roue.n+')'}
+ const set=(k,h)=>{const c=$('v12-'+k+'-c');if(c&&c._h!==h){c._h=h;c.innerHTML=h}};
+ const B=Object.entries(w.best).sort((a,b)=>b[1]-a[1]);set('best',B.length?'<ul>'+B.map(([n,k])=>'<li><b>'+esc(n)+'</b> croisé '+k+' fois</li>').join('')+'</ul>':'<p>Aucune créature croisée pour l’instant. Elles apparaissent lors des combats et des chasses.</p>');
+ const R=WORLD.reliques.map(r=>'<li><b>'+esc(r.it)+'</b> laissé(e) par '+esc(r.par)+' à '+esc(r.lieu||'?')+' (an '+r.an+'), à retrouver</li>').concat(w.codex.slice().reverse().map(c=>'<li><b>'+esc(c.it)+'</b> porté(e) par '+esc(c.par)+' (an '+c.an+')'+(c.lieu?', fin de vie à '+esc(c.lieu):'')+'</li>'));set('cod',R.length?'<ul>'+R.join('')+'</ul>':'<p>Aucune relique dans le codex pour l’instant.</p>');
+ const K=Object.keys(w.cach);set('cach','<p>'+K.length+' trouvé'+(K.length>1?'s':'')+' sur '+CACH.length+'.</p><ul>'+CACH.map(c=>w.cach[c[0]]?'<li><b>'+esc(c[0])+'</b>'+esc(c[3])+' <small>Pris par '+esc(w.cach[c[0]].par)+' (an '+w.cach[c[0]].an+')</small></li>':'<li><b>???</b><small>Un succès caché reste à découvrir.</small></li>').join('')+'</ul>');
+ const M=[];if(w.ere)M.push('<li><b>Ère</b>'+esc(w.ere.n)+' <small>(jusqu’à l’an '+w.ere.fin+')</small></li>');
+ REGIONS.filter(r=>REGIONS.indexOf(r)<3||WORLD.pays.includes(r)).forEach(r=>{const k=w.roy[r];if(k)M.push('<li><b>'+esc(r)+'</b>'+(k.vacant?'trône vacant':'souverain : '+esc(k.souv))+'</li>')});
+ w.fleaux.filter(f=>f.fin>=anCourant()).forEach(f=>M.push('<li><b>'+esc(f.ty)+'</b>'+esc(f.pays)+', jusqu’à l’an '+f.fin+'</li>'));
+ w.guerres.filter(g=>!g.fin).forEach(g=>M.push('<li><b>Guerre de lignées</b>'+esc(g.a)+' contre '+esc(g.b)+' ('+g.sa+' à '+g.sb+')</li>'));
+ if(w.dragon)M.push('<li><b>Monstre légendaire</b>'+esc(w.dragon.n)+', '+esc(w.dragon.ty.toLowerCase())+(w.dragon.vivant?' (en vie, quelque part)':' (terrassé par '+esc(w.dragon.par||'?')+', an '+w.dragon.mort+')')+'</li>');
+ w.routes.forEach(r=>M.push('<li><b>Route commerciale</b>'+esc(r.a)+' – '+esc(r.b)+'</li>'));
+ (w.cultes||[]).forEach(c=>M.push('<li><b>'+esc(c.n)+'</b>'+esc(c.pays)+(c.fid?' · '+c.fid+' fidèle'+(c.fid>1?'s':'')+' passé'+(c.fid>1?'s':''):'')+'</li>'));
+ w.ruines.forEach(r=>M.push('<li><b>'+esc(r.n)+'</b>'+esc(r.lieu)+(r.fouille?' (fouillé)':'')+'</li>'));
+ if(w.rival)M.push('<li><b>Éternel rival</b>'+esc(w.rival.n)+' (niveau '+w.rival.niv+')</li>');
+ set('mv','<ul>'+M.join('')+'</ul>');
+ const G=PAN.map(x=>[(x.fin==='victoire'?3:0)+(x.succ||[]).length*2+(x.mortT==='Mort en légende'?4:0)+(x.mortT==='Mort en héros'?2:0)+(x.vie||0)/10,x]).sort((a,b)=>b[0]-a[0]).slice(0,6).filter(g=>g[0]>=2);
+ const OP=['Il était une fois','On raconte qu’autrefois vécut','Les anciens parlent encore de','Dans un temps lointain, vécut'];
+ set('leg',G.length?G.map(g=>{const x=g[1];return '<details><summary><b>'+esc(x.nom)+'</b> <small>'+esc(x.race+' '+x.metier)+'</small></summary><p>'+esc(OP[hs(x.nom)%4]+' '+x.nom+', '+x.race.toLowerCase()+' '+x.metier.toLowerCase()+'. '+(x.bio||'').replace(/^[^.]*\.\s*/,''))+'</p></details>'}).join(''):'<p>Aucune légende pour l’instant. Les vies les plus marquantes y entrent.</p>');
+ const cl=$('ch-l');if(cl){const E=chronique().slice(-40).reverse();const h=E.map(e=>'<li><b>An '+e[0]+'</b> '+esc(e[1])+'</li>').join('')||'<li>Aucun événement.</li>';if(cl._h!==h){cl._h=h;cl.innerHTML=h}}
+ const ar=$('ar');if(ar&&ar._h!==LIG.length+'|'+LIG.map(l=>(l.membres||[]).length+l.nom+(l.union||'')+(l.titre||'')).join('')){ar._h=LIG.length+'|'+LIG.map(l=>(l.membres||[]).length+l.nom+(l.union||'')+(l.titre||'')).join('');ar.innerHTML=arbreSVG()}
+ const st=$('stt');if(st&&STAT.n)st.insertAdjacentHTML('beforeend',graphiques())}
+
+/* ---------- Mode dynastie ---------- */
+async function dynastie(n){if(occ)return;if(C.pvm&&!C.fin&&!confirm('Le personnage en cours sera abandonné. Continuer ?'))return;
+ const out=$('dy-t'),say=t=>{if(out)out.textContent=t};occ=true;$('go').disabled=true;const R=[];
+ try{let g=0;while(!LIG.length&&g++<15){creerAlea();vivre();archiver();await new Promise(r=>setTimeout(r,0));say('Recherche d’une première lignée… ('+g+')')}
+  if(!LIG.length){say('Aucune lignée n’a pu être fondée. Réessaie.');return}
+  const l=(C.lig&&LIG.find(z=>z.nom===C.lig.nom))||LIG[rnd(LIG.length)];
+  for(let i=0;i<n;i++){const nom=NOMS1[rnd(NOMS1.length)]+' '+l.nom.replace(/^Lignée /,'');
+   creerAlea(null,t=>({Race:l.race,'Parent 1':(l.par||[])[0],'Parent 2':(l.par||[])[1],Naissance:'Lignée de naissance',Lignée:l.nom})[t.n],nom);
+   vivre();archiver();R.push({nom:nomS(),fin:C.fin,age:age(),or:C.or,titre:(C.v12||{}).titre||'',vie:C.vie.length});say('Génération '+(i+1)+' / '+n+'…');await new Promise(r=>setTimeout(r,0))}
+  const L2=LIG.find(z=>z.nom===l.nom)||l,v=R.filter(x=>x.fin==='victoire').length,txt=['Dynastie de la '+l.nom+' ('+(l.race||'?')+')',n+' générations : '+v+' victoire'+(v>1?'s':'')+', '+(n-v)+' mort'+((n-v)>1?'s':''),'Fortune cumulée : '+R.reduce((s,x)=>s+x.or,0)+' or','Réputation de la lignée : '+repTxt(L2.rep||0),''].concat(R.map((x,i)=>(i+1)+'. '+x.nom+' : '+(x.fin==='victoire'?'victoire':'mort')+' à '+x.age+' ans'+(x.titre?' ('+x.titre+')':''))).join('\n');
+  chro('La dynastie de la '+l.nom+' traverse '+n+' générations ('+v+' victoires)');ecrire('monde',WORLD);say(txt);modal('Dynastie','Bilan de la '+l.nom,'',txt.split('\n'),null)}
+ catch(e){say('Erreur : '+e.message)}
+ finally{occ=false;ui()}}
+
+/* ---------- Nouveautés ---------- */
+const NEWS12=['Naissance : sans lignée, lignée de naissance, ou adopté (rarissime, seul cas d’une lignée d’une autre race)','Serments, rêves prophétiques, secrets, dettes et faveurs, amis durables, élève et maître, reconversion, titres, traits acquis','Exil, éternel rival, coups de théâtre, soirées d’auberge, rumeurs, roue bénie ou maudite','Ères, saisons, souverains, fléaux, routes commerciales, légendes locales, cultes, monstre légendaire, ruines des anciens, catastrophes','Bestiaire, codex des reliques, succès cachés, livre des légendes, chronique exportable, arbre visuel, graphiques, recherche dans le panthéon','Mode dynastie : enchaîne les générations d’une lignée','Carte : le glissement vertical est corrigé, bouton Centrer, zoom mémorisé'];
+setTimeout(()=>{try{if(REG.vu!=='12'&&typeof modal==='function'){REG.vu='12';ecrire('reg',REG);modal('Nouveautés','Version 12','',NEWS12,null)}}catch(e){}},1500);
 /* jeu.js : état du personnage, roulette, jets, objets, boutique, saisons, quêtes, fin de partie, interface */
 const nouveau=()=>({nom:'',rep:[],vie:[],pos:null,trail:[],st:{},pv:0,pvm:0,en:0,enm:0,inv:[],or:0,fl:[],comp:[],vis:[],rel:{Marchands:0,Couronne:0,Pègre:0,Peuple:0},cic:[],us:{},fat:0,cd:0,nem:'',ally:'',mnd:null,succ:[],expl:[],dec:0,boss:0,an0:0,lig:null,ligTrait:'',ligTx:[],fonde:'',obj:'',qs:0,t:0,age0:20,meteo:'Clair',fin:null,arch:0,lat:[],sur:'',cmp:null,bl:[],rang:0,enf:[],sq:null,sqn:0,mortT:'',vl:[],famOk:false,arr:[],biens:[]});
 let PERSO=lire('perso',{tables:{},ev:[],efx:{},hist:{},etag:{},lieux:[],pos:{},extra:[]}),T=null,C=lire('c',nouveau()),PAN=lire('pan',[]),rot=0,occ=false,cur=[];
@@ -1266,8 +1645,9 @@ function construireT(){const t=JSON.parse(JSON.stringify(DEF));t.forEach(x=>{if(
  const d=t.find(x=>x.n==='Décor');PERSO.lieux.forEach(l=>{if(!d.o.some(y=>y[0]===l.n))d.o.push([l.n,l.poids||1,{}])});
  const i=t.findIndex(x=>x.n==='Objectif');PERSO.extra.forEach((x,k)=>t.splice(i+k,0,JSON.parse(JSON.stringify(x))));return t}
 appliquerPerso();T=construireT();
-const ligTable=()=>({n:'Lignée',o:[['Sans lignée',8]].concat(LIG.map(l=>[l.nom,ligOk(l)]).filter(x=>x[1]>0))}),famTable=()=>({n:'Famille',o:[['Héritage familial',3],['Brouillé avec les siens',1]]}),
- etapes=()=>{const b=T.filter(t=>!t.vie),ins=[];if(((C.rep[0]||[])[1])==='Sang-mêlé'){const R0=RACES.map(x=>[x[0],x[1]]).filter(x=>x[0]!=='Sang-mêlé');ins.push({n:'Parent 1',o:R0});const p1=(C.rep[1]||[])[1];ins.push({n:'Parent 2',o:R0.filter(x=>x[0]!==p1)})}if(LIG.length)ins.push(ligTable());if(WORLD.fam)ins.push(famTable());return b.slice(0,1).concat(ins,b.slice(1))},
+const ligTable=mode=>{const ad=mode==='Adopté',o=LIG.map(l=>[l.nom,ad?(ligOk(l)>0?0:1):ligOk(l)]).filter(x=>x[1]>0);return{n:'Lignée',o:o.length?o:[['Sans lignée',1]]}},
+ naisTable=()=>{const nb=LIG.reduce((s,l)=>s+ligOk(l),0),na=LIG.filter(l=>ligOk(l)<=0).length,o=[['Sans lignée',8]];if(nb>0)o.push(['Lignée de naissance',nb]);if(na>0)o.push(['Adopté',(8+nb)*.015]);return{n:'Naissance',o}},famTable=()=>({n:'Famille',o:[['Héritage familial',3],['Brouillé avec les siens',1]]}),
+ etapes=()=>{const b=T.filter(t=>!t.vie),ins=[];if(((C.rep[0]||[])[1])==='Sang-mêlé'){const R0=RACES.map(x=>[x[0],x[1]]).filter(x=>x[0]!=='Sang-mêlé');ins.push({n:'Parent 1',o:R0});const p1=(C.rep[1]||[])[1];ins.push({n:'Parent 2',o:R0.filter(x=>x[0]!==p1)})}if(LIG.length){ins.push(naisTable());const nv=(C.rep.find(r=>r[0]==='Naissance')||[])[1];if(nv&&nv!=='Sans lignée')ins.push(ligTable(nv))}if(WORLD.fam)ins.push(famTable());return b.slice(0,1).concat(ins,b.slice(1))},
  tous=()=>lieux().concat(WORLD.sites.map(s=>s.n),WORLD.fond.map(f=>f.n)),anCourant=()=>C.an0+Math.floor(C.t/12),tv=()=>T.find(t=>t.vie),lieux=()=>((T.find(t=>t.n==='Décor')||{o:[]}).o).map(x=>x[0]);
 const table=()=>C.rep.length<etapes().length?etapes()[C.rep.length]:tv();
 const age=()=>C.age0+Math.floor(C.t/12),sai=()=>SAI[C.t%12],rnd=n=>Math.floor(Math.random()*n);
@@ -1284,7 +1664,7 @@ function poids(t){
  if(t.vie){cx=ev.concat(C.fl,C.inv,[C.pos,C.meteo,cap(sai())],WORLD.sites.some(s=>s.n===C.pos)?['Site']:[]);if(C.en<=3)cx.push('Épuisé');if(C.pv<=4)cx.push('Blessé');const q=etq();if(C.qs<q.length)cx.push('Étape:'+q[C.qs][2])}
  a.push(...cx);const rw=cx.slice().reverse();
  const permis=g=>{const a=C.rep.map(r=>r[1]);return g.some(x=>x.startsWith('tag:')?C.comp.some(s=>s.tag===x.slice(4)):x.startsWith('obj:')?C.inv.includes(x.slice(4)):a.includes(x)||x===C.ligTrait)};
- const l=t.o.filter(x=>(!x[3]||a.includes(x[3]))&&!(x[0]==='Vengeance de l\'ennemi'&&C.cd>0)&&!(x[0]==='Explorer le site'&&C.expl.includes(C.pos))&&!(x[0]==='Piste d\'un lieu oublié'&&WORLD.sites.length>=12)).map(x=>{let w=x[1];a.forEach(k=>{if(x[2]&&x[2][k]!==undefined)w*=x[2][k]});if(t.vie){if(EREQ[x[0]]&&!permis(EREQ[x[0]]))w*=.03;w*=repMult(x[0])*objBoost(x[0])*v10Boost(x[0]);C.rep.concat(C.ligTrait?[['L',C.ligTrait]]:[]).forEach(r=>{const m=TR[r[1]];if(m&&m[x[0]])w*=m[x[0]]});RELF.forEach(f=>{const v=C.rel[f],k=v>=2?'Rel:'+f+'+':v<=-2?'Rel:'+f+'-':'',m=RELW[k];if(m&&m[x[0]])w*=m[x[0]]});const mo=C.mnd&&MONDE[C.mnd.n].w[x[0]];if(mo)w*=mo}
+ const l=t.o.filter(x=>(!x[3]||a.includes(x[3]))&&!(x[0]==='Vengeance de l\'ennemi'&&C.cd>0)&&!(x[0]==='Explorer le site'&&C.expl.includes(C.pos))&&!(x[0]==='Piste d\'un lieu oublié'&&WORLD.sites.length>=12)).map(x=>{let w=x[1];a.forEach(k=>{if(x[2]&&x[2][k]!==undefined)w*=x[2][k]});if(t.vie){if(EREQ[x[0]]&&!permis(EREQ[x[0]]))w*=.03;w*=repMult(x[0])*objBoost(x[0])*v10Boost(x[0])*v12Boost(x[0]);C.rep.concat(C.ligTrait?[['L',C.ligTrait]]:[]).forEach(r=>{const m=TR[r[1]];if(m&&m[x[0]])w*=m[x[0]]});RELF.forEach(f=>{const v=C.rel[f],k=v>=2?'Rel:'+f+'+':v<=-2?'Rel:'+f+'-':'',m=RELW[k];if(m&&m[x[0]])w*=m[x[0]]});const mo=C.mnd&&MONDE[C.mnd.n].w[x[0]];if(mo)w*=mo}
   const why=rw.find(k=>x[2]&&x[2][k]!==undefined&&x[2][k]!==1&&k!==C.pos&&!SAI.includes(k.toLowerCase()))||(x[3]&&x[3]!==C.pos?x[3]:'');return{t:x[0],w,why:why.startsWith('Étape:')?'son objectif':why}}).filter(x=>x.w>0);
  return l.length?l:t.o.filter(x=>!x[3]).map(x=>({t:x[0],w:x[1]}))}
 function dessiner(w){
@@ -1322,7 +1702,7 @@ function cicatrice(tx){const k=Object.keys(S)[rnd(5)];C.st[k]=Math.max(1,C.st[k]
 function evMonde(tx){const m=C.mnd;if(m&&C.t>=m.fin){tx.push('Fin : '+m.n);WORLD.seq={n:m.n,fin:anCourant()+12};C.mnd=null;if(WORLD.mnd&&WORLD.mnd.n===m.n)WORLD.mnd=null;return}
  if(!m&&!WORLD.mnd&&C.vie.length>=3&&Math.random()<.12){const k=Object.keys(MONDE),n=k[rnd(k.length)],y=3+rnd(8);C.mnd={n,fin:C.t+y*12};WORLD.mnd={n,fin:anCourant()+y};tx.push('Le monde change : '+n+' (environ '+y+' ans). '+MONDE[n].t)}}
 const vieChere=tx=>{if(VILLES.includes(C.pos)&&C.or>0){C.or--;tx.push('Vie chère : or -1')}};
-const etats=()=>C.fl.map(f=>f==='Ennemi juré'&&C.nem?'Ennemi juré : '+C.nem:f==='Allié'&&C.ally?'Allié : '+C.ally:f).concat(C.cic,(C.bl||[]).map(b=>b.n+' ('+b.t+' actions)'));
+const etats=()=>C.fl.filter(f=>f[0]!=='_').map(f=>f==='Ennemi juré'&&C.nem?'Ennemi juré : '+C.nem:f==='Allié'&&C.ally?'Allié : '+C.ally:f).concat(C.cic,(C.bl||[]).map(b=>b.n+' ('+b.t+' actions)'));
 function appliquer(v){const e=EF[v]||{},tx=[];let ok=true;if(v==='Piste d\'un lieu oublié')decouvrir(tx);if(v==='Explorer le site')explorer(tx);
  if(e.jet){const j=jet(e.jet[0],e.jet[1],ETAG[v]);ok=j.ok;tx.push(j.txt+' : '+(ok?'réussi':'raté'));j.casses.forEach(x=>tx.push(x+' se brise'))}
  Object.keys(S).forEach(k=>{if(e[k]){C.st[k]=Math.max(1,C.st[k]+e[k]);tx.push(S[k]+(e[k]>0?' +':' ')+e[k])}});
@@ -1346,27 +1726,27 @@ function verifier(){
  if(C.pv<=0){C.pv=0;C.fin='mort';return}
  if(age()>=70){C.fin='mort';return}
  if(avancer())C.fin='victoire'}
-function cible(c){if(C.tr&&c.includes(C.tr)&&Math.random()<.5)return C.tr;if(Math.random()>.3){const n=c.filter(x=>!ETR.includes(x));if(n.length)c=n}if(C.sq&&c.includes(C.sq.lieu)&&Math.random()<.45)return C.sq.lieu;const o=C.obj,q=etq();let tg=null;if(C.qs<q.length){const d=OBJD[o]&&OBJD[o][C.qs];if(d){if(d.t==='lieu')tg=d.v;else if(d.t==='ev'){const e=tv().o.find(x=>x[0]===d.v);tg=e&&e[3]}}else if(o==='Retrouver la Relique'&&C.qs>=1)tg='Désert aux ruines'}
+function cible(c){{const ex=(C.v12&&C.v12.exil)||[];if(ex.length){const k=c.filter(x=>!ex.includes(x));if(k.length)c=k}}if(C.tr&&c.includes(C.tr)&&Math.random()<.5)return C.tr;if(Math.random()>.3){const n=c.filter(x=>!ETR.includes(x));if(n.length)c=n}if(C.sq&&c.includes(C.sq.lieu)&&Math.random()<.45)return C.sq.lieu;const o=C.obj,q=etq();let tg=null;if(C.qs<q.length){const d=OBJD[o]&&OBJD[o][C.qs];if(d){if(d.t==='lieu')tg=d.v;else if(d.t==='ev'){const e=tv().o.find(x=>x[0]===d.v);tg=e&&e[3]}}else if(o==='Retrouver la Relique'&&C.qs>=1)tg='Désert aux ruines'}
  return tg&&c.includes(tg)&&Math.random()<.5?tg:c[rnd(c.length)]}
 function agir(v,why){
  const nm=v==='Vengeance de l\'ennemi'?C.nem:'',d0=cap(sai())+', '+age()+' ans',pv0=C.pv,ch=choix(v),tx=appliquer(v),sc=(EF[v]||{}).sc;const perte=pv0-C.pv;if(ch)ch.fin(tx);let txt=v,vers=null,de=C.pos,dt=1+rnd(2);
  if(/^voyage/i.test(v)){const c=tous().filter(x=>x!==C.pos);if(c.length&&C.pos){vers=cible(c);txt=v+' : '+de+' vers '+vers;C.trail.push([de,vers]);C.pos=vers;if(!C.vis.includes(vers))C.vis.push(vers);C.arr=C.arr||[];if(!C.arr.includes(vers))C.arr.push(vers);const cf=(C.inv.includes('Cheval')?1:2)+((C.bl||[]).some(b=>b.n==='Jambe brisée')?1:0);C.en=Math.max(0,C.en-cf);tx.push('Énergie -'+cf);dt=3}}
  else txt+=(C.pos?' à '+C.pos:'');
  if(sai()==='hiver'){C.en=Math.max(0,C.en-1);tx.push('Froid : Énergie -1')}
- C.t+=dt;meteo();if(C.cd>0)C.cd--;if(v==='Vengeance de l\'ennemi')C.cd=4;evMonde(tx);vieChere(tx);auto(tx);boutique(tx);apresAction(v,LASTOK,perte,dt,tx);lieuEffets(tx);immoAuto(tx);revenus(tx,v);v10Apres(v,LASTOK,tx);v11Apres(v,LASTOK,tx);
+ C.t+=dt;meteo();if(C.cd>0)C.cd--;if(v==='Vengeance de l\'ennemi')C.cd=4;evMonde(tx);vieChere(tx);auto(tx);boutique(tx);apresAction(v,LASTOK,perte,dt,tx);lieuEffets(tx);immoAuto(tx);revenus(tx,v);v10Apres(v,LASTOK,tx);v11Apres(v,LASTOK,tx);v12Apres(v,LASTOK,tx);
  if(tx.includes('Ennemi juré')&&C.nem)txt+=' (ennemi : '+C.nem+')';if(nm)txt=v+' : '+nm;if(/allié/i.test(v)&&C.ally)txt+=' : '+C.ally;
  const ent={t:v,ok:LASTOK,p:C.pos,txt:''};C.vie.push(ent);verifier();succes(tx);{const e0=etq()[C.qs];if(e0&&e0[3]&&!C.fin&&e0[3].t!=='lieu'){const p=progres(e0[3]);if(p)tx.push('Objectif : '+p[0]+'/'+p[1])}}if(C.en<=0&&!C.fin)tx.push('épuisé');
  ent.txt=(d0+' : '+txt+(why?' (suite à : '+why+')':'')+(tx.length?' ['+tx.join(', ')+']':'')+(C.fin==='mort'?' : mort'+(age()>=70?' de vieillesse':''):''));
  $('act').textContent=ent.txt;ecrire('c',C);return{tx,vers,de,sc}}
 function fin(){C.pvm=C.pv=8+C.st.End;C.enm=C.en=6+Math.floor(C.st.End/2);C.or=5;C.age0=17+rnd(14);C.t=rnd(12);meteo();
- const g=k=>(C.rep.find(r=>r[0]===k)||[])[1];C.inv=[INV[g('Métier')]||'Bâton','Ration'];C.obj=g('Objectif')||'';initComp();C.an0=WORLD.annee+1+rnd(20);applyLig();applyRH();heritages();v10Debut()}
+ const g=k=>(C.rep.find(r=>r[0]===k)||[])[1];C.inv=[INV[g('Métier')]||'Bâton','Ration'];C.obj=g('Objectif')||'';initComp();C.an0=WORLD.annee+1+rnd(20);applyLig();applyRH();heritages();v10Debut();v12Debut()}
 function applyRH(){C.rhTx=[];const rc=race(),h=RH[rc];if(!h)return;const v=Math.min(3,h.v||0),m=Math.min(3,h.m||0),bs=Object.keys(S).sort((a,b)=>((SB[rc]||{})[b]||0)-((SB[rc]||{})[a]||0));
  if(v){const st={};bs.slice(0,v).forEach(k=>st[k]=1);effet({st,or:3*v},C.rhTx);C.rhTx.unshift('Gloire des '+rc.toLowerCase()+'s ('+h.v+' victoire'+(h.v>1?'s':'')+')')}
  if(m){effet({pvm:m},C.rhTx);C.rhTx.unshift('Leçon des disparus ('+h.m+' mort'+(h.m>1?'s':'')+' parmi les '+rc.toLowerCase()+'s)')}}
 /* ----- Fin de partie ----- */
 function bio(){const g=k=>((C.rep.find(r=>r[0]===k)||[])[1]||'').toLowerCase(),ev=C.vie.filter(x=>x.t!=='Objet').map(x=>x.t.toLowerCase()).slice(0,5).join(', ');
  return nomS()+', '+g('Race')+' '+g('Métier')+' ('+g('Origine')+', '+g('Trait de caractère')+' et '+g('Défaut')+'). '+(ev?'Sa vie : '+ev+'. ':'')
-  +(C.fin==='mort'?'Fin : mort à '+age()+' ans.':'Fin : objectif accompli (« '+C.obj+' ») à '+age()+' ans.')+' Fortune : '+C.or+' pièces d\u2019or.'+(C.lig?' Lignée : '+C.lig.nom+'.':'')+(C.fonde?' Il fonde la '+C.fonde+'.':'')+(C.mortT?' '+C.mortT+'.':'')+(C.fondL?' Il laisse derrière lui : '+C.fondL+'.':'')+(C.succ.length?' Succès : '+C.succ.join(', ')+'.':'')+(C.fonde?'':C.lg?' '+C.lg:'')}
+  +(C.fin==='mort'?'Fin : mort à '+age()+' ans.':'Fin : objectif accompli (« '+C.obj+' ») à '+age()+' ans.')+' Fortune : '+C.or+' pièces d\u2019or.'+(C.lig?' Lignée : '+C.lig.nom+'.':'')+(C.fonde?' Il fonde la '+C.fonde+'.':'')+(C.mortT?' '+C.mortT+'.':'')+(C.fondL?' Il laisse derrière lui : '+C.fondL+'.':'')+(C.succ.length?' Succès : '+C.succ.join(', ')+'.':'')+(C.fonde?'':C.lg?' '+C.lg:'')+v12Bio()}
 function effet(e,tx){if(!e)return;Object.keys(e.st||{}).forEach(k=>{C.st[k]=Math.max(1,C.st[k]+e.st[k]);tx.push(S[k]+' +'+e.st[k])});
  if(e.or){C.or+=e.or;tx.push('Or +'+e.or)}if(e.it){C.inv.push(e.it);tx.push('+ '+e.it)}if(e.xp){C.comp.forEach(s=>s.xp+=e.xp);tx.push('Compétences +'+e.xp)}
  if(e.comp&&!C.comp.some(s=>s.n===e.comp[0])){C.comp.push({n:e.comp[0],tag:e.comp[1],xp:4,rate:1});tx.push('Compétence héritée : '+e.comp[0])}
@@ -1388,9 +1768,9 @@ function fonder(){const g=k=>(C.rep.find(r=>r[0]===k)||[])[1]||'',pre=(C.nom||'s
  const gains=C.succ.slice(0,2).map(n=>({txt:n,eff:(SUCC.find(x=>x[0]===n)||[0,0,{or:10}])[2]})),l={nom,fond:C.nom||'Sans nom',race:g('Race'),txt:(C.nom||'Un ancêtre')+', '+g('Race').toLowerCase()+' '+g('Métier').toLowerCase()+', a fondé cette lignée. '+heri.txt+(gains.length?'. Succès transmis : '+gains.map(x=>x.txt).join(', '):'')+'.',heri,gains};
  if(l.race==='Sang-mêlé')l.par=[g('Parent 1'),g('Parent 2')].sort();l.parent=C.lig?C.lig.nom:null;l.rep=0;LIG.push(l);ecrire('lig',LIG);C.fonde=nom;return l}
 function archiver(){if(!C.fin||C.arch)return;C.arch=1;WORLD.annee=Math.max(WORLD.annee,anCourant());ecrire('monde',WORLD);
- traceMonde();const marq=C.fin==='victoire'||C.succ.length>=1||(C.dec>0&&C.boss>0)||C.mortT==='Mort en légende'||C.mortT==='Mort en héros';const rc=race();RH[rc]=RH[rc]||{v:0,m:0};if(C.fin==='victoire')RH[rc].v++;else RH[rc].m++;ecrire('raceh',RH);
+ traceMonde();v12Fin();const marq=C.fin==='victoire'||C.succ.length>=1||(C.dec>0&&C.boss>0)||C.mortT==='Mort en légende'||C.mortT==='Mort en héros';const rc=race();RH[rc]=RH[rc]||{v:0,m:0};if(C.fin==='victoire')RH[rc].v++;else RH[rc].m++;ecrire('raceh',RH);
  if(marq&&Math.random()<.08+.92/(1+.6*LIG.length))fonder();C.lg=C.fonde?'':marq?'Une lignée était possible, mais le hasard ne l\u2019a pas retenue.':'Pas assez marquant pour fonder une lignée (il faut une victoire, un succès mondial, ou une découverte avec un gardien vaincu).';
- PAN.unshift({nom:C.nom?nomS():'Sans nom',race:race(),metier:((C.rep.find(r=>r[0]==='Métier')||[])[1]||''),fin:C.fin,age:age(),bio:bio(),lig:C.lig?C.lig.nom:'',nouvelle:C.fonde,or:C.or,vie:C.vie.length,note:C.note||'',rec:(typeof recit==='function'?recit():''),succ:C.succ.slice(),obj:C.obj,mortT:C.mortT||'',biens:(C.biens||[]).map(b=>b.n)});PAN=PAN.slice(0,30);v10Fin();ecrire('pan',PAN);ecrire('c',C)}
+ PAN.unshift({nom:C.nom?nomS():'Sans nom',race:race(),metier:((C.rep.find(r=>r[0]==='Métier')||[])[1]||''),fin:C.fin,age:age(),bio:bio(),lig:C.lig?C.lig.nom:'',nouvelle:C.fonde,or:C.or,vie:C.vie.length,note:C.note||'',rec:(typeof recit==='function'?recit():''),succ:C.succ.slice(),obj:C.obj,an:anCourant(),ado:C.ado?C.lig.nom:'',mortT:C.mortT||'',biens:(C.biens||[]).map(b=>b.n)});PAN=PAN.slice(0,30);v10Fin();ecrire('pan',PAN);ecrire('c',C)}
 /* ----- Interface ----- */
 const jauge=(n,v,m)=>'<li class="st"><span>'+n+'</span><i style="--v:'+Math.max(0,Math.min(100,v/m*100))+'%"></i><b>'+v+'/'+m+'</b></li>';
 const libItem=x=>{const i=ITEMS[x]||{},b=Object.keys(S).filter(k=>i[k]).map(k=>'+'+i[k]+' '+S[k]);return esc(x)+(b.length?' <small>('+b.join(', ')+' aux jets)</small>':i.use?' <small>(utilisé seul si besoin)</small>':'')};
@@ -1402,7 +1782,7 @@ function ui(){
  $('fi').innerHTML=(C.pvm?jauge('Vie',C.pv,C.pvm)+jauge('Énergie',C.en,C.enm)+'<li class="st"><span>Or</span><i></i><b>'+C.or+'</b></li>'+RELF.map(f=>'<li class="st"><span>'+f+'</span><i style="--v:'+((C.rel[f]+5)*10)+'%"></i><b>'+(C.rel[f]>0?'+':'')+C.rel[f]+'</b></li>').join(''):'')+Object.keys(C.st).map(k=>'<li class="st"><span>'+S[k]+'</span><i style="--v:'+Math.min(100,C.st[k]/12*100)+'%"></i><b>'+C.st[k]+'</b></li>').join('')
   +(C.rep.filter(r=>!nomsS.includes(r[0])&&r[0]!=='Objectif').map(r=>'<li><b>'+esc(r[0])+'</b>'+esc(r[1])+'</li>').join('')||'<li>Pas encore de réponse.</li>')
   +(C.comp.length?'<li><b>Compétences</b>'+C.comp.map((k,i)=>'<button class="sk" data-i="'+i+'">'+esc(k.n)+' <small>niv. '+niv(k)+'</small></button>').join('<br>')+((C.lat||[]).length?'<br><small>+ '+C.lat.length+' talent'+(C.lat.length>1?'s':'')+' endormi'+(C.lat.length>1?'s':'')+'</small>':'')+'</li>':'')
-  +(C.sur?'<li><b>Surnom</b>'+esc(nomS())+'</li>':'')+(titreRang()?'<li><b>Rang</b>'+esc(titreRang())+'</li>':'')+(C.cmp?'<li><b>Compagnon</b>'+esc(C.cmp.n)+' <small>('+C.cmp.ty.toLowerCase()+', niv. '+C.cmp.niv+', '+Math.floor(C.cmp.ag)+' ans)</small></li>':'')+((C.biens||[]).length?'<li><b>Biens</b>'+C.biens.map(b=>esc(b.n)).join('<br>')+'</li>':'')+fiche10()+(C.sq?'<li><b>Quête secondaire</b>'+esc(C.sq.txt)+'</li>':'')+(C.enf&&C.enf.length?'<li><b>Enfants</b>'+C.enf.map(e=>esc(e.n+(e.fam?' '+e.fam:''))).join(', ')+'</li>':'')+((WORLD.rep[C.pos]||0)?'<li><b>Réputation ici</b>'+(WORLD.rep[C.pos]>0?'+':'')+WORLD.rep[C.pos]+'</li>':'')
+  +(C.sur?'<li><b>Surnom</b>'+esc(nomS())+'</li>':'')+(titreRang()?'<li><b>Rang</b>'+esc(titreRang())+'</li>':'')+(C.cmp?'<li><b>Compagnon</b>'+esc(C.cmp.n)+' <small>('+C.cmp.ty.toLowerCase()+', niv. '+C.cmp.niv+', '+Math.floor(C.cmp.ag)+' ans)</small></li>':'')+((C.biens||[]).length?'<li><b>Biens</b>'+C.biens.map(b=>esc(b.n)).join('<br>')+'</li>':'')+fiche10()+fiche12()+(C.sq?'<li><b>Quête secondaire</b>'+esc(C.sq.txt)+'</li>':'')+(C.enf&&C.enf.length?'<li><b>Enfants</b>'+C.enf.map(e=>esc(e.n+(e.fam?' '+e.fam:''))).join(', ')+'</li>':'')+((WORLD.rep[C.pos]||0)?'<li><b>Réputation ici</b>'+(WORLD.rep[C.pos]>0?'+':'')+WORLD.rep[C.pos]+'</li>':'')
   +(etats().length?'<li><b>États</b>'+etats().map(esc).join('<br>')+'</li>':'')+(C.succ.length?'<li><b>Succès obtenus</b>'+C.succ.map(esc).join('<br>')+'</li>':'')+'<li><details><summary><b>Succès du monde</b> <small>'+Object.keys(WORLD.succ).length+' pris sur '+SUCC.length+'</small></summary>'+SUCC.map(x=>WORLD.succ[x[0]]?'<small>'+(C.succ.includes(x[0])?'\u2605 ':'')+esc(x[0])+' : '+esc(x[3]||'')+' <i>Pris par '+esc(WORLD.succ[x[0]].par)+' (an '+WORLD.succ[x[0]].an+')</i></small>':'<small>'+esc(x[0])+' : libre. '+esc(x[3]||'')+'</small>').join('<br>')+'</details></li>'
   +(C.obj?'<li data-ob="1" style="cursor:pointer"><b>Objectif <small>(toucher pour le détail)</small></b>'+esc(C.obj)+(q.length===1?progTxt(q[0]):'')+(q[C.qs]?'<br><small>À faire : '+esc(afaire(q[C.qs]))+'</small>':'')+(q.length>1?'<br><small>'+q.map((e,i)=>(i<C.qs?'fait : ':i===C.qs?'en cours : ':'à venir : ')+esc(e[0])+(i===C.qs?progTxt(e):'')).join('<br>')+'</small>':'')+'</li>':'');
  $('inv').innerHTML=C.inv.map(x=>'<li>'+libItem(x)+'</li>').join('')||'<li>Inventaire vide.</li>';
@@ -1410,14 +1790,14 @@ function ui(){
  $('j').hidden=!REG.j;$('j').innerHTML=C.vie.map(x=>{const p=x.txt.split(' [');return '<li><b>'+esc(p[0])+'</b>'+esc(p[1]?p[1].replace(/\]$/,'').replace(/, /g,' · '):'')+'</li>'}).join('')||'<li>Aucun événement pour l\u2019instant.</li>';
  $('pan').innerHTML=PAN.map((x,i)=>!panOK(x)?'':'<li data-p="'+i+'"><span class="pi">'+iconeSVG(x.race,30)+'</span><span><b>'+esc(x.nom)+' : '+(x.fin==='mort'?'mort':'victoire')+' à '+x.age+' ans</b>'+esc(x.race+' '+x.metier+(x.succ&&x.succ.length?', '+x.succ[0]:'')+(x.lig?', '+x.lig:'')+(x.nouvelle?', fonde la '+x.nouvelle:''))+'</span></li>').join('')||'<li>Aucun personnage terminé pour l\u2019instant.</li>';if(PAN.length&&!$('pan').innerHTML.trim())$('pan').innerHTML='<li>Aucun personnage ne correspond au filtre.</li>';hist();
  $('fin').hidden=!f;if(f)$('fin').innerHTML='<b>'+(f==='mort'?esc(nomS())+' est mort.':'Objectif accompli !')+'</b><br>'+esc(bio())+'<br><button id="bl">Bilan de vie</button>';
- $('go').disabled=!t||occ||!!f;if($('un'))$('un').hidden=!(UNDO&&UNDO.length)||!C.pvm;banniere();autoSauve();majPanF();majSv();hist10();hist11();if($('un'))$('un').textContent='Annuler ('+UNDO.length+')';if($('rp'))$('rp').hidden=!C.pvm||!!C.fin||C.rep.length<etapes().length;$('vc').hidden=!C.pos;rendreStats();dessiner()}
+ $('go').disabled=!t||occ||!!f;if($('un'))$('un').hidden=!(UNDO&&UNDO.length)||!C.pvm;banniere();autoSauve();majPanF();majSv();hist10();hist11();if($('un'))$('un').textContent='Annuler ('+UNDO.length+')';if($('rp'))$('rp').hidden=!C.pvm||!!C.fin||C.rep.length<etapes().length;$('vc').hidden=!C.pos;rendreStats();hist12();dessiner()}
 /* ----- Son, tirage synchronisé, carte du destin ----- */
 let AC=null,MUET=lire('muet',false);
 function bip(f,d,v,t){if(MUET)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=t||'triangle';o.frequency.value=f;const T0=AC.currentTime;g.gain.setValueAtTime(.0001,T0);g.gain.linearRampToValueAtTime(v||.05,T0+.006);g.gain.exponentialRampToValueAtTime(.0001,T0+d);o.connect(g);g.connect(AC.destination);o.start(T0);o.stop(T0+d+.02)}catch(e){}}
 const ding=()=>{bip(660,.5,.07,'sine');setTimeout(()=>bip(990,.7,.06,'sine'),90)};
 let TIC=0;const tic=k=>{const n=performance.now();if(n-TIC<90)return;TIC=n;bip(380+20*(k%6),.04,.012,'sine')};
 $('son').textContent='Son : '+(MUET?'non':'oui');$('son').onclick=()=>{MUET=!MUET;ecrire('muet',MUET);$('son').textContent='Son : '+(MUET?'non':'oui')};
-const STORY=(t,v)=>(t.n==='Lignée'?(v==='Sans lignée'?'Aucun grand nom derrière lui : tout reste à écrire.':(LIG.find(l=>l.nom===v)||{}).txt):'')||HIST[v]||({'Trait de caractère':'Un trait qui marquera ses choix : '+v.toLowerCase()+'.','Défaut':'Son défaut, '+v.toLowerCase()+', lui jouera des tours.','Décor':'Sa vie commence ici : '+v+'.','Objectif':'Son but : '+v.toLowerCase()+'.'}[t.n]||'');
+const STORY=(t,v)=>(t.n==='Naissance'?({'Sans lignée':'Aucun grand nom derrière lui : tout reste à écrire.','Lignée de naissance':'Il naît dans une lignée qui porte son sang.','Adopté':'Recueilli par une lignée qui n\u2019était pas la sienne : un destin rarissime.'}[v]||''):'')||(t.n==='Lignée'?(v==='Sans lignée'?'Aucun grand nom derrière lui : tout reste à écrire.':(LIG.find(l=>l.nom===v)||{}).txt):'')||HIST[v]||({'Trait de caractère':'Un trait qui marquera ses choix : '+v.toLowerCase()+'.','Défaut':'Son défaut, '+v.toLowerCase()+', lui jouera des tours.','Décor':'Sa vie commence ici : '+v+'.','Objectif':'Son but : '+v.toLowerCase()+'.'}[t.n]||'');
 function modal(cat,titre,texte,liste,ok,img){const m=$('md');$('mca').textContent=cat;$('mti').textContent=titre;$('mtx').className='';$('mtx').textContent=texte;$('mli').innerHTML=(liste||[]).map(x=>'<li>'+esc(x)+'</li>').join('');
  if($('mim'))$('mim').innerHTML='';$('mem').innerHTML=cat==='Race'?portrait(titre,120):'<div class="gl">'+esc(titre.charAt(0))+'</div>';m.hidden=false;if(img)illustrer(img[0],img[1]);$('mok').onclick=()=>{m.hidden=true;ok&&ok()};$('mok').focus()}
 function resume(){const k=Object.keys(S).sort((a,b)=>C.st[b]-C.st[a]);modal('Caractéristiques','Votre personnage',S[k[0]]+' est son point fort, '+S[k[4]]+' son point faible.',Object.keys(S).map(x=>{const rb=((SB[(C.rep.find(r=>r[0]==='Race')||[])[1]]||{})[x]||0);return S[x]+' : '+C.st[x]+(rb?' (race '+(rb>0?'+':'')+rb+')':'')}),()=>ui())}
