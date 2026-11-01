@@ -118,3 +118,44 @@ html[data-th=clair] body[data-s=printemps]{--f:#edf3e4}html[data-th=sombre] body
 .v12c ul{padding-left:0;list-style:none}.v12c li{margin:6px 0}
 
 .bas button{padding:10px 4px;font-size:14px;min-width:0}
+
+/* ===== V13 ===== */
+#tabs13{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:14px 0 8px;position:sticky;top:0;z-index:5;background:var(--f);padding:6px 0}
+#tabs13 button{padding:10px 2px;font-size:14px;min-width:0}
+#tabs13 button.on{background:var(--a);color:var(--ai);border-color:var(--a)}
+.tp[hidden]{display:none}
+details.cat{border:1px solid var(--l);border-radius:10px;margin:8px 0;background:var(--s)}
+details.cat>summary{padding:12px 14px;cursor:pointer;font-size:16px}
+details.cat>.cb{padding:0 14px 12px}
+details.cat details{margin:6px 0}
+details.sg{margin:2px 0}details.sg>summary{padding:6px 0;cursor:pointer}
+li.sgl{padding:0;border-top:0}li.sgl>details>ul>li:first-child{border-top:1px solid var(--l)}
+.ov13{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
+.bu13{background:var(--s);color:var(--e);border-radius:14px;padding:18px;max-width:420px;width:100%;max-height:90vh;overflow:auto}
+.bu13 h3{margin:0 0 8px}.bu13 .l{display:flex;gap:8px;margin-top:12px}.bu13 .l button{flex:1}
+.bu13 .o{background:var(--a);color:var(--ai);border:0}.bu13 .o.rouge{background:#b3261e;color:#fff}
+label.ck{display:block;padding:8px 0;border-top:1px solid var(--l)}label.ck input{width:auto;margin-right:8px}
+#v13-gl input{margin-bottom:8px}
+#fond{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;transition:opacity .8s,background 1.2s}
+body[data-al="1"] #fond{opacity:.35}body[data-al="2"] #fond{opacity:.75}
+body[data-amb=ville] #fond{background:linear-gradient(#c9a86a55,#8a6a3a33)}
+body[data-amb=foret] #fond{background:linear-gradient(#2f6b3a66,#16301d55)}
+body[data-amb=mont] #fond{background:linear-gradient(#9fb4c866,#5d6f8044)}
+body[data-amb=mer] #fond{background:linear-gradient(#2c7fb866,#12456a55)}
+body[data-amb=desert] #fond{background:linear-gradient(#e0a95a66,#a2652a44)}
+body[data-amb=marais] #fond{background:linear-gradient(#4a5a2f66,#2a332055)}
+body[data-amb=ruine] #fond{background:linear-gradient(#4b3f5c66,#1d172766)}
+body[data-amb=plaine] #fond{background:linear-gradient(#8fbf6a55,#5a8a4233)}
+body[data-s=Hiver] #fond{filter:saturate(.5) brightness(1.15)}
+body[data-s=Automne] #fond{filter:sepia(.5)}
+body[data-mt=pluie] #fond,body[data-mt=orage] #fond{box-shadow:inset 0 0 120px #1a2b4a99}
+body[data-mt=brouillard] #fond{box-shadow:inset 0 0 160px #ffffff66}
+body[data-mt=neige] #fond{box-shadow:inset 0 0 120px #ffffffaa}
+body[data-pv=bas] #fond{box-shadow:inset 0 0 110px #c0141488;opacity:.8}
+body[data-fin=victoire] #fond{background:radial-gradient(#ffd96a99,#ffd96a11);opacity:.8}
+body[data-fin=mort] #fond{background:radial-gradient(#00000000,#000000cc);opacity:1}
+#fond[data-p]:not([data-p=""]){animation:pul13 1.4s ease-out}
+#fond[data-p^=r]{background:#d3333355}#fond[data-p^=v]{background:#7b4fc455}#fond[data-p^=g]{background:#2a8a5a55}#fond[data-p^=o]{background:#d9a44155}#fond[data-p^=b]{background:#4a7ac455}
+@keyframes pul13{0%{opacity:0}25%{opacity:.8}100%{opacity:0}}
+details.cat>summary b,details.sg>summary b{display:inline;color:var(--e);font-size:inherit;font-weight:650}
+details.sg>summary small{color:var(--m)}

@@ -832,7 +832,7 @@ function traceMonde(){
   if(WORLD.mnd)WORLD.mnd.fin+=1}
  else if(WORLD.mnd)WORLD.mnd.fin-=2;
  majSurnom();
- if(C.fl.includes('Ennemi juré')&&C.nem&&WORLD.ennemis.length<5)WORLD.ennemis.push({n:C.nem,de:nomS(),an:anCourant()});
+ if(C.fl.includes('Ennemi juré')&&C.nem&&C.lig&&WORLD.ennemis.length<5)WORLD.ennemis.push({n:C.nem,de:nomS(),an:anCourant(),lig:C.lig.nom});
  if((C.fin==='victoire'&&C.or>=40||C.or>=75)&&WORLD.fond.length<10&&Math.random()<.65)fonderLieu();
  if((C.enf||[]).length){const it=C.inv.filter(x=>!['Ration','Potion de soin','Carte au trésor','Relique'].includes(x)).slice(0,2),bc=C.comp.slice().sort((a,b)=>b.xp-a.xp)[0];
   WORLD.fam={de:nomS(),enf:C.enf[0].n,it,comp:bc?{n:bc.n,tag:bc.tag}:null,or:Math.round(C.or*.3)}}
@@ -843,7 +843,7 @@ function traceMonde(){
  ecrire('monde',WORLD);ecrire('stats',STAT)}
 function heritages(){C.famTx=[];
  if(WORLD.mnd&&anCourant()<WORLD.mnd.fin){C.mnd={n:WORLD.mnd.n,fin:C.t+(WORLD.mnd.fin-anCourant())*12};C.famTx.push('Le monde porte encore la marque de : '+WORLD.mnd.n.toLowerCase()+' (environ '+(WORLD.mnd.fin-anCourant())+' ans)')}else WORLD.mnd=null;
- if(WORLD.ennemis.length&&Math.random()<.55){const e=WORLD.ennemis.shift();C.nem=e.n;if(!C.fl.includes('Ennemi juré'))C.fl.push('Ennemi juré');C.famTx.push('Un ennemi hérité : '+e.n+", qui en voulait à "+e.de)}
+ WORLD.ennemis=WORLD.ennemis.filter(e=>e.lig);{const k=C.lig?WORLD.ennemis.findIndex(e=>e.lig===C.lig.nom):-1;if(k>=0&&Math.random()<.55){const e=WORLD.ennemis.splice(k,1)[0];C.nem=e.n;if(!C.fl.includes('Ennemi juré'))C.fl.push('Ennemi juré');C.famTx.push('Un ennemi hérité de la '+C.lig.nom+' : '+e.n+", qui en voulait à "+e.de)}}
  if(WORLD.fam){const f=WORLD.fam;if(C.famOk){(f.it||[]).forEach(x=>C.inv.push(x));if(f.comp&&!C.comp.some(s=>s.n===f.comp.n))C.comp.push({n:f.comp.n,tag:f.comp.tag,xp:2,rate:1});C.or+=f.or||0;
    C.famTx.push('Héritage de '+f.de+' : '+((f.it||[]).concat(f.comp?[f.comp.n]:[]).join(', ')||'rien de matériel')+(f.or?' et '+f.or+' or':''))}WORLD.fam=null}
  WORLD.prix=+(WORLD.prix+(1-WORLD.prix)*.4).toFixed(2);
@@ -1161,7 +1161,7 @@ function recitPlus(){const o=[],V=C.vie.filter(e=>e.t!=='Objet'),nom=(C.nom||'Le
  if(pr.length)o.push('Autour de '+nom+' : '+pr.join(', ')+'.');
  if((C.biens||[]).length)o.push(nom+' possédait : '+C.biens.map(b=>b.n).join(', ')+'.');
  if(C.lrel)o.push('Sa lignée, la '+C.lig.nom+', était '+C.lrel.ty+' de la '+C.lrel.avec+'.');
- return o.concat(v12Recit())}
+ return o.concat(v12Recit(),v13Recit())}
 
 /* ---- Thèmes, pause de lecture ---- */
 function appliquerTh(){document.documentElement.dataset.th=REG.th||''}
@@ -1401,7 +1401,7 @@ function v12Flags(){if(!C.pos)return;const w=W12(),x=X12(),reg=rg(C.pos),ar=anCo
  f('_Peste ici',w.fleaux.some(z=>z.pays===reg&&z.ty==='Peste'&&z.fin>=ar));f('_Famine ici',w.fleaux.some(z=>z.pays===reg&&z.ty==='Famine'&&z.fin>=ar));
  f('_Guerre de lignée',lg);f('_Route',w.routes.some(r=>r.a===C.pos||r.b===C.pos));f('_Légende à découvrir',(w.leg[C.pos]||0)<3);
  f('_Auberge',VILLES.concat(['Village de montagne']).includes(C.pos));f('_Culte ici',!!cu&&!x.culte);f('_Adepte',!!x.culte);
- f('_Monstre ici',!!w.dragon&&w.dragon.vivant&&w.dragon.lieu===C.pos);f('_Ruine ici',w.ruines.some(r=>r.lieu===C.pos&&!r.fouille))}
+ f('_Monstre ici',!!w.dragon&&w.dragon.vivant&&w.dragon.lieu===C.pos);f('_Ruine ici',w.ruines.some(r=>r.lieu===C.pos&&!r.fouille));v13Flags()}
 
 /* ---------- Poids : ère, saison, fléau, ville, traits acquis, roue ---------- */
 function v12Boost(n){if(!C.pvm||C.fin)return 1;const x=C.v12||{},w=WORLD.v12||{},g=ETAG[n],s=sai();let m=1;
@@ -1632,6 +1632,341 @@ async function dynastie(n){if(occ)return;if(C.pvm&&!C.fin&&!confirm('Le personna
 /* ---------- Nouveautés ---------- */
 const NEWS12=['Naissance : sans lignée, lignée de naissance, ou adopté (rarissime, seul cas d’une lignée d’une autre race)','Serments, rêves prophétiques, secrets, dettes et faveurs, amis durables, élève et maître, reconversion, titres, traits acquis','Exil, éternel rival, coups de théâtre, soirées d’auberge, rumeurs, roue bénie ou maudite','Ères, saisons, souverains, fléaux, routes commerciales, légendes locales, cultes, monstre légendaire, ruines des anciens, catastrophes','Bestiaire, codex des reliques, succès cachés, livre des légendes, chronique exportable, arbre visuel, graphiques, recherche dans le panthéon','Mode dynastie : enchaîne les générations d’une lignée','Carte : le glissement vertical est corrigé, bouton Centrer, zoom mémorisé'];
 setTimeout(()=>{try{if(REG.vu!=='12'&&typeof modal==='function'){REG.vu='12';ecrire('reg',REG);modal('Nouveautés','Version 12','',NEWS12,null)}}catch(e){}},1500);
+/* v13a.js : données de la V13 (descriptions, glossaire, héritages, pactes, guildes, fêtes, prophéties, événements) */
+const DESC12={
+ /* traits */
+ "Loyal":"Il ne trahit pas ceux qu'il a choisis, quitte à s'y perdre.","Cupide":"L'or l'attire comme un aimant, au risque de tout lui faire oublier.","Curieux":"Il veut savoir ce qu'il y a derrière chaque porte, chaque colline, chaque secret.","Rancunier":"Il n'oublie rien, et surtout pas les offenses.","Généreux":"Il donne sans compter, et ne regrette presque jamais.","Peureux":"Le danger le fait trembler, mais il en a vu d'autres et il est encore là.","Têtu":"Une fois qu'il a décidé, personne ne lui fera changer d'avis.",
+ /* défauts */
+ "Joueur":"Un pari, un dé, une carte : il ne résiste pas à la tentation du hasard.","Menteur":"La vérité lui paraît toujours trop simple, et il l'arrange.","Colérique":"Un mot de trop et le sang monte, parfois pour le pire.","Orgueilleux":"Il supporte mal d'être corrigé, encore moins d'être dépassé.","Ivrogne":"La chope passe avant le bon sens, plus souvent qu'il ne l'avoue.","Naïf":"Il croit les gens sur parole, et le monde ne se prive pas d'en profiter.",
+ /* destins */
+ "Aucun destin":"Aucune force ne pèse sur cette vie : tout se joue au hasard, sans coup de pouce ni malédiction.",
+ "Béni des dieux":"Quelqu'un là-haut veille sur lui. Les coups de chance, les héritages, les soins et les alliés se présentent 1,5 fois plus souvent.",
+ "Maudit":"Un mauvais sort le suit depuis le berceau. Les trahisons, maladies, embuscades, dettes et cambriolages sont 1,5 fois plus fréquents.",
+ "Marqué du sceau":"Un signe ancien est gravé sur lui. Les visions, rencontres décisives, vengeances et souvenirs des défunts sont 1,6 fois plus fréquents.",
+ "Étoile du berger":"Une bonne étoile guide ses pas vers l'argent. Les coups de chance, héritages et marchés florissants sont 2 fois plus fréquents.",
+ /* cadeaux divins */
+ "Une bourse bénie":"Un don de départ : 25 pièces d'or.","Un don d'expérience":"Un savoir qui ne s'apprend pas : toutes les compétences gagnent 4 points d'expérience.","Un souffle de vigueur":"Un corps plus solide : 3 points de vie maximum en plus.","Une grâce d'endurance":"Une résistance hors du commun : Endurance +1 et 2 points d'énergie maximum.","La force des ancêtres":"Le sang des anciens coule dans ses bras : Force +1.","Une parole d'or":"Une voix qui apaise et qui convainc : Charisme +1.","Un esprit éveillé":"Un esprit vif dès le premier jour : Esprit +1.","Un cheval fidèle":"Un cheval l'attend à l'écurie : les voyages coûtent moins d'énergie.","Un compagnon à quatre pattes":"Un chien fidèle le suit partout et l'aide dans les jets.","Un talisman béni":"Un talisman qui donne +1 à toutes les caractéristiques lors des jets.","Une arme bénie":"Une épée bénie : +3 en Force lors des jets.","Une amitié précieuse":"Un allié sincère l'accompagne dès le début.",
+ /* décors */
+ "Cité portuaire":"Un grand port : marchands, marins, rumeurs et bagarres. On peut y embarquer.","Village de montagne":"Un village perché, isolé l'hiver par la neige et les cols fermés.","Capitale en révolte":"Une capitale en ébullition, entre intrigues, émeutes et opportunités.","Forêt interdite":"Une forêt où l'on ne va pas sans raison : bêtes, secrets et chemins qui bougent.","Désert aux ruines":"Sable, soif et vestiges d'une civilisation disparue.","Forteresse assiégée":"Des murs qui tiennent encore, et une armée qui attend dehors.","Havre de glace":"Un port pris dans le froid, aux marins endurcis.","Citadelle du Givre":"Une forteresse du Nord où le vent coupe comme une lame.","Port d'Ysmir":"Un port de l'archipel, tourné vers la mer et ses îles.","Île des brumes":"Une île noyée de brume, où l'on croise plus d'ombres que de gens.","Capitale de Karzhad":"La capitale d'un empire de forges et de guerriers.","Camp des caravanes":"Un vaste camp où se croisent toutes les routes du désert.","Forge impériale":"Des forges qui tournent jour et nuit pour l'empire.","Oasis d'Orne":"Un îlot de verdure au milieu des sables.","Cité des sables":"Une cité marchande bâtie au cœur du désert.","Marais de Vael":"Des eaux stagnantes, des brumes et des gens qui connaissent les chemins.","Ville sur pilotis":"Une ville dressée sur l'eau, accessible par barques.","Temple des Confins":"Un temple isolé aux confins de la brume, gardé par des mystiques.","Hameau de la brume":"Quelques maisons dans la brume, où le temps semble ralenti.",
+ /* métiers sans histoire */
+ "Archer":"Un tireur patient, qui préfère toucher de loin.","Chevalier errant":"Un guerrier sans seigneur, qui cherche des causes à défendre.","Éclaireur":"Il ouvre la route, repère les dangers, revient avant les autres.","Caravanier":"Il mène des convois sur les longues routes marchandes.","Bibliothécaire":"Gardien de livres, il en sait plus qu'il n'en dit.","Boulanger":"Levé avant l'aube, il nourrit tout un quartier.","Bijoutier":"Il travaille l'or et les pierres, et connaît leur vraie valeur.","Cuisinier":"Un maître des fourneaux, aimé des aubergistes.","Éleveur":"Il vit au rythme de ses bêtes et des saisons.","Chasseur de primes":"Il traque ceux dont la tête vaut de l'or.","Sage-femme":"Elle met au monde et soigne, et on la respecte partout.","Herboriste":"Il connaît les plantes qui guérissent, et celles qui tuent.","Médium":"Elle parle aux morts et lit ce qui n'est pas encore arrivé.","Druide":"Un gardien des bois, lié à la nature et à ses cycles.","Moine":"Une vie de discipline, de prière et de silence.",
+ /* objectifs */
+ "Retrouver la Relique":"Suivre une piste ancienne jusqu'à une relique perdue : indices, ruines, puis la relique elle-même.","Venger sa famille":"Retrouver ceux qui ont fait du mal aux siens, puis les affronter.","Atteindre : Désert aux ruines":"Se rendre au Désert aux ruines, puis y vivre au moins deux événements.","Atteindre : Capitale en révolte":"Se rendre à la Capitale en révolte, puis y vivre au moins deux événements.","Atteindre : Forteresse assiégée":"Se rendre à la Forteresse assiégée, puis y vivre au moins deux événements.","Atteindre : Village de montagne":"Se rendre au Village de montagne, puis y vivre au moins deux événements.","Atteindre : Forêt interdite":"Se rendre à la Forêt interdite, puis y vivre au moins deux événements.","Atteindre : Cité portuaire":"Se rendre à la Cité portuaire, puis y vivre au moins deux événements.","Survivre à 16 événements":"Tenir bon : vivre seize événements sans mourir.","Réunir 30 pièces d'or":"Amasser trente pièces d'or.","Maîtriser un art (niveau 3)":"Faire progresser une compétence jusqu'au niveau 3.","Explorer le monde (4 lieux)":"Visiter quatre lieux différents.","Remporter un tournoi":"Réussir un tournoi.","Conclure 3 marchés":"Réussir trois marchés florissants.","Devenir irrésistible (Charisme 9)":"Porter le Charisme à 9.","Devenir un colosse (Force 8)":"Porter la Force à 8.","Gagner 2 combats":"Remporter deux combats.","Recevoir 2 visions":"Vivre deux visions.","Réussir 2 commandes":"Réussir deux commandes d'artisan."};
+
+/* descriptions des libellés de la fiche et des états */
+const LABD={"Vie":"Si elle tombe à 0, le personnage meurt.","Énergie":"S'épuise en voyage, en combat et l'hiver. À zéro, la vie baisse.","Or":"Sert à acheter et à vivre. La vie chère le grignote en ville.","Marchands":"Réputation auprès des marchands : de -5 à +5, elle change les prix.","Couronne":"Réputation auprès de la Couronne et de la noblesse.","Pègre":"Réputation auprès du monde criminel.","Peuple":"Réputation auprès des gens ordinaires.","Force":"Combats, efforts physiques.","Agilité":"Esquive, discrétion, adresse.","Esprit":"Savoir, magie, résistance mentale.","Charisme":"Négociation, influence, présence.","Endurance":"Résistance, vie et énergie.","Compétences":"Elles progressent quand on réussit des événements de leur domaine.","Surnom":"Gagné par un exploit ou un succès.","Rang":"Titre d'un personnage qui a accumulé des victoires.","Compagnon":"Il aide aux jets et vieillit avec le temps.","Biens":"Des biens achetés qui rapportent un peu d'or.","Quête secondaire":"Un but annexe, avec une récompense à la clé.","Enfants":"Leur lignée peut leur transmettre un héritage.","États":"Situations temporaires ou durables qui modifient les probabilités.","Succès obtenus":"Succès mondiaux pris par ce personnage.","Objectif":"Le but de la vie : l'atteindre donne la victoire.","Adopté":"Recueilli par une lignée d'une autre race : un destin rarissime.","Titre":"Une distinction gagnée par ses actes.","Héritier":"Il porte le titre d'un ancêtre de sa lignée.","Traits acquis":"Des traits gagnés par l'expérience, qui modifient les probabilités.","Serment":"Une promesse : tenue, elle récompense ; brisée, elle coûte cher.","Rêve":"Un rêve qui annonce peut-être un événement.","Amis":"Des amis rencontrés plusieurs fois deviennent durables.","Élève":"Un élève dont la formation se transmet au monde.","Formé par":"Le maître qui l'a formé.","Dettes et faveurs":"Ce que l'on doit et ce qu'on vous doit.","Passé révélé":"Un secret enfin dévoilé.","Exil":"Interdit de séjour dans un lieu.","Culte":"Le culte local auquel il appartient.","Rumeur":"Une nouvelle entendue, pas encore vérifiée.","Marques":"Cicatrices et traces permanentes laissées par la vie.","Ici":"Pays, souverain et ère du lieu actuel.","Pacte":"Un marché avec une puissance, dont le prix sera réclamé.","Guilde":"Une guilde dont il gravit les rangs.","Lame nommée":"Une arme qui a un nom et une histoire.","Malédiction":"Une malédiction transmise par la lignée.","Bénédiction":"Une bénédiction transmise par la lignée.","Conjoint":"Un mariage qui peut lier deux lignées.","Prophétie":"Une prophétie du monde qui s'accomplit sur plusieurs générations.","Navire":"Un navire qui facilite les traversées.","Fête":"Une fête du pays qui se tient en ce moment."};
+const FLAGD={"Ennemi juré":"Quelqu'un lui en veut à mort : les vengeances et les embuscades sont plus probables.","Allié":"Un allié l'aide : missions et soutien deviennent possibles.","Âgé":"Les années pèsent : certains événements deviennent plus fréquents.","Étranger":"Il est loin de chez lui : frontière, langue et caravanes entrent en jeu.","Rival":"Un rival le défie en duel.","Tombe ici":"Une tombe se trouve ici.","Bien ici":"Un bien abandonné se trouve ici.","Fondation ici":"Un lieu fondé par un personnage précédent.","Séquelles":"Le monde se remet d'une crise.","Épuisé":"Énergie très basse.","Blessé":"Vie très basse."};
+
+/* ---------- Glossaire ---------- */
+const GLOS=[
+ ["Lignée","Une famille fondée par un personnage marquant. Ses descendants naissent dans la même race, ou y sont adoptés (très rare)."],
+ ["Adopté","Recueilli par une lignée qui n'est pas de sa race : un destin rarissime, d'environ 1,5 %."],
+ ["Sang-mêlé","Une race hybride, née de deux parents de races différentes."],
+ ["Panthéon","La mémoire des personnages terminés, avec leur récit."],
+ ["Archives du monde","Les mondes précédents, gardés tels quels, qu'on peut rouvrir à tout moment."],
+ ["Succès mondial","Un succès que seul le premier à l'obtenir peut prendre."],
+ ["Succès caché","Un succès dont on ne connaît pas le nom avant de l'obtenir."],
+ ["Roue truquée","Une roue dont les chances ont été déformées, annoncée à l'écran."],
+ ["Roue bénie ou maudite","Après un grand événement, les bonnes ou mauvaises issues sont 1,5 fois plus probables pendant quelques tirages."],
+ ["Chaîne d'événements","Un épisode appelle une suite, très probable dans les tirages suivants."],
+ ["Coup de théâtre","Un retournement rare : un allié trahit, un ennemi se rallie, une fortune change."],
+ ["Ère","Une longue période du monde (âge d'or, âge sombre…) qui modifie les probabilités."],
+ ["Fléau","Une peste ou une famine qui frappe une région pendant quelques années."],
+ ["Séquelles","Les suites d'une crise ou d'une catastrophe : reconstruction, orphelins, souvenirs."],
+ ["Ambiance d'un lieu","Humeur d'un lieu (en guerre, en fête, en deuil, prospère) qui influence les événements."],
+ ["Souverain","Chaque région a un souverain ; sa mort ouvre un trône vacant et une querelle de succession."],
+ ["Trait acquis","Un trait gagné par l'expérience, différent des traits de naissance."],
+ ["Serment","Une promesse qui se tient ou se brise, avec une roue bénie ou maudite à la clé."],
+ ["Éternel rival","Un ennemi légendaire qui revient de vie en vie, avec un niveau qui évolue."],
+ ["Pacte","Un marché avec un démon, un esprit ou un dieu : un gain tout de suite, un prix plus tard, qui peut se transmettre à la lignée."],
+ ["Malédiction héréditaire","Un mauvais sort lié à une lignée, qui se lève par des gestes précis."],
+ ["Bénédiction héréditaire","Une faveur liée à une lignée, transmise de génération en génération."],
+ ["Guilde","Une organisation qu'on peut rejoindre et dont on gravit les rangs."],
+ ["Lame nommée","Une arme qui prend un nom et de la force de porteur en porteur."],
+ ["Prophétie du monde","Une prédiction en trois étapes, accomplie par des personnages différents au fil des générations."],
+ ["Fête locale","Une fête annuelle propre à chaque région, à une saison précise."],
+ ["Dynastie","Un mode qui enchaîne plusieurs générations d'une même lignée et rend un bilan."],
+ ["Calques","Couches de la carte à afficher ou masquer : tombes, fondations, ambiances, sentiers."],
+ ["Brume","Un lieu ou un pays encore inconnu, caché sous la brume jusqu'à sa découverte."]];
+
+/* ---------- Héritages de lignée ---------- */
+const HEREDS=[
+ {k:'m',n:"Malédiction de la Poisse",txt:"les ennuis frappent plus souvent",lever:['Cérémonie','Mémoire des défunts'],need:2},
+ {k:'m',n:"Malédiction du Sang froid",txt:"la fatigue et les blessures s'abattent plus vite",lever:['Mémoire des défunts','Fouille des ruines'],need:2},
+ {k:'m',n:"Malédiction de la Dette",txt:"l'or file entre les doigts",lever:['Cérémonie','Fouille des ruines'],need:2},
+ {k:'b',n:"Bénédiction des Moissons",txt:"l'or et les festins reviennent plus souvent",lever:null,need:0},
+ {k:'b',n:"Bénédiction du Foyer",txt:"soins et repos font plus de bien",lever:null,need:0}];
+
+/* ---------- Pactes ---------- */
+const PACTES=[
+ {n:"Pacte avec un démon",g:"Force +2, or +10",gain:()=>{clampSt('For',2);C.or+=10},p:"Vie -6 et un ennemi juré",prix:tx=>{C.pv=Math.max(1,C.pv-6);if(!C.fl.includes('Ennemi juré')){C.fl.push('Ennemi juré');C.nem=C.nem||nomPropre()}tx.push('Le démon réclame son dû : Vie -6, un ennemi surgit')}},
+ {n:"Pacte avec un esprit",g:"Esprit +2, Agilité +1",gain:()=>{clampSt('Esp',2);clampSt('Agi',1)},p:"Charisme -2",prix:tx=>{clampSt('Cha',-2);tx.push('L’esprit réclame son dû : Charisme -2')}},
+ {n:"Pacte avec un dieu oublié",g:"Vie max +4, Charisme +1",gain:()=>{C.pvm+=4;C.pv+=4;clampSt('Cha',1)},p:"or -20 et Énergie -3",prix:tx=>{C.or=Math.max(0,C.or-20);C.en=Math.max(0,C.en-3);tx.push('Le dieu oublié réclame son dû : or -20, Énergie -3')}}];
+
+/* ---------- Guildes ---------- */
+const GUILDES=[["Guilde des marchands",'commerce'],["Guilde des lames",'combat'],["Confrérie des ombres",'ruse'],["Académie des savants",'savoir'],["Ordre des soigneurs",'soin'],["Confrérie des voyageurs",'voyage']];
+const RANGG=["Novice","Compagnon","Maître","Doyen"];
+
+/* ---------- Armes nommées ---------- */
+const ARMES=['Épée','Dague','Arc','Marteau','Épée bénie'];
+const NOMLAMES=["Aube-Rouge","Chante-Lame","Croc-de-Brume","Dernier-Mot","Fil-du-Destin","Gardienne","Souffle-d'Hiver","Veille-Longue","Pleure-Sang","Éclat-d'Orage"];
+
+/* ---------- Fêtes ---------- */
+const MOIS12=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const FN=["Fête des Lanternes","Grande Foire","Fête des Moissons du Sud","Jour de la Forge","Nuit des Dunes","Fête des Marais","Veillée de la Brume","Nuit du Givre","Fête de la Marée"];
+const FETES=Object.fromEntries(REGIONS.map((r,i)=>[r,{n:FN[i%FN.length],m:(i*5+1)%12}]));
+
+/* ---------- Prophéties ---------- */
+const PROPH=[
+ {txt:"Quand un rêveur verra, qu'un chercheur déterrera, et qu'un vainqueur triomphera, le Sceau se brisera.",steps:['Vision étrange','Fouille des ruines','Tournoi']},
+ {txt:"Il faudra une rencontre, un deuil et une trahison pour que l'ancien serment soit levé.",steps:['Une rencontre décisive','Un deuil','Une trahison']},
+ {txt:"Dans la cendre d'une vision, d'une rencontre et d'une trahison naîtra le prochain souverain des ombres.",steps:['Vision étrange','Une rencontre décisive','Une trahison']}];
+
+/* ---------- Événements V13 ---------- */
+const PORTS=['Cité portuaire',"Port d'Ysmir",'Ville sur pilotis','Havre de glace'];
+const EV13=[
+["Offre d'un pacte",2,"_Pacte possible",{Esp:-1},"mystique","Une présence propose un marché. La voix est douce, et le prix flou.","{n} accepte un pacte, et en ressent déjà le poids.","{n} hésite, puis se laisse tenter par un pacte."],
+["Le prix du pacte",1,"_Pacte",{},"mystique","Le temps est venu de payer ce qui a été promis.","{n} paie le prix de son pacte.","{n} paie le prix de son pacte."],
+["Noces",2.5,"_Célibataire",{Cha:1,or:-3},"social","Une union se prépare : des familles se rapprochent.","{n} se marie.","{n} se marie."],
+["Traversée en mer",3,"_Port",{EN:-1},"voyage","Le quai grouille de marins, et un navire cherche des passagers.","{n} embarque pour une traversée.","{n} embarque pour une traversée."],
+["Acheter un bateau",2,"_Armateur",{or:-40},"commerce","Une coque à vendre, et la mer à portée de main.","{n} s'offre un bateau.","{n} s'offre un bateau."],
+["Rejoindre une guilde",3,"_Sans guilde",{Cha:1},"social","Une guilde recrute, et votre nom revient souvent.","{n} rejoint une guilde.","{n} rejoint une guilde."],
+["Quête de guilde",3,"_Guilde",{jet:["Cha",9],or:5},"social","Un contrat de la guilde, pas de ceux qu'on refuse.","{n} remplit une quête de guilde.","{n} échoue dans une quête de guilde."],
+["Rivalité de guildes",2.5,"_Guilde",{jet:["For",10],PV:-2,sc:"combat"},"combat","Une autre guilde marche sur vos plates-bandes.","{n} l'emporte dans une rivalité de guildes.","{n} subit une rivalité de guildes."],
+["Fête locale",6,"_Fête ici",{EN:2,or:2},"hospitalité","Toute la région est dans la rue, et les tables débordent.","{n} profite de la fête locale.","{n} profite de la fête locale."]];
+DEF.find(t=>t.vie).o.push(...EV13.map(e=>[e[0],e[1],{},e[2]]));
+EV13.forEach(e=>{EF[e[0]]=e[3];ETAG[e[0]]=e[4];HIST[e[0]]=e[5];REC[e[0]]=[e[6],e[7]]});
+Object.assign(REL,{"Quête de guilde":{Marchands:1},"Rivalité de guildes":{Pègre:1},"Fête locale":{Peuple:1}});
+/* v13b.js : logique de la V13 (héritages, pactes, mariages, mer, guildes, lames nommées, fêtes, prophéties, mondes et archives) */
+const W13=()=>{W12();const w=WORLD.v13=WORLD.v13||{};w.maisons=w.maisons||[];w.guil=w.guil||{};w.nommes=w.nommes||{};if(w.proph===undefined)w.proph=null;return w};
+const Y13=()=>C.v13=C.v13||{};
+const cleLame=z=>/ « .+ »$/.test(z),nomLame=z=>z.replace(/^.* « (.+) »$/,'$1');
+function ensureItems(){const w=WORLD.v13;if(!w||!w.nommes)return;Object.keys(w.nommes).forEach(n=>{const r=w.nommes[n];if(r&&r.key&&!ITEMS[r.key]){ITEMS[r.key]=Object.assign({},ITEMS[r.it]);if(typeof DUR!=='undefined'&&DUR[r.it])DUR[r.key]=DUR[r.it]}})}
+function v13Bonus(k){try{const y=C&&C.v13;if(!y||!y.nomme||(k!=='For'&&k!=='Agi'))return 0;const r=(WORLD.v13||{nommes:{}}).nommes[y.nomme.n];if(!r||!C.inv.includes(r.key))return 0;return Math.floor((r.niv||1)/2)}catch(e){return 0}}
+
+function v13Fonder(l){if(Math.random()<.22){const i=rnd(HEREDS.length),h=HEREDS[i];l.herede={i,prog:0,leve:false};l.txt+=' '+(h.k==='m'?'Mais une ':'Et une ')+h.n.toLowerCase()+' pèse sur elle : '+h.txt+'.'}}
+
+function v13Debut(){const w=W13(),y=C.v13={},fl=C.famTx=C.famTx||[];ensureItems();
+ if(C.lig){const l=LIG.find(z=>z.nom===C.lig.nom)||C.lig;
+  if(l.herede&&!l.herede.leve&&HEREDS[l.herede.i]){const h=HEREDS[l.herede.i];y.herede=l.herede.i;fl.push((h.k==='m'?'Malédiction de la lignée : ':'Bénédiction de la lignée : ')+h.n+' ('+h.txt+')'+(h.k==='m'?'. Elle se lève en réussissant : '+h.lever.join(', ').toLowerCase():''))}
+  if(l.dettePacte){y.pacte={n:l.dettePacte,herite:true};C.ch=C.ch||[];C.ch.push({ev:'Le prix du pacte',de:4,a:14});fl.push('Dette de sang : le prix d’un ancien pacte reste à payer ('+l.dettePacte+')')}
+  const mi=w.maisons.findIndex(m=>m.a===l.nom||m.b===l.nom);
+  if(mi>=0&&Math.random()<.5){const m=w.maisons.splice(mi,1)[0],o=LIG.find(z=>z.nom===(m.a===l.nom?m.b:m.a));if(o&&o.heri){const t2=[];effet(o.heri.eff,t2);fl.push('Enfant de deux lignées ('+l.nom.replace(/^Lignée /,'')+' et '+o.nom.replace(/^Lignée /,'')+') : '+o.heri.txt.toLowerCase()+(t2.length?' ('+t2.join(', ')+')':''))}}}
+ if(!w.proph||(w.proph.done&&anCourant()>=(w.proph.next||0))){const p=pick(PROPH);w.proph={txt:p.txt,steps:p.steps,stade:0,an:anCourant(),done:false};chro('Une prophétie se répand : '+p.txt)}
+ if(w.proph&&!w.proph.done)fl.push('Prophétie du monde (étape '+(w.proph.stade+1)+'/3) : '+w.proph.steps[w.proph.stade].toLowerCase());
+ v13Flags()}
+
+function v13Flags(){if(!C.pos)return;const y=Y13(),f=(n,v)=>{C.fl=C.fl.filter(z=>z!==n);if(v)C.fl.push(n)},fe=FETES[rg(C.pos)];
+ f('_Pacte possible',!y.pacte&&C.vie.length>=4&&(y.pactes||0)<2);f('_Pacte',!!y.pacte);f('_Célibataire',age()>=22&&!y.conjoint);
+ f('_Port',PORTS.includes(C.pos));f('_Armateur',PORTS.includes(C.pos)&&!y.bateau&&C.or>=45);
+ f('_Sans guilde',!y.guilde&&C.vie.length>=3&&VILLES.concat(['Village de montagne']).includes(C.pos));f('_Guilde',!!y.guilde);
+ f('_Fête ici',!!fe&&C.t%12===fe.m)}
+
+function v13Boost(n){if(!C.pvm||C.fin)return 1;const y=C.v13||{},w=WORLD.v13||{};let m=1;
+ if(y.herede!==undefined&&HEREDS[y.herede]){const h=HEREDS[y.herede],e=EF[n]||{},p=(e.PV>0)||(e.or>0)||(e.EN>0),q=(e.PV<0)||(e.or<0)||(e.EN<0);if(h.k==='m'&&q&&!p)m*=1.25;if(h.k==='b'&&p&&!q)m*=1.2}
+ if(w.proph&&!w.proph.done&&n===w.proph.steps[w.proph.stade])m*=3;
+ if(y.guilde&&ETAG[n]===y.guilde.tag)m*=1+.08*y.guilde.rang;
+ if(y.bateau&&n==='Traversée en mer')m*=1.3;
+ return m}
+
+function mer(tx){const y=Y13(),b=!!y.bateau,r=Math.random()*10;
+ if(r<2.5){C.en=Math.min(C.enm,C.en+1);tx.push('Mer calme : Énergie +1')}
+ else if(r<4.5){const j=jet('End',10);if(j.ok)tx.push('Tempête en mer, affrontée : '+j.txt);else{const d=b?2:3;C.pv=Math.max(1,C.pv-d);C.en=Math.max(0,C.en-2);tx.push('Tempête en mer : '+j.txt+' : Vie -'+d+', Énergie -2')}}
+ else if(r<6){const j=jet('For',10,'combat');if(j.ok){const g=b?12:8;C.or+=g;tx.push('Des pirates repoussés : '+j.txt+' : or +'+g)}else{const p=Math.floor(C.or/2);C.or-=p;C.pv=Math.max(1,C.pv-2);tx.push('Des pirates vous délestent : or -'+p+', Vie -2')}}
+ else if(r<7.5){if(WORLD.sites.length<12){const n0=WORLD.sites.length;decouvrir(tx);if(WORLD.sites.length===n0)tx.push('Une île sur l’horizon, déjà connue')}else tx.push('Une île sur l’horizon, déjà connue')}
+ else if(r<9.6){const g=b?8:5;C.or+=g;tx.push('Une cargaison à décharger : or +'+g)}
+ else{C.or=Math.max(0,C.or-10);C.pv=Math.max(1,C.pv-4);tx.push('Naufrage : or -10, Vie -4')}}
+
+function v13Apres(v,ok,tx){const w=W13(),y=Y13(),L=C.vie.length,ar=anCourant();try{pulse13(ETAG[v],ok)}catch(e){}
+ /* pactes */
+ if(v==="Offre d'un pacte"){const p=pick(PACTES);if(Math.random()<.6){p.gain();y.pacte={n:p.n,p:p.p};C.ch=C.ch||[];C.ch.push({ev:'Le prix du pacte',de:L+6,a:L+16});tx.push(p.n+' accepté : '+p.g+'. Prix à venir : '+p.p)}else tx.push('Vous refusez le pacte ('+p.n+')')}
+ if(v==='Le prix du pacte'&&y.pacte){const p=PACTES.find(z=>z.n===y.pacte.n);if(p)p.prix(tx);if(C.lig&&y.pacte.herite){const l=LIG.find(z=>z.nom===C.lig.nom);if(l){delete l.dettePacte;ecrire('lig',LIG)}}y.pacte=null;y.pactes=(y.pactes||0)+1}
+ /* malédiction ou bénédiction de la lignée */
+ if(y.herede!==undefined&&C.lig&&HEREDS[y.herede]){const l=LIG.find(z=>z.nom===C.lig.nom),h=HEREDS[y.herede];
+  if(l&&l.herede&&!l.herede.leve&&h.lever&&h.lever.includes(v)&&ok){l.herede.prog=(l.herede.prog||0)+1;tx.push(h.n+' : '+l.herede.prog+'/'+h.need);
+   if(l.herede.prog>=h.need){l.herede.leve=true;y.herede=undefined;l.rep=clampR((l.rep||0)+1);l.faits=(l.faits||[]).concat(['Lève : '+h.n]).slice(-6);chro('La '+l.nom+' lève la '+h.n.toLowerCase());tx.push(h.n+' levée !');roue('b',4,tx)}ecrire('lig',LIG)}}
+ /* noces */
+ if(v==='Noces'&&!y.conjoint){const o=C.lig?LIG.filter(l=>l.nom!==C.lig.nom&&l.race===C.lig.race):[],oth=o.length&&Math.random()<.5?pick(o):null;y.conjoint={n:nomPropre().split(' ')[0],lig:oth?oth.nom:null};tx.push('Mariage avec '+y.conjoint.n+(oth?' ('+oth.nom+')':''));
+  if(oth&&C.lig){const a=LIG.find(l=>l.nom===C.lig.nom);if(a&&!a.rel&&!oth.rel){a.rel={ty:'alliée',avec:oth.nom};oth.rel={ty:'alliée',avec:a.nom};tx.push('Les deux lignées deviennent alliées')}ecrire('lig',LIG)}
+  chro(nomS()+' épouse '+y.conjoint.n+(oth?' de la '+oth.nom:''))}
+ /* mer */
+ if(v==='Traversée en mer')mer(tx);
+ if(v==='Acheter un bateau'&&!y.bateau){y.bateau=pick(['Le Goéland','La Marée','Le Vent-Debout','L’Albatros']);tx.push('Votre navire : '+y.bateau)}
+ /* guildes */
+ if(v==='Rejoindre une guilde'&&!y.guilde){const g=pick(GUILDES);y.guilde={n:g[0],tag:g[1],pts:0,rang:0};w.guil[g[0]]=w.guil[g[0]]||0;tx.push('Guilde : '+g[0]+' ('+RANGG[0]+')')}
+ else if(y.guilde){const g=y.guilde;if(ETAG[v]===g.tag&&ok&&v!=='Rejoindre une guilde')g.pts++;if(v==='Quête de guilde')g.pts+=ok?2:-1;if(v==='Rivalité de guildes'&&ok)w.guil[g.n]=(w.guil[g.n]||0)+1;
+  if(g.pts>=2*(g.rang+1)&&g.rang<3){g.rang++;const b=3*g.rang;C.or+=b;w.guil[g.n]=(w.guil[g.n]||0)+1;tx.push('Rang de guilde : '+RANGG[g.rang]+' ('+g.n+', or +'+b+')');if(g.rang===3)chro(nomS()+' devient doyen de la '+g.n)}}
+ /* armes nommées */
+ if(!y.nomme){const k=C.inv.find(cleLame);if(k){const n=nomLame(k),r=w.nommes[n];if(r){y.nomme={n};if(!r.porteurs.includes(nomS()))r.porteurs.push(nomS());tx.push('Vous portez '+k+' ('+r.porteurs.length+' porteur'+(r.porteurs.length>1?'s':'')+' avant vous)')}}}
+ if(ETAG[v]==='combat'&&ok){const r=y.nomme&&w.nommes[y.nomme.n];
+  if(r){r.vic=(r.vic||0)+1;const n0=r.niv||1;r.niv=1+Math.floor(r.vic/4);if(r.niv>n0)tx.push(r.key+' gagne en puissance (niveau '+r.niv+')')}
+  else if(!y.nomme&&cnt(e=>ETAG[e.t]==='combat'&&e.ok)>=2&&Math.random()<.4){const i=C.inv.findIndex(z=>ARMES.includes(z)),n=pick(NOMLAMES.filter(x=>!w.nommes[x]));
+   if(i>=0&&n){const it=C.inv[i],key=it+' « '+n+' »';w.nommes[n]={it,key,porteurs:[nomS()],vic:1,niv:1};ITEMS[key]=Object.assign({},ITEMS[it]);if(typeof DUR!=='undefined'&&DUR[it])DUR[key]=DUR[it];C.inv[i]=key;y.nomme={n};tx.push('Votre arme prend un nom : '+key);chro(nomS()+' donne un nom à son arme : '+n)}}}
+ /* prophétie du monde */
+ if(w.proph&&!w.proph.done&&v===w.proph.steps[w.proph.stade]&&ok){w.proph.stade++;chro('Prophétie, étape '+w.proph.stade+'/3 : '+v.toLowerCase()+' ('+nomS()+')');tx.push('Prophétie du monde : étape '+w.proph.stade+'/3 accomplie');
+  if(w.proph.stade>=3){w.proph.done=true;w.proph.next=ar+60;C.or+=30;clampSt('Esp',1);clampSt('Cha',1);const x=X12();if(!x.titre)x.titre='Accomplisseur de la prophétie';tx.push('La prophétie s’accomplit : or +30, Esprit +1, Charisme +1');chro(nomS()+' accomplit la prophétie');roue('b',5,tx)}}
+ /* fête */
+ if(v==='Fête locale'){const f=FETES[rg(C.pos)];if(f)tx.push(f.n+' ('+rg(C.pos)+')')}
+ v13Flags();ecrire('monde',WORLD)}
+
+function v13Fin(){const w=W13(),y=Y13(),nom=nomS(),ar=anCourant();
+ if(y.pacte&&C.lig){const l=LIG.find(z=>z.nom===C.lig.nom);if(l&&!l.dettePacte){l.dettePacte=y.pacte.n;chro('Le pacte de '+nom+' reste impayé : sa lignée en héritera')}}
+ if(y.conjoint&&y.conjoint.lig&&C.lig&&(C.enf||[]).length&&w.maisons.length<6)w.maisons.push({a:C.lig.nom,b:y.conjoint.lig,an:ar});
+ C.inv.filter(cleLame).forEach(z=>{const r=w.nommes[nomLame(z)];WORLD.reliques.push({it:z,lieu:C.pos,par:nom,an:ar});if(r&&!r.porteurs.includes(nom))r.porteurs.push(nom)});WORLD.reliques=WORLD.reliques.slice(-12);
+ ecrire('monde',WORLD);ecrire('lig',LIG)}
+
+const v13Bio=()=>{const y=C.v13||{},o=[];if(y.guilde)o.push('Guilde : '+y.guilde.n+' ('+RANGG[y.guilde.rang]+').');if(y.nomme)o.push('Arme nommée : '+y.nomme.n+'.');if(y.conjoint)o.push('Marié à '+y.conjoint.n+'.');if(y.pactes)o.push('A payé le prix d’un pacte.');if(y.pacte)o.push('Pacte resté impayé.');return o.length?' '+o.join(' '):''};
+const v13Recit=()=>{const y=C.v13||{},o=[],nom=(C.nom||'Le personnage').split(' ')[0];
+ if(y.herede!==undefined&&HEREDS[y.herede])o.push('Sa lignée portait la '+HEREDS[y.herede].n.toLowerCase().replace(/^bénédiction/,'bénédiction').replace(/^malédiction/,'malédiction')+'.');
+ if(y.pactes)o.push(nom+' conclut un pacte, et en paya le prix.');if(y.guilde)o.push(nom+' devint '+RANGG[y.guilde.rang].toLowerCase()+' de la '+y.guilde.n+'.');
+ if(y.nomme)o.push('Son arme s’appelait '+y.nomme.n+'.');if(y.conjoint)o.push(nom+' épousa '+y.conjoint.n+'.');if(y.bateau)o.push('Il navigua sur '+y.bateau+'.');return o};
+
+/* ---------- Lignes de description à la création ---------- */
+function L13(t,v){const o=[];
+ try{const m=TR[v];if(m&&['Trait de caractère','Défaut'].includes(t.n)){const k=Object.keys(m).filter(z=>m[z]>1).sort((a,b)=>m[b]-m[a]).slice(0,3),d=Object.keys(m).filter(z=>m[z]<1).sort((a,b)=>m[a]-m[b]).slice(0,2);if(k.length)o.push('Plus fréquent : '+k.join(', '));if(d.length)o.push('Plus rare : '+d.join(', '))}
+ if(t.n==='Décor')o.push('Région : '+paysDe(pos(v)));
+ if(t.n==='Objectif'){const d=OBJD[v];if(d)d.forEach((s,i)=>o.push('Étape '+(i+1)+' : '+afaire([v,0,0,s])));else if(QU[v])QU[v].forEach((e,i)=>o.push('Étape '+(i+1)+' : '+e[0]))}}catch(e){}
+ return o}
+
+/* ---------- Mondes, archives, nouveau monde ---------- */
+const MI='mondes-idx',mondeNom=()=>WORLD.nomM||('Monde de l’an '+WORLD.annee);
+async function mondesIdx(){let r=await idb('get',MI);try{r=r?JSON.parse(r):[]}catch(e){r=[]}return r}
+const mondesEcrire=a=>idb('set',MI,JSON.stringify(a));
+const mondeVide=()=>!PAN.length&&!LIG.length&&!WORLD.sites.length&&!(WORLD.chro||[]).length&&C.vie.length<1;
+function persister(){ecrire('c',C);ecrire('monde',WORLD);ecrire('lig',LIG);ecrire('raceh',RH);ecrire('stats',STAT);ecrire('pan',PAN)}
+async function archiver13(nom){const id='m'+Date.now(),idx=await mondesIdx();await idb('set','mondes-'+id,snapAll());idx.unshift({id,nom:nom||mondeNom(),date:Date.now(),an:WORLD.annee,pan:PAN.length,lig:LIG.length,sites:WORLD.sites.length});await mondesEcrire(idx.slice(0,12));return id}
+async function chargerMonde(id){if(occ)return;const s=await idb('get','mondes-'+id);if(!s)return alert('Archive introuvable.');
+ if(!mondeVide())await archiver13(mondeNom()+' (avant changement)');
+ const pk=Object.keys(P).filter(k=>!WORLD.sites.some(z=>z.n===k)&&!WORLD.fond.some(z=>z.n===k));
+ restoreAll(s,pk);UNDO=[];persister();const idx=(await mondesIdx()).filter(z=>z.id!==id);await mondesEcrire(idx);await idb('del','mondes-'+id);
+ $('res').textContent='';$('act').textContent='';$('plein').hidden=true;$('md').hidden=true;built=false;ui()}
+async function supprimerArchive(id){const idx=(await mondesIdx()).filter(z=>z.id!==id);await mondesEcrire(idx);await idb('del','mondes-'+id)}
+async function nouveauMonde(o){if(occ)return;const k=o.keep||{};
+ if(o.arch&&!mondeVide())await archiver13(mondeNom());
+ const old={W:WORLD,L:LIG,R:RH,S:STAT,P:PAN,C:C};blankWorld();
+ const gardeAn=k.lieux||k.lig||k.chro||k.pan||k.vivant;WORLD.annee=gardeAn?old.W.annee:1200;
+ if(k.lieux){WORLD.sites=old.W.sites;WORLD.fond=old.W.fond;['pays','vus','sent','hu','pe','aban','biens','desc','pnj'].forEach(z=>{if(old.W[z]!==undefined)WORLD[z]=old.W[z]})}
+ else{old.W.sites.concat(old.W.fond).forEach(z=>{delete P[z.n]})}
+ if(k.lig)LIG=old.L;if(k.chro){WORLD.chro=old.W.chro||[];WORLD.deces=old.W.deces||[]}
+ if(k.rel){WORLD.reliques=old.W.reliques||[];WORLD.tombes=old.W.tombes||[];WORLD.ennemis=old.W.ennemis||[]}
+ if(k.pan)PAN=old.P;if(k.succ){WORLD.succ=old.W.succ||{};RH=old.R}if(k.stats)STAT=old.S;
+ if(k.vivant){WORLD.v12=old.W.v12;WORLD.v13=old.W.v13}
+ C=k.perso?old.C:nouveau();UNDO=[];FETE=false;built=false;persister();
+ $('res').textContent='';$('act').textContent='';$('plein').hidden=true;$('md').hidden=true;$('nom').value=C.nom||'';ui()}
+/* v13c.js : interface V13 (onglets, catégories, ambiance, détails au toucher, glossaire, mondes) */
+
+/* ---------- Fiche : lignes V13 ---------- */
+function fiche13(){if(!C.pvm)return '';const y=C.v13||{},w=WORLD.v13||{},L=[],li=(a,b)=>L.push('<li><b>'+a+'</b>'+b+'</li>');
+ if(y.herede!==undefined&&HEREDS[y.herede]){const h=HEREDS[y.herede],l=C.lig&&LIG.find(z=>z.nom===C.lig.nom);li((h.k==='m'?'Malédiction':'Bénédiction')+' de lignée',esc(h.n)+' <small>('+esc(h.txt)+')</small>'+(h.k==='m'&&l&&l.herede?'<br><small>Levée : '+(l.herede.prog||0)+'/'+h.need+' ('+h.lever.map(esc).join(', ')+')</small>':''))}
+ if(y.pacte)li('Pacte',esc(y.pacte.n)+' <small>(prix à payer : '+esc(y.pacte.p||'dette de sang')+')</small>');
+ if(y.conjoint)li('Conjoint',esc(y.conjoint.n)+(y.conjoint.lig?' <small>('+esc(y.conjoint.lig)+')</small>':''));
+ if(y.bateau)li('Navire',esc(y.bateau));
+ if(y.guilde)li('Guilde',esc(y.guilde.n)+' <small>('+RANGG[y.guilde.rang]+', '+y.guilde.pts+' pts)</small>');
+ if(y.nomme&&w.nommes&&w.nommes[y.nomme.n]){const r=w.nommes[y.nomme.n];li('Arme nommée',esc(y.nomme.n)+' <small>(niv. '+(r.niv||1)+', '+(r.vic||0)+' victoires, '+r.porteurs.length+' porteur'+(r.porteurs.length>1?'s':'')+')</small>')}
+ if(w.proph&&!w.proph.done)li('Prophétie du monde',esc(w.proph.txt)+'<br><small>Étape '+(w.proph.stade+1)+'/3 : '+esc(w.proph.steps[w.proph.stade])+'</small>');
+ return L.join('')}
+
+/* ---------- Ambiance ---------- */
+const AMBT=[[/Port|pilotis|Havre|Mer|Île|Côte/i,'mer'],[/Forêt|Bois|Sylve|Clairière/i,'foret'],[/Montagne|Pic|Col |glace|Glacier|Neige/i,'mont'],[/Désert|Dune|Oasis/i,'desert'],[/Marais|Marécage/i,'marais'],[/Ruine|Crypte|Tombe|Donjon|Caverne|Grotte|Mine|Temple/i,'ruine'],[/Cité|Ville|Capitale|Village|Bourg|Château|Citadelle/i,'ville']];
+const typeLieu=n=>{for(const [r,t] of AMBT)if(r.test(n||''))return t;return 'plaine'};
+const AMBP={combat:'r',duel:'r',magie:'v',savoir:'v',soin:'g',commerce:'o',voyage:'b',ruse:'v',social:'o'};
+let AMBTM=0;
+function pulse13(tag,ok){const f=$('fond');if(!f||!REG.anim||(REG.amb===0))return;const c=AMBP[tag]||(ok===false?'r':'o');f.dataset.p=c+(ok===false?'x':'');clearTimeout(AMBTM);AMBTM=setTimeout(()=>{f.dataset.p=''},1400)}
+function ambiance13(){const b=document.body;b.dataset.al=String(REG.amb===undefined?1:REG.amb);b.dataset.amb=C.pos?typeLieu(C.pos):'';b.dataset.mt=C.pvm?(C.meteo||'').toLowerCase().replace(/[^a-zé]/g,''):'';b.dataset.pv=C.pvm&&!C.fin&&C.pv/C.pvm<.3?'bas':'';b.dataset.fin=C.fin||''}
+
+/* ---------- Détails au toucher dans la fiche ---------- */
+function detail13(li){const bt=li.querySelector(':scope > b');if(!bt)return false;const lab=bt.textContent.replace(/\(toucher.*$/,'').trim(),val=li.textContent.slice(bt.textContent.length).trim(),o=[];
+ let d=LABD[lab]||'';
+ const vs=val.split(/\n|(?<=\))\s{2,}/).map(x=>x.trim()).filter(Boolean);
+ if(lab==='États'){let st=[];try{st=etats()}catch(e){}st.forEach(s=>{const k=Object.keys(FLAGD).find(z=>s===z||s.startsWith(z));if(k)o.push(s+' : '+FLAGD[k])});if(!o.length&&!d)return false;return modal('Détail','États',d||'Ce qui pèse sur le personnage en ce moment.',o,()=>{}),true}
+ const cand=[val].concat(vs,val.split(/[,·]/).map(x=>x.trim()));cand.forEach(c=>{const k=c.replace(/\s*\(.*$/,'').trim();if(DESC12[k]&&!o.some(z=>z.startsWith(k+' :')))o.push(k+' : '+DESC12[k])});
+ if(!d&&!o.length)return false;if(!d&&o.length){const f=o.shift().split(' : ');d=f.slice(1).join(' : ')||f[0];if(!o.length){modal('Détail',lab+' : '+f[0],d,[],()=>{});return true}}modal('Détail',lab,d,o,()=>{});return true}
+
+/* ---------- Fenêtre de confirmation à deux boutons ---------- */
+function conf13(titre,txt,oui,non,rouge){return new Promise(res=>{const o=document.createElement('div');o.className='ov13';o.innerHTML='<div class="bu13" role="dialog" aria-modal="true"><h3></h3><p style="white-space:pre-wrap"></p><div class="l"><button class="n"></button><button class="o"></button></div></div>';
+ o.querySelector('h3').textContent=titre;o.querySelector('p').textContent=txt;const n=o.querySelector('.n'),y=o.querySelector('.o');n.textContent=non||'Annuler';y.textContent=oui||'Confirmer';if(rouge)y.classList.add('rouge');
+ const f=v=>{o.remove();res(v)};n.onclick=()=>f(false);y.onclick=()=>f(true);document.body.appendChild(o);n.focus()})}
+
+/* ---------- Nouveau monde ---------- */
+const KEEP13=[['lieux','Lieux découverts et cartes'],['lig','Lignées'],['chro','Chronique et décès'],['rel','Reliques, tombes et ennemis'],['pan','Panthéon'],['succ','Succès et héritages de races'],['stats','Records et statistiques'],['vivant','Monde vivant (guerres, royaumes, cultes, prophétie…)'],['perso','Personnage en cours']];
+function formNouveau(){if(occ)return;const o=document.createElement('div');o.className='ov13';
+ o.innerHTML='<div class="bu13" role="dialog" aria-modal="true"><h3>Nouveau monde</h3><p style="color:var(--m);font-size:14px">Cochez ce que vous gardez. Le reste est effacé.</p><div class="l"><button id="k-t">Tout garder</button><button id="k-0">Tout effacer</button></div>'
+ +KEEP13.map(([k,t])=>'<label class="ck"><input type="checkbox" data-k="'+k+'"> '+t+'</label>').join('')
+ +'<label class="ck"><input type="checkbox" id="k-a" checked> <b>Archiver le monde actuel</b> avant de continuer</label><div class="l"><button class="n">Annuler</button><button class="o">Créer le monde</button></div></div>';
+ document.body.appendChild(o);const cks=[...o.querySelectorAll('[data-k]')];
+ o.querySelector('#k-t').onclick=()=>cks.forEach(c=>c.checked=true);o.querySelector('#k-0').onclick=()=>cks.forEach(c=>c.checked=false);
+ o.querySelector('.n').onclick=()=>o.remove();
+ o.querySelector('.o').onclick=async()=>{const keep={};cks.forEach(c=>{if(c.checked)keep[c.dataset.k]=true});const arch=o.querySelector('#k-a').checked,nk=cks.filter(c=>c.checked).length,per=cks.filter(c=>!c.checked).map(c=>c.parentElement.textContent.trim());
+  o.remove();
+  const ok1=await conf13('Créer un nouveau monde ?',(nk?'Conservé : '+cks.filter(c=>c.checked).map(c=>c.parentElement.textContent.trim().replace(/ \(.*$/,'')).join(', ')+'.\n\n':'Rien n’est conservé.\n\n')+(per.length?'Effacé : '+per.map(x=>x.replace(/ \(.*$/,'')).join(', ')+'.\n\n':'')+(arch?'Le monde actuel sera d’abord archivé.':'Le monde actuel ne sera PAS archivé.'),'Continuer','Annuler');
+  if(!ok1)return;
+  if(nk<=2||!keep.pan&&!arch&&PAN.length){const ok2=await conf13('Dernière confirmation',(nk===0?'Vous repartez de zéro absolu. ':'Presque tout va être supprimé. ')+(arch?'Une archive du monde actuel est conservée, vous pourrez la recharger.':'Sans archive, cette suppression est DÉFINITIVE : panthéon et lignées compris.'),arch?'Oui, repartir':'Oui, tout effacer','Non, annuler',!arch);if(!ok2)return}
+  await nouveauMonde({keep,arch});majMondes()}}
+
+/* ---------- Archives de mondes ---------- */
+async function majMondes(){const c=$('v13-mondes');if(!c)return;const idx=await mondesIdx();
+ c.innerHTML='<p style="color:var(--m);font-size:14px">Monde actuel : <b>'+esc(mondeNom())+'</b> · an '+WORLD.annee+' · '+PAN.length+' au panthéon · '+LIG.length+' lignée'+(LIG.length>1?'s':'')+'</p>'
+ +'<label>Nom du monde <input id="mn-nom" value="'+esc(WORLD.nomM||'')+'" placeholder="'+esc('Monde de l’an '+WORLD.annee)+'"></label>'
+ +'<div class="l"><button id="mo-n">Nouveau monde…</button><button id="mo-a">Archiver ce monde</button></div>'
+ +(idx.length?'<ul>'+idx.map(m=>'<li><b>'+esc(m.nom)+'</b>an '+m.an+' · '+m.pan+' au panthéon · '+m.lig+' lignées · '+m.sites+' lieux · '+new Date(m.date).toLocaleDateString('fr-FR')+'<div class="l"><button data-ch="'+m.id+'">Charger</button><button data-su="'+m.id+'">Supprimer</button></div></li>').join('')+'</ul>':'<p style="color:var(--m)">Aucune archive pour l’instant.</p>');
+ $('mn-nom').onchange=e=>{WORLD.nomM=e.target.value.trim();ecrire('monde',WORLD)};
+ $('mo-n').onclick=formNouveau;
+ $('mo-a').onclick=async()=>{if(occ)return;await archiver13(mondeNom());majMondes();modal('Archives','Monde archivé','Ce monde est sauvegardé. Vous pouvez continuer à jouer ou en créer un nouveau.',[],()=>{})};
+ c.querySelectorAll('[data-ch]').forEach(b=>b.onclick=async()=>{if(occ)return;if(await conf13('Charger ce monde ?','Le monde actuel sera archivé puis remplacé par celui-ci.','Charger','Annuler')){await chargerMonde(b.dataset.ch);majMondes()}});
+ c.querySelectorAll('[data-su]').forEach(b=>b.onclick=async()=>{if(await conf13('Supprimer cette archive ?','Elle sera perdue définitivement.','Supprimer','Annuler',true)){await supprimerArchive(b.dataset.su);majMondes()}})}
+
+/* ---------- Monde : prophétie, guildes, armes, maisons, fêtes ---------- */
+function monde13(){const c=$('v13-mv');if(!c)return;const w=WORLD.v13||{},h=[];
+ if(w.proph)h.push('<li><b>Prophétie</b>'+esc(w.proph.txt)+'<br><small>'+(w.proph.done?'Accomplie':'Étape '+(w.proph.stade+1)+'/3 : '+esc(w.proph.steps[w.proph.stade]))+'</small></li>');
+ const g=Object.keys(w.guil||{});if(g.length)h.push('<li><b>Guildes actives</b>'+g.map(k=>esc(k)+' <small>(influence '+w.guil[k]+')</small>').join('<br>')+'</li>');
+ const nm=Object.keys(w.nommes||{});if(nm.length)h.push('<li><b>Armes nommées</b>'+nm.map(k=>{const r=w.nommes[k];return esc(r.key)+' <small>niv. '+(r.niv||1)+', '+r.porteurs.length+' porteur'+(r.porteurs.length>1?'s':'')+'</small>'}).join('<br>')+'</li>');
+ if((w.maisons||[]).length)h.push('<li><b>Alliances de lignées</b>'+w.maisons.map(m=>esc(m.a)+' + '+esc(m.b)+' <small>(an '+m.an+')</small>').join('<br>')+'</li>');
+ const cal=Object.keys(FETES).map(r=>[FETES[r].m,r]).sort((a,b)=>a[0]-b[0]);
+ h.push('<li><b>Calendrier des fêtes</b>'+cal.map(([m,r])=>MOIS12[m]+' : '+esc(FETES[r].n)+' <small>('+esc(r)+')</small>').join('<br>')+'</li>');
+ c.innerHTML='<ul>'+h.join('')+'</ul>'}
+
+function hist13(){ambiance13();monde13();if(!hist13.m){hist13.m=1;majMondes()}groupeFiche()}
+
+/* ---------- Fiche : sous-catégories repliables ---------- */
+const GRP13=[['Statistiques',l=>l.classList.contains('st')],['Compétences',l=>/^(Compétences|Surnom|Rang)/.test(lab13(l))],['Liens',l=>/^(Compagnon|Amis|Enfants|Conjoint|Guilde|Réputation ici|Biens|Navire|Ici)/.test(lab13(l))],['États et destin',l=>/^(États|Pacte|Malédiction|Bénédiction|Prophétie|Rumeur|Roue|Marques|Serment|Rêve|Titre|Héritier|Traits acquis)/.test(lab13(l))],['Succès et objectif',l=>/^(Succès|Objectif|Quête)/.test(lab13(l))||!!l.querySelector('details')]];
+const lab13=l=>{const b=l.querySelector(':scope > b');return b?b.textContent:''};
+function groupeFiche(){const f=$('fi');if(!f||!C.pvm)return;const ls=[...f.children].filter(x=>x.tagName==='LI');if(ls.length<6)return;const gs={};
+ ls.forEach(l=>{const g=GRP13.find(z=>z[1](l));const k=g?g[0]:'Identité';(gs[k]=gs[k]||[]).push(l)});
+ const ordre=['Statistiques','Identité'].concat(GRP13.slice(1).map(z=>z[0]));
+ ordre.forEach(k=>{if(!gs[k])return;const li=document.createElement('li'),d=document.createElement('details');li.className='sgl';d.className='sg';d.dataset.k='fi-'+k;d.open=REG.cat?REG.cat['fi-'+k]!==false:true;
+  d.innerHTML='<summary><b>'+k+'</b> <small>'+gs[k].length+'</small></summary>';const u=document.createElement('ul');gs[k].forEach(l=>u.appendChild(l));d.appendChild(u);
+  d.addEventListener('toggle',()=>{REG.cat=REG.cat||{};REG.cat['fi-'+k]=d.open;ecrire('reg',REG)});li.appendChild(d);f.appendChild(li)})}
+
+/* ---------- Structure : onglets et catégories ---------- */
+function cat13(k,titre,nodes,ouvert){const d=document.createElement('details');d.className='cat';d.dataset.k=k;d.open=REG.cat&&REG.cat[k]!==undefined?!!REG.cat[k]:!!ouvert;d.innerHTML='<summary><b>'+titre+'</b></summary>';const b=document.createElement('div');b.className='cb';nodes.filter(Boolean).forEach(n=>b.appendChild(n));d.appendChild(b);
+ d.addEventListener('toggle',()=>{REG.cat=REG.cat||{};REG.cat[k]=d.open;ecrire('reg',REG)});return d}
+const mk13=(id,h)=>{const d=document.createElement('div');d.id=id;if(h)d.innerHTML=h;return d};
+function structure13(){const main=document.querySelector('main');if(!main||$('tabs13'))return;try{sections12()}catch(e){}
+ const dnt=$('nt')&&$('nt').closest('details'),up=id=>{const e=$(id);return e?e.parentElement:null},el=id=>$(id),jt=$('jt');
+ main.querySelectorAll(':scope > h2').forEach(h=>{if(h.querySelector('#jt'))return;h.remove()});
+ const hjt=jt&&jt.parentElement;
+ const gl=mk13('v13-gl','<input id="gl-q" placeholder="Rechercher un terme" aria-label="Rechercher dans le glossaire"><ul id="gl-l"></ul>');
+ const P={
+  p:[cat13('c-fiche','Fiche du personnage',[el('fi')],true),cat13('c-inv','Inventaire',[el('inv')],true),cat13('c-jr','Journal de vie',[hjt?(hjt.querySelector('#jt'),jt):null,el('j')]),cat13('c-nt','Notes personnelles',[el('nt')]),cat13('c-ac','Copier et partager',[up('cop'),up('rec')])],
+  m:[cat13('c-lx','Lieux découverts',[el('mn')]),cat13('c-hm','Histoire du monde',[el('hm')]),cat13('c-mv13','Prophétie, guildes et fêtes',[mk13('v13-mv')],true),$('v12-mv'),$('v12-chr'),el('jl')&&el('jl').closest('details'),el('ar')&&el('ar').closest('details'),el('fr')&&el('fr').closest('details')],
+  r:[cat13('c-pan','Panthéon',[up('pf-f'),el('pf-q'),el('pan'),up('pe')],true),cat13('c-rc','Records',[el('rc')]),el('lo')&&el('lo').closest('details'),$('v12-cach'),$('v12-best'),$('v12-cod'),$('v12-leg'),cat13('c-st','Statistiques',[el('stt')]),$('v12-dyn'),cat13('c-mo','Mondes et archives',[mk13('v13-mondes')])],
+  g:[$('reg'),$('adm'),($('sl')&&$('sl').closest('details')),cat13('c-gl','Glossaire',[gl])]};
+ /* le journal : le bouton Ouvrir reste dans la catégorie */
+ if(hjt){hjt.remove()}if(dnt&&dnt.parentElement===main)dnt.remove();
+ const nav=document.createElement('nav');nav.id='tabs13';nav.innerHTML=[['p','Personnage'],['m','Monde'],['r','Mémoire'],['g','Réglages']].map(([k,t])=>'<button data-t="'+k+'">'+t+'</button>').join('');
+ const bar=$('bar');bar.insertAdjacentElement('afterend',nav);let last=nav;
+ Object.keys(P).forEach(k=>{const s=document.createElement('section');s.className='tp';s.dataset.t=k;P[k].filter(Boolean).forEach(n=>{if(n.parentElement&&n.id==='adm')n.hidden=n.hidden;s.appendChild(n)});last.insertAdjacentElement('afterend',s);last=s});
+ const tab=k=>{REG.tab=k;ecrire('reg',REG);nav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.t===k));document.querySelectorAll('.tp').forEach(s=>s.hidden=s.dataset.t!==k)};
+ nav.onclick=e=>{const b=e.target.closest('button');if(b)tab(b.dataset.t)};tab(REG.tab||'p');
+ /* glossaire */
+ const gq=$('gl-q'),rendG=()=>{const q=gq.value.trim().toLowerCase();$('gl-l').innerHTML=GLOS.filter(g=>!q||(g[0]+' '+g[1]).toLowerCase().includes(q)).map(g=>'<li><b>'+esc(g[0])+'</b>'+esc(g[1])+'</li>').join('')||'<li>Aucun terme.</li>'};gq.oninput=rendG;rendG();
+ /* réglage Ambiance */
+ const rg=$('reg');if(rg){const lb=document.createElement('label');lb.innerHTML='Ambiance du fond <select id="rg-amb"><option value="0">Aucune</option><option value="1">Discrète</option><option value="2">Complète</option></select>';rg.appendChild(lb);const s=$('rg-amb');s.value=String(REG.amb===undefined?1:REG.amb);s.onchange=()=>{REG.amb=+s.value;ecrire('reg',REG);ambiance13()}}
+ /* détail au toucher */
+ $('fi').addEventListener('click',e=>{if(e.target.closest('button,summary,a'))return;const li=e.target.closest('li');if(!li||li.classList.contains('st')||li.dataset.ob||li.classList.contains('sgl'))return;if(li.querySelector('details'))return;detail13(li)});
+ if(!$('fond')){const f=document.createElement('div');f.id='fond';document.body.insertBefore(f,document.body.firstChild)}
+ majMondes();ambiance13();ui()}
+setTimeout(structure13,0);
 /* jeu.js : état du personnage, roulette, jets, objets, boutique, saisons, quêtes, fin de partie, interface */
 const nouveau=()=>({nom:'',rep:[],vie:[],pos:null,trail:[],st:{},pv:0,pvm:0,en:0,enm:0,inv:[],or:0,fl:[],comp:[],vis:[],rel:{Marchands:0,Couronne:0,Pègre:0,Peuple:0},cic:[],us:{},fat:0,cd:0,nem:'',ally:'',mnd:null,succ:[],expl:[],dec:0,boss:0,an0:0,lig:null,ligTrait:'',ligTx:[],fonde:'',obj:'',qs:0,t:0,age0:20,meteo:'Clair',fin:null,arch:0,lat:[],sur:'',cmp:null,bl:[],rang:0,enf:[],sq:null,sqn:0,mortT:'',vl:[],famOk:false,arr:[],biens:[]});
 let PERSO=lire('perso',{tables:{},ev:[],efx:{},hist:{},etag:{},lieux:[],pos:{},extra:[]}),T=null,C=lire('c',nouveau()),PAN=lire('pan',[]),rot=0,occ=false,cur=[];
@@ -1664,7 +1999,7 @@ function poids(t){
  if(t.vie){cx=ev.concat(C.fl,C.inv,[C.pos,C.meteo,cap(sai())],WORLD.sites.some(s=>s.n===C.pos)?['Site']:[]);if(C.en<=3)cx.push('Épuisé');if(C.pv<=4)cx.push('Blessé');const q=etq();if(C.qs<q.length)cx.push('Étape:'+q[C.qs][2])}
  a.push(...cx);const rw=cx.slice().reverse();
  const permis=g=>{const a=C.rep.map(r=>r[1]);return g.some(x=>x.startsWith('tag:')?C.comp.some(s=>s.tag===x.slice(4)):x.startsWith('obj:')?C.inv.includes(x.slice(4)):a.includes(x)||x===C.ligTrait)};
- const l=t.o.filter(x=>(!x[3]||a.includes(x[3]))&&!(x[0]==='Vengeance de l\'ennemi'&&C.cd>0)&&!(x[0]==='Explorer le site'&&C.expl.includes(C.pos))&&!(x[0]==='Piste d\'un lieu oublié'&&WORLD.sites.length>=12)).map(x=>{let w=x[1];a.forEach(k=>{if(x[2]&&x[2][k]!==undefined)w*=x[2][k]});if(t.vie){if(EREQ[x[0]]&&!permis(EREQ[x[0]]))w*=.03;w*=repMult(x[0])*objBoost(x[0])*v10Boost(x[0])*v12Boost(x[0]);C.rep.concat(C.ligTrait?[['L',C.ligTrait]]:[]).forEach(r=>{const m=TR[r[1]];if(m&&m[x[0]])w*=m[x[0]]});RELF.forEach(f=>{const v=C.rel[f],k=v>=2?'Rel:'+f+'+':v<=-2?'Rel:'+f+'-':'',m=RELW[k];if(m&&m[x[0]])w*=m[x[0]]});const mo=C.mnd&&MONDE[C.mnd.n].w[x[0]];if(mo)w*=mo}
+ const l=t.o.filter(x=>(!x[3]||a.includes(x[3]))&&!(x[0]==='Vengeance de l\'ennemi'&&C.cd>0)&&!(x[0]==='Explorer le site'&&C.expl.includes(C.pos))&&!(x[0]==='Piste d\'un lieu oublié'&&WORLD.sites.length>=12)).map(x=>{let w=x[1];a.forEach(k=>{if(x[2]&&x[2][k]!==undefined)w*=x[2][k]});if(t.vie){if(EREQ[x[0]]&&!permis(EREQ[x[0]]))w*=.03;w*=repMult(x[0])*objBoost(x[0])*v10Boost(x[0])*v12Boost(x[0])*v13Boost(x[0]);C.rep.concat(C.ligTrait?[['L',C.ligTrait]]:[]).forEach(r=>{const m=TR[r[1]];if(m&&m[x[0]])w*=m[x[0]]});RELF.forEach(f=>{const v=C.rel[f],k=v>=2?'Rel:'+f+'+':v<=-2?'Rel:'+f+'-':'',m=RELW[k];if(m&&m[x[0]])w*=m[x[0]]});const mo=C.mnd&&MONDE[C.mnd.n].w[x[0]];if(mo)w*=mo}
   const why=rw.find(k=>x[2]&&x[2][k]!==undefined&&x[2][k]!==1&&k!==C.pos&&!SAI.includes(k.toLowerCase()))||(x[3]&&x[3]!==C.pos?x[3]:'');return{t:x[0],w,why:why.startsWith('Étape:')?'son objectif':why}}).filter(x=>x.w>0);
  return l.length?l:t.o.filter(x=>!x[3]).map(x=>({t:x[0],w:x[1]}))}
 function dessiner(w){
@@ -1679,8 +2014,8 @@ function dessiner(w){
 }
 /* ----- Jets, effets, objets, boutique ----- */
 function usure(k){const c=[];C.inv.filter((x,i,a)=>a.indexOf(x)===i).forEach(x=>{if(((ITEMS[x]||{})[k])&&DUR[x]){C.us[x]=(C.us[x]||0)+1;if(C.us[x]>=DUR[x]){C.inv.splice(C.inv.indexOf(x),1);C.us[x]=0;c.push(x)}}});return c}
-function jet(k,d,tag){d+=DIFF.a+Math.min(DIFF.b,Math.floor(C.vie.length/DIFF.c));const b=C.inv.reduce((s,x)=>s+((ITEMS[x]||{})[k]||0),0),cp=tag?bonusComp(tag):0,r=2+rnd(6)+rnd(6),st=Math.floor(C.st[k]/2),ml=(C.bl||[]).reduce((s,x)=>s+((x.s||{})[k]||0),0),cm=C.cmp?Math.min(2,C.cmp.niv):0,tot=r+st+b+cp+ml+cm;
- const casses=usure(k);return{ok:tot>=d,casses,txt:(/^[AEIOUÉ]/.test(S[k])?'Jet d\u2019':'Jet de ')+S[k]+' : '+tot+' (dés '+r+' + stat '+st+(b?' + objets '+b:'')+(cp?' + compétence '+cp:'')+(cm?' + compagnon '+cm:'')+(ml?' - blessure '+(-ml):'')+') contre '+d}}
+function jet(k,d,tag){d+=DIFF.a+Math.min(DIFF.b,Math.floor(C.vie.length/DIFF.c));const b=C.inv.reduce((s,x)=>s+((ITEMS[x]||{})[k]||0),0),cp=tag?bonusComp(tag):0,r=2+rnd(6)+rnd(6),st=Math.floor(C.st[k]/2),ml=(C.bl||[]).reduce((s,x)=>s+((x.s||{})[k]||0),0),cm=C.cmp?Math.min(2,C.cmp.niv):0,nb=v13Bonus(k),tot=r+st+b+cp+ml+cm+nb;
+ const casses=usure(k);return{ok:tot>=d,casses,txt:(/^[AEIOUÉ]/.test(S[k])?'Jet d\u2019':'Jet de ')+S[k]+' : '+tot+' (dés '+r+' + stat '+st+(b?' + objets '+b:'')+(cp?' + compétence '+cp:'')+(cm?' + compagnon '+cm:'')+(nb?' + lame nommée '+nb:'')+(ml?' - blessure '+(-ml):'')+') contre '+d}}
 let LASTOK=true;
 function initComp(){const g=k=>(C.rep.find(r=>r[0]===k)||[])[1],L=[];
  (SKM[g('Métier')]||[]).forEach(s=>L.push(s));if(RSK[g('Race')])L.push(RSK[g('Race')]);if(ASK[g('Archétype')])L.push(ASK[g('Archétype')]);
@@ -1733,20 +2068,20 @@ function agir(v,why){
  if(/^voyage/i.test(v)){const c=tous().filter(x=>x!==C.pos);if(c.length&&C.pos){vers=cible(c);txt=v+' : '+de+' vers '+vers;C.trail.push([de,vers]);C.pos=vers;if(!C.vis.includes(vers))C.vis.push(vers);C.arr=C.arr||[];if(!C.arr.includes(vers))C.arr.push(vers);const cf=(C.inv.includes('Cheval')?1:2)+((C.bl||[]).some(b=>b.n==='Jambe brisée')?1:0);C.en=Math.max(0,C.en-cf);tx.push('Énergie -'+cf);dt=3}}
  else txt+=(C.pos?' à '+C.pos:'');
  if(sai()==='hiver'){C.en=Math.max(0,C.en-1);tx.push('Froid : Énergie -1')}
- C.t+=dt;meteo();if(C.cd>0)C.cd--;if(v==='Vengeance de l\'ennemi')C.cd=4;evMonde(tx);vieChere(tx);auto(tx);boutique(tx);apresAction(v,LASTOK,perte,dt,tx);lieuEffets(tx);immoAuto(tx);revenus(tx,v);v10Apres(v,LASTOK,tx);v11Apres(v,LASTOK,tx);v12Apres(v,LASTOK,tx);
+ C.t+=dt;meteo();if(C.cd>0)C.cd--;if(v==='Vengeance de l\'ennemi')C.cd=4;evMonde(tx);vieChere(tx);auto(tx);boutique(tx);apresAction(v,LASTOK,perte,dt,tx);lieuEffets(tx);immoAuto(tx);revenus(tx,v);v10Apres(v,LASTOK,tx);v11Apres(v,LASTOK,tx);v12Apres(v,LASTOK,tx);v13Apres(v,LASTOK,tx);
  if(tx.includes('Ennemi juré')&&C.nem)txt+=' (ennemi : '+C.nem+')';if(nm)txt=v+' : '+nm;if(/allié/i.test(v)&&C.ally)txt+=' : '+C.ally;
  const ent={t:v,ok:LASTOK,p:C.pos,txt:''};C.vie.push(ent);verifier();succes(tx);{const e0=etq()[C.qs];if(e0&&e0[3]&&!C.fin&&e0[3].t!=='lieu'){const p=progres(e0[3]);if(p)tx.push('Objectif : '+p[0]+'/'+p[1])}}if(C.en<=0&&!C.fin)tx.push('épuisé');
  ent.txt=(d0+' : '+txt+(why?' (suite à : '+why+')':'')+(tx.length?' ['+tx.join(', ')+']':'')+(C.fin==='mort'?' : mort'+(age()>=70?' de vieillesse':''):''));
  $('act').textContent=ent.txt;ecrire('c',C);return{tx,vers,de,sc}}
 function fin(){C.pvm=C.pv=8+C.st.End;C.enm=C.en=6+Math.floor(C.st.End/2);C.or=5;C.age0=17+rnd(14);C.t=rnd(12);meteo();
- const g=k=>(C.rep.find(r=>r[0]===k)||[])[1];C.inv=[INV[g('Métier')]||'Bâton','Ration'];C.obj=g('Objectif')||'';initComp();C.an0=WORLD.annee+1+rnd(20);applyLig();applyRH();heritages();v10Debut();v12Debut()}
+ const g=k=>(C.rep.find(r=>r[0]===k)||[])[1];C.inv=[INV[g('Métier')]||'Bâton','Ration'];C.obj=g('Objectif')||'';initComp();C.an0=WORLD.annee+1+rnd(20);applyLig();applyRH();heritages();v10Debut();v12Debut();v13Debut()}
 function applyRH(){C.rhTx=[];const rc=race(),h=RH[rc];if(!h)return;const v=Math.min(3,h.v||0),m=Math.min(3,h.m||0),bs=Object.keys(S).sort((a,b)=>((SB[rc]||{})[b]||0)-((SB[rc]||{})[a]||0));
  if(v){const st={};bs.slice(0,v).forEach(k=>st[k]=1);effet({st,or:3*v},C.rhTx);C.rhTx.unshift('Gloire des '+rc.toLowerCase()+'s ('+h.v+' victoire'+(h.v>1?'s':'')+')')}
  if(m){effet({pvm:m},C.rhTx);C.rhTx.unshift('Leçon des disparus ('+h.m+' mort'+(h.m>1?'s':'')+' parmi les '+rc.toLowerCase()+'s)')}}
 /* ----- Fin de partie ----- */
 function bio(){const g=k=>((C.rep.find(r=>r[0]===k)||[])[1]||'').toLowerCase(),ev=C.vie.filter(x=>x.t!=='Objet').map(x=>x.t.toLowerCase()).slice(0,5).join(', ');
  return nomS()+', '+g('Race')+' '+g('Métier')+' ('+g('Origine')+', '+g('Trait de caractère')+' et '+g('Défaut')+'). '+(ev?'Sa vie : '+ev+'. ':'')
-  +(C.fin==='mort'?'Fin : mort à '+age()+' ans.':'Fin : objectif accompli (« '+C.obj+' ») à '+age()+' ans.')+' Fortune : '+C.or+' pièces d\u2019or.'+(C.lig?' Lignée : '+C.lig.nom+'.':'')+(C.fonde?' Il fonde la '+C.fonde+'.':'')+(C.mortT?' '+C.mortT+'.':'')+(C.fondL?' Il laisse derrière lui : '+C.fondL+'.':'')+(C.succ.length?' Succès : '+C.succ.join(', ')+'.':'')+(C.fonde?'':C.lg?' '+C.lg:'')+v12Bio()}
+  +(C.fin==='mort'?'Fin : mort à '+age()+' ans.':'Fin : objectif accompli (« '+C.obj+' ») à '+age()+' ans.')+' Fortune : '+C.or+' pièces d\u2019or.'+(C.lig?' Lignée : '+C.lig.nom+'.':'')+(C.fonde?' Il fonde la '+C.fonde+'.':'')+(C.mortT?' '+C.mortT+'.':'')+(C.fondL?' Il laisse derrière lui : '+C.fondL+'.':'')+(C.succ.length?' Succès : '+C.succ.join(', ')+'.':'')+(C.fonde?'':C.lg?' '+C.lg:'')+v12Bio()+v13Bio()}
 function effet(e,tx){if(!e)return;Object.keys(e.st||{}).forEach(k=>{C.st[k]=Math.max(1,C.st[k]+e.st[k]);tx.push(S[k]+' +'+e.st[k])});
  if(e.or){C.or+=e.or;tx.push('Or +'+e.or)}if(e.it){C.inv.push(e.it);tx.push('+ '+e.it)}if(e.xp){C.comp.forEach(s=>s.xp+=e.xp);tx.push('Compétences +'+e.xp)}
  if(e.comp&&!C.comp.some(s=>s.n===e.comp[0])){C.comp.push({n:e.comp[0],tag:e.comp[1],xp:4,rate:1});tx.push('Compétence héritée : '+e.comp[0])}
@@ -1766,9 +2101,9 @@ function fonder(){const g=k=>(C.rep.find(r=>r[0]===k)||[])[1]||'',pre=(C.nom||'s
  const bs=Object.keys(S).sort((a,b)=>C.st[b]-C.st[a])[0],bc=C.comp.slice().sort((a,b)=>b.xp-a.xp)[0],tr=g('Trait de caractère'),r=Math.random();let heri;
  if(r<.3&&bc)heri={txt:'Héritage de savoir : '+bc.n,eff:{comp:[bc.n,bc.tag]}};else if(r<.6)heri={txt:'Héritage de sang : '+S[bs]+' +1',eff:{st:{[bs]:1}}};else if(r<.8&&tr)heri={txt:'Héritage de caractère : '+tr.toLowerCase(),eff:{trait:tr}};else heri={txt:'Héritage de fortune : 15 pièces d\u2019or',eff:{or:15}};
  const gains=C.succ.slice(0,2).map(n=>({txt:n,eff:(SUCC.find(x=>x[0]===n)||[0,0,{or:10}])[2]})),l={nom,fond:C.nom||'Sans nom',race:g('Race'),txt:(C.nom||'Un ancêtre')+', '+g('Race').toLowerCase()+' '+g('Métier').toLowerCase()+', a fondé cette lignée. '+heri.txt+(gains.length?'. Succès transmis : '+gains.map(x=>x.txt).join(', '):'')+'.',heri,gains};
- if(l.race==='Sang-mêlé')l.par=[g('Parent 1'),g('Parent 2')].sort();l.parent=C.lig?C.lig.nom:null;l.rep=0;LIG.push(l);ecrire('lig',LIG);C.fonde=nom;return l}
+ if(l.race==='Sang-mêlé')l.par=[g('Parent 1'),g('Parent 2')].sort();l.parent=C.lig?C.lig.nom:null;l.rep=0;v13Fonder(l);LIG.push(l);ecrire('lig',LIG);C.fonde=nom;return l}
 function archiver(){if(!C.fin||C.arch)return;C.arch=1;WORLD.annee=Math.max(WORLD.annee,anCourant());ecrire('monde',WORLD);
- traceMonde();v12Fin();const marq=C.fin==='victoire'||C.succ.length>=1||(C.dec>0&&C.boss>0)||C.mortT==='Mort en légende'||C.mortT==='Mort en héros';const rc=race();RH[rc]=RH[rc]||{v:0,m:0};if(C.fin==='victoire')RH[rc].v++;else RH[rc].m++;ecrire('raceh',RH);
+ traceMonde();v12Fin();v13Fin();const marq=C.fin==='victoire'||C.succ.length>=1||(C.dec>0&&C.boss>0)||C.mortT==='Mort en légende'||C.mortT==='Mort en héros';const rc=race();RH[rc]=RH[rc]||{v:0,m:0};if(C.fin==='victoire')RH[rc].v++;else RH[rc].m++;ecrire('raceh',RH);
  if(marq&&Math.random()<.08+.92/(1+.6*LIG.length))fonder();C.lg=C.fonde?'':marq?'Une lignée était possible, mais le hasard ne l\u2019a pas retenue.':'Pas assez marquant pour fonder une lignée (il faut une victoire, un succès mondial, ou une découverte avec un gardien vaincu).';
  PAN.unshift({nom:C.nom?nomS():'Sans nom',race:race(),metier:((C.rep.find(r=>r[0]==='Métier')||[])[1]||''),fin:C.fin,age:age(),bio:bio(),lig:C.lig?C.lig.nom:'',nouvelle:C.fonde,or:C.or,vie:C.vie.length,note:C.note||'',rec:(typeof recit==='function'?recit():''),succ:C.succ.slice(),obj:C.obj,an:anCourant(),ado:C.ado?C.lig.nom:'',mortT:C.mortT||'',biens:(C.biens||[]).map(b=>b.n)});PAN=PAN.slice(0,30);v10Fin();ecrire('pan',PAN);ecrire('c',C)}
 /* ----- Interface ----- */
@@ -1782,7 +2117,7 @@ function ui(){
  $('fi').innerHTML=(C.pvm?jauge('Vie',C.pv,C.pvm)+jauge('Énergie',C.en,C.enm)+'<li class="st"><span>Or</span><i></i><b>'+C.or+'</b></li>'+RELF.map(f=>'<li class="st"><span>'+f+'</span><i style="--v:'+((C.rel[f]+5)*10)+'%"></i><b>'+(C.rel[f]>0?'+':'')+C.rel[f]+'</b></li>').join(''):'')+Object.keys(C.st).map(k=>'<li class="st"><span>'+S[k]+'</span><i style="--v:'+Math.min(100,C.st[k]/12*100)+'%"></i><b>'+C.st[k]+'</b></li>').join('')
   +(C.rep.filter(r=>!nomsS.includes(r[0])&&r[0]!=='Objectif').map(r=>'<li><b>'+esc(r[0])+'</b>'+esc(r[1])+'</li>').join('')||'<li>Pas encore de réponse.</li>')
   +(C.comp.length?'<li><b>Compétences</b>'+C.comp.map((k,i)=>'<button class="sk" data-i="'+i+'">'+esc(k.n)+' <small>niv. '+niv(k)+'</small></button>').join('<br>')+((C.lat||[]).length?'<br><small>+ '+C.lat.length+' talent'+(C.lat.length>1?'s':'')+' endormi'+(C.lat.length>1?'s':'')+'</small>':'')+'</li>':'')
-  +(C.sur?'<li><b>Surnom</b>'+esc(nomS())+'</li>':'')+(titreRang()?'<li><b>Rang</b>'+esc(titreRang())+'</li>':'')+(C.cmp?'<li><b>Compagnon</b>'+esc(C.cmp.n)+' <small>('+C.cmp.ty.toLowerCase()+', niv. '+C.cmp.niv+', '+Math.floor(C.cmp.ag)+' ans)</small></li>':'')+((C.biens||[]).length?'<li><b>Biens</b>'+C.biens.map(b=>esc(b.n)).join('<br>')+'</li>':'')+fiche10()+fiche12()+(C.sq?'<li><b>Quête secondaire</b>'+esc(C.sq.txt)+'</li>':'')+(C.enf&&C.enf.length?'<li><b>Enfants</b>'+C.enf.map(e=>esc(e.n+(e.fam?' '+e.fam:''))).join(', ')+'</li>':'')+((WORLD.rep[C.pos]||0)?'<li><b>Réputation ici</b>'+(WORLD.rep[C.pos]>0?'+':'')+WORLD.rep[C.pos]+'</li>':'')
+  +(C.sur?'<li><b>Surnom</b>'+esc(nomS())+'</li>':'')+(titreRang()?'<li><b>Rang</b>'+esc(titreRang())+'</li>':'')+(C.cmp?'<li><b>Compagnon</b>'+esc(C.cmp.n)+' <small>('+C.cmp.ty.toLowerCase()+', niv. '+C.cmp.niv+', '+Math.floor(C.cmp.ag)+' ans)</small></li>':'')+((C.biens||[]).length?'<li><b>Biens</b>'+C.biens.map(b=>esc(b.n)).join('<br>')+'</li>':'')+fiche10()+fiche12()+fiche13()+(C.sq?'<li><b>Quête secondaire</b>'+esc(C.sq.txt)+'</li>':'')+(C.enf&&C.enf.length?'<li><b>Enfants</b>'+C.enf.map(e=>esc(e.n+(e.fam?' '+e.fam:''))).join(', ')+'</li>':'')+((WORLD.rep[C.pos]||0)?'<li><b>Réputation ici</b>'+(WORLD.rep[C.pos]>0?'+':'')+WORLD.rep[C.pos]+'</li>':'')
   +(etats().length?'<li><b>États</b>'+etats().map(esc).join('<br>')+'</li>':'')+(C.succ.length?'<li><b>Succès obtenus</b>'+C.succ.map(esc).join('<br>')+'</li>':'')+'<li><details><summary><b>Succès du monde</b> <small>'+Object.keys(WORLD.succ).length+' pris sur '+SUCC.length+'</small></summary>'+SUCC.map(x=>WORLD.succ[x[0]]?'<small>'+(C.succ.includes(x[0])?'\u2605 ':'')+esc(x[0])+' : '+esc(x[3]||'')+' <i>Pris par '+esc(WORLD.succ[x[0]].par)+' (an '+WORLD.succ[x[0]].an+')</i></small>':'<small>'+esc(x[0])+' : libre. '+esc(x[3]||'')+'</small>').join('<br>')+'</details></li>'
   +(C.obj?'<li data-ob="1" style="cursor:pointer"><b>Objectif <small>(toucher pour le détail)</small></b>'+esc(C.obj)+(q.length===1?progTxt(q[0]):'')+(q[C.qs]?'<br><small>À faire : '+esc(afaire(q[C.qs]))+'</small>':'')+(q.length>1?'<br><small>'+q.map((e,i)=>(i<C.qs?'fait : ':i===C.qs?'en cours : ':'à venir : ')+esc(e[0])+(i===C.qs?progTxt(e):'')).join('<br>')+'</small>':'')+'</li>':'');
  $('inv').innerHTML=C.inv.map(x=>'<li>'+libItem(x)+'</li>').join('')||'<li>Inventaire vide.</li>';
@@ -1790,14 +2125,14 @@ function ui(){
  $('j').hidden=!REG.j;$('j').innerHTML=C.vie.map(x=>{const p=x.txt.split(' [');return '<li><b>'+esc(p[0])+'</b>'+esc(p[1]?p[1].replace(/\]$/,'').replace(/, /g,' · '):'')+'</li>'}).join('')||'<li>Aucun événement pour l\u2019instant.</li>';
  $('pan').innerHTML=PAN.map((x,i)=>!panOK(x)?'':'<li data-p="'+i+'"><span class="pi">'+iconeSVG(x.race,30)+'</span><span><b>'+esc(x.nom)+' : '+(x.fin==='mort'?'mort':'victoire')+' à '+x.age+' ans</b>'+esc(x.race+' '+x.metier+(x.succ&&x.succ.length?', '+x.succ[0]:'')+(x.lig?', '+x.lig:'')+(x.nouvelle?', fonde la '+x.nouvelle:''))+'</span></li>').join('')||'<li>Aucun personnage terminé pour l\u2019instant.</li>';if(PAN.length&&!$('pan').innerHTML.trim())$('pan').innerHTML='<li>Aucun personnage ne correspond au filtre.</li>';hist();
  $('fin').hidden=!f;if(f)$('fin').innerHTML='<b>'+(f==='mort'?esc(nomS())+' est mort.':'Objectif accompli !')+'</b><br>'+esc(bio())+'<br><button id="bl">Bilan de vie</button>';
- $('go').disabled=!t||occ||!!f;if($('un'))$('un').hidden=!(UNDO&&UNDO.length)||!C.pvm;banniere();autoSauve();majPanF();majSv();hist10();hist11();if($('un'))$('un').textContent='Annuler ('+UNDO.length+')';if($('rp'))$('rp').hidden=!C.pvm||!!C.fin||C.rep.length<etapes().length;$('vc').hidden=!C.pos;rendreStats();hist12();dessiner()}
+ $('go').disabled=!t||occ||!!f;if($('un'))$('un').hidden=!(UNDO&&UNDO.length)||!C.pvm;banniere();autoSauve();majPanF();majSv();hist10();hist11();if($('un'))$('un').textContent='Annuler ('+UNDO.length+')';if($('rp'))$('rp').hidden=!C.pvm||!!C.fin||C.rep.length<etapes().length;$('vc').hidden=!C.pos;rendreStats();hist12();hist13();dessiner()}
 /* ----- Son, tirage synchronisé, carte du destin ----- */
 let AC=null,MUET=lire('muet',false);
 function bip(f,d,v,t){if(MUET)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=t||'triangle';o.frequency.value=f;const T0=AC.currentTime;g.gain.setValueAtTime(.0001,T0);g.gain.linearRampToValueAtTime(v||.05,T0+.006);g.gain.exponentialRampToValueAtTime(.0001,T0+d);o.connect(g);g.connect(AC.destination);o.start(T0);o.stop(T0+d+.02)}catch(e){}}
 const ding=()=>{bip(660,.5,.07,'sine');setTimeout(()=>bip(990,.7,.06,'sine'),90)};
 let TIC=0;const tic=k=>{const n=performance.now();if(n-TIC<90)return;TIC=n;bip(380+20*(k%6),.04,.012,'sine')};
 $('son').textContent='Son : '+(MUET?'non':'oui');$('son').onclick=()=>{MUET=!MUET;ecrire('muet',MUET);$('son').textContent='Son : '+(MUET?'non':'oui')};
-const STORY=(t,v)=>(t.n==='Naissance'?({'Sans lignée':'Aucun grand nom derrière lui : tout reste à écrire.','Lignée de naissance':'Il naît dans une lignée qui porte son sang.','Adopté':'Recueilli par une lignée qui n\u2019était pas la sienne : un destin rarissime.'}[v]||''):'')||(t.n==='Lignée'?(v==='Sans lignée'?'Aucun grand nom derrière lui : tout reste à écrire.':(LIG.find(l=>l.nom===v)||{}).txt):'')||HIST[v]||({'Trait de caractère':'Un trait qui marquera ses choix : '+v.toLowerCase()+'.','Défaut':'Son défaut, '+v.toLowerCase()+', lui jouera des tours.','Décor':'Sa vie commence ici : '+v+'.','Objectif':'Son but : '+v.toLowerCase()+'.'}[t.n]||'');
+const STORY=(t,v)=>(t.n==='Naissance'?({'Sans lignée':'Aucun grand nom derrière lui : tout reste à écrire.','Lignée de naissance':'Il naît dans une lignée qui porte son sang.','Adopté':'Recueilli par une lignée qui n\u2019était pas la sienne : un destin rarissime.'}[v]||''):'')||(t.n==='Lignée'?(v==='Sans lignée'?'Aucun grand nom derrière lui : tout reste à écrire.':(LIG.find(l=>l.nom===v)||{}).txt):'')||HIST[v]||DESC12[v]||({'Trait de caractère':'Un trait qui marquera ses choix : '+v.toLowerCase()+'.','Défaut':'Son défaut, '+v.toLowerCase()+', lui jouera des tours.','Décor':'Sa vie commence ici : '+v+'.','Objectif':'Son but : '+v.toLowerCase()+'.'}[t.n]||'');
 function modal(cat,titre,texte,liste,ok,img){const m=$('md');$('mca').textContent=cat;$('mti').textContent=titre;$('mtx').className='';$('mtx').textContent=texte;$('mli').innerHTML=(liste||[]).map(x=>'<li>'+esc(x)+'</li>').join('');
  if($('mim'))$('mim').innerHTML='';$('mem').innerHTML=cat==='Race'?portrait(titre,120):'<div class="gl">'+esc(titre.charAt(0))+'</div>';m.hidden=false;if(img)illustrer(img[0],img[1]);$('mok').onclick=()=>{m.hidden=true;ok&&ok()};$('mok').focus()}
 function resume(){const k=Object.keys(S).sort((a,b)=>C.st[b]-C.st[a]);modal('Caractéristiques','Votre personnage',S[k[0]]+' est son point fort, '+S[k[4]]+' son point faible.',Object.keys(S).map(x=>{const rb=((SB[(C.rep.find(r=>r[0]==='Race')||[])[1]]||{})[x]||0);return S[x]+' : '+C.st[x]+(rb?' (race '+(rb>0?'+':'')+rb+')':'')}),()=>ui())}
@@ -1815,7 +2150,7 @@ function suite(t,v,why){
  if(t.vie){snapUndo();const o=agir(v,why);ui();modal(t.n,v,STORY(t,v),o.tx,()=>{o.vers?voyage(v,o.de,o.vers):o.sc?scene(o.sc,ui):ui()},['ev',v]);return}
  C.rep.push([t.n,v]);if(t.n==='Lignée')C.lig=LIG.find(l=>l.nom===v)||null;if(t.n==='Famille')C.famOk=(v==='Héritage familial');if(t.n==='Décor')C.pos=v;if(t.stat)C.st[t.stat]=+v;let extra=[];if(C.rep.length===etapes().length){fin();if(t.n==='Cadeau divin')extra=donner(v).concat(C.ligTx||[],C.rhTx||[],C.famTx||[]);chienCmp()}ecrire('c',C);ui();
  if(t.stat){const nx=etapes()[C.rep.length];if(!nx||!nx.stat)resume();return}
- modal(t.n,v,STORY(t,v)+(t.n==='Race'&&RDESC[v]?' Apparence : '+RDESC[v]:''),extra,ui,t.n==='Race'?['race',v]:null)}
+ modal(t.n,v,STORY(t,v)+(t.n==='Race'&&RDESC[v]?' Apparence : '+RDESC[v]:''),extra.concat(L13(t,v)),ui,t.n==='Race'?['race',v]:null)}
 /* ----- Retours visuels : dégâts, gains, confettis ----- */
 let PV0=null,OR0=null,FETE=false;
 const num=(t,c)=>{const e=document.createElement('div');e.className='num';e.textContent=t;e.style.color=c;document.body.appendChild(e);setTimeout(()=>e.remove(),1300)};
