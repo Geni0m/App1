@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#12151c">
-<link rel="stylesheet" href="style.css?v=18">
+<link rel="stylesheet" href="style.css?v=20">
 </head><body><main>
 <div class="haut"><h1>Roulette JDR</h1><button id="son">Son : oui</button><button id="au">Lecture auto : non</button></div>
 <div class="nomrow"><span id="ico"></span><input id="nom" placeholder="Nom du personnage" aria-label="Nom du personnage"></div>
@@ -19,6 +19,7 @@
 <div id="res" aria-live="polite"></div><div id="act"></div>
 <div class="l bar" id="bar"><button id="raz">Nouveau personnage</button><button id="un" hidden>Annuler</button><button id="rp" hidden>Rapide ×5</button><button id="vc" hidden>Carte</button></div>
 <h2>Fiche du personnage</h2><ul id="fi"></ul>
+<details><summary><b>Notes personnelles</b></summary><textarea id="nt" placeholder="Vos notes sur ce personnage" style="min-height:70px"></textarea></details>
 <h2>Inventaire</h2><ul id="inv"></ul>
 <h2>Journal de vie <button id="jt" class="mini">Ouvrir</button></h2><ul id="j" hidden></ul>
 <div class="l"><button id="cop">Copier</button></div>
@@ -30,6 +31,9 @@
 <h2>Histoire du monde</h2><ul id="hm"></ul>
 <h2>Records</h2><ul id="rc"></ul>
 <details><summary><b>Livre d'or des succès</b></summary><ul id="lo"></ul></details>
+<details><summary><b>Journal des lignées</b></summary><ul id="jl"></ul></details>
+<details><summary><b>Arbre des lignées</b></summary><div id="ar"></div></details>
+<details><summary><b>Fiche des races</b></summary><ul id="fr"></ul></details>
 <h2>Statistiques</h2><ul id="stt"></ul>
 <details id="reg"><summary>Réglages</summary>
 <label>Taille du texte <select id="rg-fs"><option value="0.9">Petit</option><option value="1">Normal</option><option value="1.15">Grand</option><option value="1.3">Très grand</option></select></label>
@@ -38,6 +42,7 @@
 <label>Thème <select id="rg-th"><option value="">Automatique</option><option value="clair">Clair</option><option value="sombre">Sombre</option><option value="parchemin">Parchemin</option></select></label>
 <label>Pause de la lecture auto <select id="rg-pa"><option value="1">Normale</option><option value="2">Longue</option><option value="3">Très longue</option></select></label>
 <p id="sv-i" style="color:var(--m);font-size:14px"></p><button id="sv-r">Restaurer la copie automatique</button>
+<label>Taille de la carte <select id="rg-cm"><option value="1">Normale</option><option value="1.3">Grande</option><option value="1.7">Très grande</option></select></label>
 <label>Animations <select id="rg-anim"><option value="1">Complètes</option><option value="0">Réduites</option></select></label>
 </details>
 <section id="adm" hidden><h2>Atelier</h2></section>
@@ -50,15 +55,7 @@
 <div id="fx"></div>
 <div id="md" hidden><div class="carte" role="dialog" aria-modal="true"><div class="emb" id="mem"></div><div id="mim" class="mim"></div><div class="ca" id="mca"></div><h3 id="mti"></h3><p id="mtx"></p><ul id="mli"></ul><button class="go" id="mok">Continuer</button></div></div>
 <div id="plein" hidden><svg id="mp" viewBox="0 0 200 120" data-z="m"></svg>
-<div class="top"><b id="mt"></b><button id="mf">Fermer</button></div>
-<div class="bas"><button data-w="205">Monde</button><button data-w="80">Pays</button><button data-w="24">Ville</button></div></div>
-<script src="outils.js?v=18"></script>
-<script src="donnees.js?v=18"></script>
-<script src="carte.js?v=18"></script>
-<script src="v7.js?v=18"></script>
-<script src="v8.js?v=18"></script>
-<script src="v9.js?v=18"></script>
-<script src="v10.js?v=18"></script>
-<script src="jeu.js?v=18"></script>
-<script src="admin.js?v=18"></script>
+<div class="top"><b id="mt"></b><button id="cl">Calques</button><button id="mf">Fermer</button></div>
+<div id="clp" hidden></div><div class="bas"><button data-m="m">Monde</button><button data-m="p">Pays</button><button data-m="v">Ville</button><button id="zp" aria-label="Zoom avant">+</button><button id="zm" aria-label="Zoom arrière">−</button></div></div>
+<script src="app.js?v=20"></script>
 </body></html>
