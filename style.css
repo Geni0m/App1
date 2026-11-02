@@ -159,3 +159,8 @@ body[data-fin=mort] #fond{background:radial-gradient(#00000000,#000000cc);opacit
 @keyframes pul13{0%{opacity:0}25%{opacity:.8}100%{opacity:0}}
 details.cat>summary b,details.sg>summary b{display:inline;color:var(--e);font-size:inherit;font-weight:650}
 details.sg>summary small{color:var(--m)}
+
+/* ===== V14 ===== */
+.haut{flex-wrap:wrap;gap:6px}.haut h1{flex-basis:100%;margin:0 0 4px}.haut button{flex:1;min-width:0;padding:8px 4px;font-size:13px}
+#mp text.mi{display:none}#mp[data-z=v] text.mi{display:inline}
+#mp .c-s2{pointer-events:none}
