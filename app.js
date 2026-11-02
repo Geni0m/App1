@@ -1,7 +1,7 @@
 /* outils.js : petites fonctions communes (chargé en premier) */
 const $=i=>document.getElementById(i),K='jdr7-';
 const lire=(k,d)=>{try{const v=localStorage.getItem(K+k);return v===null?d:JSON.parse(v)}catch(e){return d}};
-let NOSAVE=false;
+let NOSAVE=false,GEO=null;
 const ecrire=(k,v)=>{if(NOSAVE)return;try{localStorage.setItem(K+k,JSON.stringify(v))}catch(e){}};
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
@@ -263,7 +263,7 @@ const PAYS=[
 {n:'Confins de Brume',x0:-125,y0:188,x1:12,y1:308,col:'#d4d8e6',L:[['Temple des Confins',-50,245,{'Gnome':3,'Sylvain':3,'Mystique':3}],['Hameau de la brume',-85,285,{'Revenant':3,'Lutin':2,'Gnome':2}]]}];
 const ETR=[];PAYS.forEach(p=>p.L.forEach(l=>{ETR.push(l[0]);P[l[0]]=[l[1],l[2]]}));
 {const d=DEF0.find(t=>t.n==='Décor');PAYS.forEach(p=>p.L.forEach(l=>d.o.push([l[0],.2,l[3]])))}
-const paysDe=q=>{const f=PAYS.find(p=>q[0]>=p.x0&&q[0]<=p.x1&&q[1]>=p.y0&&q[1]<=p.y1);return f?f.n:(q[1]<41?'Royaume du Nord':q[1]>80?'Marches du Sud':'Terres du Centre')};
+const paysDe=q=>{if(GEO){const i=Math.floor((q[0]-GB.x0)/CS),j=Math.floor((q[1]-GB.y0)/CS);if(i>=0&&j>=0&&i<GW&&j<GH){const l=GEO.lab[j*GW+i];if(l>=0&&l<PAYS.length)return PAYS[l].n}}const f=PAYS.find(p=>q[0]>=p.x0&&q[0]<=p.x1&&q[1]>=p.y0&&q[1]<=p.y1);return f?f.n:(q[1]<41?'Royaume du Nord':q[1]>80?'Marches du Sud':'Terres du Centre')};
 const paysObj=n=>PAYS.find(p=>p.n===n);
 function construire(){
  const old=DEF0.find(t=>t.n==='Métier').o,om={};old.forEach(x=>om[x[0]]=x);
@@ -609,13 +609,124 @@ const PAYS15=[
 {n:'Hauts-Plateaux de Zhar',x0:115,y0:320,x1:225,y1:500,col:'#ddd2c0',th:'m',d:'Des plateaux battus par les vents, des monastères perchés et un silence épais.',L:[['Monastère de Zhar',170,390,{Mystique:3,Érudit:2}],['Village de pierre',150,460,{Nain:2,Gnome:2}]]},
 {n:'Mangroves de Naru',x0:235,y0:320,x1:345,y1:500,col:'#c3dccb',th:'w',c:1,d:'Des racines dans l’eau, des maisons sur pilotis et des pêcheurs d’une patience infinie.',L:[['Port de Naru',290,390,{Marin:3,Halfelin:2}],['Pilotis de Naru',300,460,{Halfelin:3,Gobelin:2}]]}];
 PAYS15.forEach(p=>{p.k=9;PAYS.push(p);p.L.forEach(l=>{ETR.push(l[0]);P[l[0]]=[l[1],l[2]];DEF.find(t=>t.n==='Décor').o.push([l[0],.12,l[3]])})});
+/* v17a.js : 72 pays de plus + générateur de géographie (continent, côtes, fleuves, montagnes, régions organiques) */
+const GB={x0:-345,y0:-385,x1:540,y1:505},CS=3,GW=Math.ceil((GB.x1-GB.x0)/CS),GH=Math.ceil((GB.y1-GB.y0)/CS),HOME17={x0:18,y0:4,x1:196,y1:114};
+const mulb=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const hz=(s,x,y)=>{let h=Math.imul(x,374761393)+Math.imul(y,668265263)+Math.imul(s,144665)|0;h=Math.imul(h^h>>>13,1274126177);h^=h>>>16;return(h>>>0)/4294967296};
+const vn=(s,x,y)=>{const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi,u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf),a=hz(s,xi,yi),b=hz(s,xi+1,yi),c=hz(s,xi,yi+1),d=hz(s,xi+1,yi+1);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v};
+const fbm=(s,x,y,o)=>{let a=.5,f=1,r=0,t=0;for(let i=0;i<o;i++){r+=a*vn(s+i*17,x*f,y*f);t+=a;a*=.5;f*=2}return r/t};
+
+/* ---------- 72 pays générés (fixes) ---------- */
+const SY_A=['Va','Mor','Kel','Dra','Ser','Tal','Bro','Ys','Ael','Gar','Nor','Zan','Ith','Ol','Cor','Pel','Rha','Sil','Tor','Um','Vel','Wyn','Xan','Yor','Ziv','Bel','Cal','Dun','Eri','Fal','Gal','Har','Ilo','Jar','Kar','Lum','Mal','Nai','Ost','Pyr','Qua','Rav','Sor','Thu','Ulm','Vor','Wes','Yav','Zor','Ar','El','Ka','Lo','Mi','Ne','Or','Sa','Ta','Ur','Vi'];
+const SY_M=['la','ren','mi','do','ka','ther','vin','sa','lo','mar','ni','gor','dre','ra','ti','nu','be','so','ke'];
+const SY_E=['dor','mia','nia','land','ria','gard','thar','vale','mont','sia','ven','rune','cor','mar','tis','dria','nor','rim','ssa','dun','lia','bourg','val','wick','tane','sk','dal','mere'];
+const TH17={g:{w:.09,pre:['Terres de','Toundra de','Glaciers de','Royaume de','Marches de'],col:['#e3ecf2','#dfe8ef','#e8eef4'],cap:['Hameau de','Bastion de','Camp de','Port-glace de'],R:{Nain:3,Revenant:2,Troll:2,Ogre:1},M:['Chasseur','Soldat','Guide'],ds:['Un pays blanc où les nuits durent des mois et où les chasseurs ne reviennent qu’avec le dégel.','Des glaciers, des loups et des villages serrés autour de feux qui ne s’éteignent jamais.','Un royaume de givre, gouverné par un jarl que le froid n’a jamais fait plier.']},
+ f:{w:.17,pre:['Forêt de','Royaume de','Bois de','Duché de','Terres de'],col:['#d8e6c8','#d3e3c2','#dcebcf'],cap:['Cité-arbre de','Château de','Clairière de','Bourg de'],R:{Elfe:3,Sylvain:3,Fée:2,Lutin:2},M:['Chasseur','Érudit','Guérisseur'],ds:['De vieilles forêts, des sentiers que seuls les gardes connaissent et des histoires de loups très polis.','Un duché de bûcherons et de druides, où chaque arbre porte un nom.','Des bois profonds où la lumière tombe en colonnes et où l’on se perd volontiers.']},
+ m:{w:.14,pre:['Monts de','Hauts-Plateaux de','Royaume de','Marches de','Citadelles de'],col:['#d6cfc4','#dcd3c6','#d1cbc0'],cap:['Forge de','Forteresse de','Mine de','Col de'],R:{Nain:3,Kobold:2,Ogre:2,Gnome:2},M:['Forgeron','Soldat','Mineur'],ds:['Des cols gardés, des mines profondes et des forges qui rougissent la nuit.','Un royaume de pierre, de cloches de montagne et de fromages très sérieux.','Des cimes balayées par le vent et des clans qui se disputent les passages depuis des siècles.']},
+ s:{w:.10,pre:['Sultanat de','Désert de','Sables de','Émirat de','Dunes de'],col:['#efd9a8','#ecd49c','#f0ddb0'],cap:['Oasis de','Souk de','Palais de','Cité des sables de'],R:{Félin:3,Drakéen:2,Satyre:2,Humain:1},M:['Marchand','Guide','Changeur'],ds:['Des dunes sans fin, des oasis jalousement gardées et des marchands qui comptent en étoiles.','Un émirat de caravanes où l’eau vaut plus que l’or.','Des sables brûlants, des palais blancs et des contes qu’on ne raconte qu’à la nuit tombée.']},
+ w:{w:.13,pre:['Rivages de','Côtes de','Cités-États de','Royaume de','Ports de'],col:['#c8e6e0','#cde5e8','#c4e1d9'],cap:['Port de','Phare de','Havre de','Île de'],R:{Triton:3,Naga:2,Halfelin:2,Humain:1},M:['Marin','Pêcheur','Marchand'],ds:['Des ports animés, des flottes marchandes et des tavernes où l’on échange autant de rumeurs que de cargaisons.','Des côtes découpées, des phares tous les dix lieues et des marins qui jurent par les marées.','Des cités libres qui vivent de la mer et ne se lassent pas de la regarder.']},
+ h:{w:.17,pre:['Plaines de','Royaume de','Duché de','Khanat de','Principauté de','Comté de'],col:['#dfe8bc','#e2e8c4','#dbe6b6'],cap:['Foire de','Bourg de','Château de','Camp de'],R:{Humain:3,Centaure:2,Halfelin:2,Orc:1},M:['Paysan','Soldat','Marchand'],ds:['Des plaines fertiles, des fermes à perte de vue et des foires où se règlent toutes les querelles.','Un comté de blé, de chevaux et de seigneurs qui se jalousent poliment.','De grands horizons, des moulins qui tournent et des cavaliers qui traversent le pays en quelques jours.']},
+ j:{w:.09,pre:['Jungles de','Mangroves de','Royaume de','Territoires de'],col:['#bfe0b0','#c3dfb4','#b9dba9'],cap:['Temple de','Village des lianes de','Cité-canopée de','Pilotis de'],R:{Naga:3,Drakéen:2,Gobelin:2,Sylvain:2},M:['Chasseur','Mystique','Guérisseur'],ds:['Une jungle moite, des temples mangés par les lianes et des oiseaux qui parlent trop.','Des mangroves, des fièvres et des chamanes qui savent tout ce qu’il faut oublier.','Des cités dans la canopée et des fleuves couleur de thé.']},
+ o:{w:.06,pre:['Marais de','Confins de','Terres sombres de','Royaume obscur de'],col:['#c9c4d8','#cdc8dc','#c5c0d4'],cap:['Nécropole de','Citadelle d’ombre de','Hameau de brume de','Tour de'],R:{Vampire:3,'Loup-garou':2,Revenant:2,Gobelin:2},M:['Voleur','Espion','Contrebandier'],ds:['Un pays de brumes et de rumeurs, où chaque lanterne cache quelque chose.','Des marais sombres, des familles très anciennes et des portes qu’on n’ouvre pas deux fois.','Un royaume crépusculaire gouverné par des secrets.']}};
+const REGIME17=['monarchie héréditaire','république marchande','théocratie','khanat de clans','empire militaire','conseil de guildes','principautés alliées','royauté élective','oligarchie de maisons','confédération de villes'];
+const FETE17=['Fête des Moissons','Nuit des Lanternes','Festival des Marées','Jour du Grand Feu','Foire des Dix Chevaux','Procession des Cloches','Carnaval des Masques','Danse des Premiers Gels','Banquet des Anciens','Course des Barques','Marché des Étoiles','Veillée des Ancêtres'];
+(function(){const rd=mulb(2026110217),used=new Set(PAYS.map(p=>p.n).concat(Object.keys(P))),pk=(a)=>a[Math.floor(rd()*a.length)],voy=/^[AEIOUYÂÊÎÔÛÉÈ]/i;
+ const syl=()=>{for(let g=0;g<80;g++){const n=pk(SY_A)+(rd()<.55?pk(SY_M):'')+pk(SY_E);if(n.length>=5&&n.length<=10&&!used.has(n)){used.add(n);return n}}return 'Zor'+Math.floor(rd()*999)};
+ const wt=Object.keys(TH17),tot=wt.reduce((a,k)=>a+TH17[k].w,0),thp=()=>{let r=rd()*tot;for(const k of wt){if(r<TH17[k].w)return k;r-=TH17[k].w}return 'f'};
+ const de=(pre,n)=>pre.endsWith('de')?(voy.test(n)?pre.slice(0,-2)+'d’'+n:pre+' '+n):pre+' '+n;
+ const cuts=[];
+ for(let i=0;i<72;i++){const th=thp(),T=TH17[th],base=syl(),name=de(pk(T.pre),base),cap1=de(pk(T.cap),syl()),cap2=de(pk(T.cap),syl());
+  if(used.has(name)||used.has(cap1)||used.has(cap2)||cap1===cap2){i--;continue}used.add(name);used.add(cap1);used.add(cap2);
+  const bx=700+(i%9)*110,by=700+Math.floor(i/9)*110,met=pk(T.M),R=T.R,cr=Object.assign({},R,{[met]:3});
+  const p={n:name,x0:bx,y0:by,x1:bx+100,y1:by+100,col:pk(T.col),th,c:(th==='w'||rd()<.22)?1:0,v:(th==='m'&&rd()<.4)?1:0,k:22+Math.floor(rd()*8),g17:1,reg:pk(REGIME17),fete:pk(FETE17),d:pk(T.ds),
+   L:[[cap1,bx+50,by+50,cr],[cap2,bx+30,by+30,Object.assign({},R,{[pk(T.M)]:2})]]};
+  PAYS.push(p);p.L.forEach(l=>{ETR.push(l[0]);P[l[0]]=[l[1],l[2]];DEF.find(t=>t.n==='Décor').o.push([l[0],.1,l[3]])})}})();
+/* ---------- tas binaire minimal ---------- */
+function Heap(cap){this.d=new Float32Array(cap);this.c=new Int32Array(cap);this.o=new Int16Array(cap);this.n=0}
+Heap.prototype.push=function(d,c,o){let i=this.n++;const D=this.d,C=this.c,O=this.o;while(i>0){const p=(i-1)>>1;if(D[p]<=d)break;D[i]=D[p];C[i]=C[p];O[i]=O[p];i=p}D[i]=d;C[i]=c;O[i]=o};
+Heap.prototype.pop=function(){const D=this.d,C=this.c,O=this.o,rd=D[0],rc=C[0],ro=O[0],n=--this.n;if(n>0){const d=D[n],c=C[n],o=O[n];let i=0;for(;;){let l=2*i+1;if(l>=n)break;if(l+1<n&&D[l+1]<D[l])l++;if(D[l]>=d)break;D[i]=D[l];C[i]=C[l];O[i]=O[l];i=l}D[i]=d;C[i]=c;O[i]=o}this.r=[rd,rc,ro];return this.r};
+/* ---------- biomes : 1 plaine 2 forêt 3 collines 4 montagne 5 neige 6 désert 7 jungle 8 marais ---------- */
+function genGeo(seed){const W=GW,H=GH,n=W*H,E=new Float32Array(n),MO=new Float32Array(n),MS=new Float32Array(n),CN=new Float32Array(n),land=new Uint8Array(n),N=PAYS.length,HOME=N,ISLET=N+1;
+ const s1=seed*7+11,s2=seed*13+3,s3=seed*17+5,s4=seed*19+7,s5=seed*23+9,s6=seed*29+1,xs=i=>GB.x0+(i+.5)*CS,ys=j=>GB.y0+(j+.5)*CS;
+ const pre=new Float32Array(n);
+ for(let j=0;j<H;j++)for(let i=0;i<W;i++){const x=xs(i),y=ys(j),k=j*W+i,nx=(x-97.5)/400,ny=(y-60)/404,d=Math.sqrt(nx*nx*.92+ny*ny),base=1-Math.pow(d,1.9)*1.1,wx=(fbm(s1,x/150,y/150,3)-.5)*80,wy=(fbm(s1+5,x/150+9,y/150,3)-.5)*80,nn=fbm(s2,(x+wx)/200,(y+wy)/200,5);
+  let e=base*.62+(nn-.5)*1.05+.14;const isl=Math.pow(Math.max(0,fbm(seed*37+4,x/62,y/62,3)-.55)*4.4,1.15),wd=Math.min(1,Math.max(0,(d-.42)/.28))*(1-Math.min(1,Math.max(0,(d-.95)/.15)));e+=isl*wd*1.1;const g=Math.exp(-(Math.pow((x+4)/44,2)+Math.pow((y-62)/60,2)));e-=g*1.0;{const ch=Math.exp(-Math.pow((y-62-(fbm(s3+2,x/60,0,2)-.5)*60)/30,2))*Math.min(1,Math.max(0,(34-x)/50));e-=ch*1.6}pre[k]=e;
+  MO[k]=Math.pow(1-Math.abs(2*fbm(s4,x/105,y/105,4)-1),2);MS[k]=fbm(s5,x/190,y/190,4);CN[k]=fbm(s6,x/40,y/40,2)}
+ const srt=Float32Array.from(pre).sort(),thr=srt[Math.floor(n*.52)];
+ for(let k=0;k<n;k++)land[k]=pre[k]>thr?1:0;
+ /* bloc de l'Ancien Royaume : toujours de la terre */
+ const hm=(x,y)=>{const nz=(fbm(s3,x/22,y/22,3)-.5)*16,qx=Math.abs(x-108)-(92-35),qy=Math.abs(y-59)-(65-35),sd=Math.hypot(Math.max(qx,0),Math.max(qy,0))+Math.min(Math.max(qx,qy),0)-35;return -sd+nz-(x<40?(40-x)*.0:0)};
+ const isH=new Uint8Array(n);
+ for(let j=0;j<H;j++)for(let i=0;i<W;i++){const k=j*W+i,x=xs(i),y=ys(j),m=hm(x,y);if(m>0){land[k]=1;isH[k]=1}}
+ for(let k=0;k<n;k++)if(isH[k]){E[k]=1}else E[k]=pre[k];
+ /* nettoyer : lacs minuscules et îlots minuscules */
+ const compL=new Int32Array(n).fill(-1);const sizes=[],q=new Int32Array(n);
+ const flood=(arr,val,mark)=>{let c=0;for(let s=0;s<n;s++){if(mark[s]!==-1||arr[s]!==val)continue;let a=0,b=0;q[b++]=s;mark[s]=c;while(a<b){const k=q[a++],i=k%W,j=(k-i)/W;if(i>0&&mark[k-1]===-1&&arr[k-1]===val){mark[k-1]=c;q[b++]=k-1}if(i<W-1&&mark[k+1]===-1&&arr[k+1]===val){mark[k+1]=c;q[b++]=k+1}if(j>0&&mark[k-W]===-1&&arr[k-W]===val){mark[k-W]=c;q[b++]=k-W}if(j<H-1&&mark[k+W]===-1&&arr[k+W]===val){mark[k+W]=c;q[b++]=k+W}}c++}return c};
+ {const cm=new Int32Array(n).fill(-1),nc=flood(land,0,cm),sz=new Int32Array(nc);for(let k=0;k<n;k++)if(cm[k]>=0)sz[cm[k]]++;
+  const edge=new Uint8Array(nc);for(let i=0;i<W;i++){if(cm[i]>=0)edge[cm[i]]=1;if(cm[(H-1)*W+i]>=0)edge[cm[(H-1)*W+i]]=1}for(let j=0;j<H;j++){if(cm[j*W]>=0)edge[cm[j*W]]=1;if(cm[j*W+W-1]>=0)edge[cm[j*W+W-1]]=1}
+  for(let k=0;k<n;k++)if(cm[k]>=0&&!edge[cm[k]]&&sz[cm[k]]<9)land[k]=1}
+ {const cm=new Int32Array(n).fill(-1),nc=flood(land,1,cm),sz=new Int32Array(nc);for(let k=0;k<n;k++)if(cm[k]>=0)sz[cm[k]]++;for(let k=0;k<n;k++)if(cm[k]>=0&&sz[cm[k]]<14&&!isH[k])land[k]=0}
+ const comp=new Int32Array(n).fill(-1),nc=flood(land,1,comp),csz=new Int32Array(nc);for(let k=0;k<n;k++)if(comp[k]>=0)csz[comp[k]]++;
+ let nl=0;for(let k=0;k<n;k++)nl+=land[k];
+ /* distance à la mer (côtes) et rivières */
+ const nb4=k=>{const i=k%W,j=(k-i)/W,r=[];if(i>0)r.push(k-1);if(i<W-1)r.push(k+1);if(j>0)r.push(k-W);if(j<H-1)r.push(k+W);return r};
+ const coast=new Uint8Array(n);for(let k=0;k<n;k++)if(land[k]){const i=k%W,j=(k-i)/W;if(i===0||j===0||i===W-1||j===H-1||!land[k-1]||!land[k+1]||!land[k-W]||!land[k+W])coast[k]=1}
+ const Hg=new Float32Array(n);for(let k=0;k<n;k++)Hg[k]=(E[k]>=1?.8:pre[k])+.7*MO[k];
+ const hp=new Heap(n*5),D=new Float32Array(n).fill(1e9),nxt=new Int32Array(n).fill(-1);
+ for(let k=0;k<n;k++)if(land[k]&&coast[k]){D[k]=0;hp.push(0,k,0)}
+ while(hp.n){const [d,k]=hp.pop();if(d>D[k])continue;for(const m of nb4(k)){if(!land[m])continue;const nd=d+1+7*Math.max(0,Hg[k]-Hg[m])+2.4*hz(seed,m,7);if(nd<D[m]){D[m]=nd;nxt[m]=k;hp.push(nd,m,0)}}}
+ const rv=new Uint16Array(n),rivs=[],rd=mulb(seed*31+5);
+ {const cand=[];for(let t=0;t<2600;t++){const k=Math.floor(rd()*n);if(land[k]&&!coast[k]&&MO[k]>.5&&D[k]>26&&!isH[k])cand.push(k)}cand.sort((a,b)=>D[b]-D[a]);const src=[];
+  for(const k of cand){if(src.length>=46)break;const i=k%W,j=(k-i)/W;if(src.every(s=>{const si=s%W,sj=(s-si)/W;return Math.hypot(si-i,sj-j)>16}))src.push(k)}
+  src.forEach(s=>{const path=[];let k=s,g=0;while(k>=0&&g++<900){path.push(k);if(rv[k]>0&&path.length>3){rv[k]++;break}rv[k]++;if(!land[k]||coast[k]&&D[k]===0&&path.length>2)break;k=nxt[k]}if(path.length>=10)rivs.push(path)})}
+ /* biomes */
+ const bio=new Uint8Array(n),ym=GB.y1-GB.y0;
+ for(let j=0;j<H;j++)for(let i=0;i<W;i++){const k=j*W+i;if(!land[k])continue;const y=ys(j),lat=(y-GB.y0)/ym,mo=MS[k]+(rv[k]?.12:0)+(coast[k]?.05:0),m=MO[k],t=lat*.95+(fbm(s5+3,xs(i)/120,y/120,2)-.5)*.35;let b=1;
+  if(isH[k]){b=m>.78?3:(MS[k]>.6?2:1);if(k%7===0&&b===1&&MS[k]>.5)b=2}
+  else if(m>.8&&E[k]>.1)b=t<.38?5:4;else if(t<.22)b=5;else if(t>.7&&mo<.45)b=6;else if(t>.68&&mo>.58)b=7;else if(mo>.66&&pre[k]<thr+.18)b=8;else if(mo>.56)b=2;else if(m>.64)b=3;bio[k]=b}
+ /* graines et croissance des régions */
+ const lab=new Int16Array(n).fill(-1);for(let k=0;k<n;k++)if(isH[k])lab[k]=HOME;
+ const elig=[];for(let c=0;c<nc;c++)if(csz[c]>=240)elig.push(c);
+ const ntot=elig.reduce((a,c)=>a+csz[c],0);
+ const alloc=elig.map(c=>({c,a:csz[c]*N/ntot}));alloc.forEach(o=>{o.n=Math.max(1,Math.floor(o.a));o.f=o.a-Math.floor(o.a)});
+ let sum=alloc.reduce((a,o)=>a+o.n,0);const ord=alloc.slice().sort((a,b)=>b.f-a.f);let gi=0;while(sum<N){ord[gi%ord.length].n++;sum++;gi++}gi=ord.length-1;while(sum>N){const o=ord[gi%ord.length];if(o.n>1){o.n--;sum--}gi--;if(gi<-1000)break}
+ const sd=[],sc=[];
+ const cells=c=>{const r=[];for(let k=0;k<n;k++)if(comp[k]===c&&!isH[k])r.push(k);return r};
+ alloc.forEach(o=>{const cl=cells(o.c);if(!cl.length)return;const mine=[];for(let t=0;t<o.n;t++){let best=-1,bd=-1;for(let a=0;a<28;a++){const k=cl[Math.floor(rd()*cl.length)],i=k%W,j=(k-i)/W;let md=1e9;for(const s of sd.concat(mine)){const si=s%W,sj=(s-si)/W;md=Math.min(md,Math.hypot(si-i,sj-j))}for(const s of [(Math.floor((60-GB.y0)/CS))*W+Math.floor((107-GB.x0)/CS)]){const si=s%W,sj=(s-si)/W;md=Math.min(md,Math.hypot(si-i,sj-j)*.55)}if(md>bd){bd=md;best=k}}mine.push(best)}mine.forEach(k=>{sd.push(k)})});
+ while(sd.length<N){sd.push(sd[sd.length-1])}
+ const grow=()=>{lab.fill(-1);for(let k=0;k<n;k++)if(isH[k])lab[k]=HOME;const h2=new Heap(n*6);sd.forEach((k,s)=>{sc[s]=sc[s]||(.85+hz(seed,s,99)*.45);h2.push(0,k,s)});
+  while(h2.n){const [d,k,s]=h2.pop();if(lab[k]!==-1)continue;lab[k]=s;for(const m of nb4(k)){if(!land[m]||lab[m]!==-1)continue;const st=1+1.5*CN[m]+(MO[m]>.7?(MO[m]-.7)*14:0)+(rv[m]?.9:0);h2.push(d+st*sc[s],m,s)}}
+  for(let k=0;k<n;k++)if(land[k]&&lab[k]===-1)lab[k]=ISLET};
+ grow();
+ for(let it=0;it<5;it++){const sx=new Float64Array(N),sy=new Float64Array(N),cn=new Int32Array(N);let tl=0;for(let k=0;k<n;k++){const l=lab[k];if(l>=0&&l<N){sx[l]+=k%W;sy[l]+=Math.floor(k/W);cn[l]++;tl++}}const avg=tl/N;
+  for(let s=0;s<N;s++){if(!cn[s])continue;const cx=sx[s]/cn[s],cy=sy[s]/cn[s];let bk=sd[s],bd=1e9;for(let k=0;k<n;k++)if(lab[k]===s){const d=Math.hypot(k%W-cx,Math.floor(k/W)-cy);if(d<bd){bd=d;bk=k}}sd[s]=bk;sc[s]=Math.min(2,Math.max(.55,sc[s]*Math.pow(cn[s]/avg,.55)))}grow()}
+ /* caractéristiques des régions */
+ const R=[];for(let s=0;s<N;s++)R.push({s,a:0,sx:0,sy:0,x0:1e9,y0:1e9,x1:-1,y1:-1,co:0,mo:0,lat:0,mst:0,bc:new Array(9).fill(0),comp:-1,vo:new Set()});
+ for(let k=0;k<n;k++){const l=lab[k];if(l<0||l>=N)continue;const r=R[l],i=k%W,j=(k-i)/W;r.a++;r.sx+=i;r.sy+=j;if(i<r.x0)r.x0=i;if(i>r.x1)r.x1=i;if(j<r.y0)r.y0=j;if(j>r.y1)r.y1=j;if(coast[k])r.co++;r.bc[bio[k]]++;r.lat+=j/H;r.mst+=MS[k];r.comp=comp[k];
+  if(i<W-1){const m=lab[k+1];if(m>=0&&m<N&&m!==l){r.vo.add(m);R[m].vo.add(l)}}if(j<H-1){const m=lab[k+W];if(m>=0&&m<N&&m!==l){r.vo.add(m);R[m].vo.add(l)}}}
+ R.forEach(r=>{if(!r.a)return;r.cx=r.sx/r.a;r.cy=r.sy/r.a;r.lat/=r.a;r.mst/=r.a;r.coast=Math.min(1,r.co/Math.sqrt(r.a)/3.2);r.isl=csz[r.comp]===r.a?1:0;const f=b=>r.bc[b]/r.a;r.F={pl:f(1),fo:f(2),hi:f(3),mo:f(4),sn:f(5),de:f(6),ju:f(7),sw:f(8)}});
+ /* association pays / région selon le climat */
+ const sco=(p,idx,r)=>{const th=p.th||TH[idx]||'f',F=r.F,lat=r.lat,nm=p.n;let s=0;
+  if(th==='g')s=3*(1-lat)+2.5*F.sn+(lat<.3?1:0);else if(th==='f')s=2.5*F.fo+(1-Math.abs(lat-.45))+r.mst;else if(th==='m')s=4*(F.mo+F.hi*.5);else if(th==='s')s=2*lat+3*F.de+(1-r.mst);else if(th==='w')s=3*r.coast+1.5*r.isl;else if(th==='h')s=2.5*F.pl+(1-F.mo)+(1-Math.abs(lat-.5));else if(th==='j')s=2*lat+3*F.ju+r.mst*2;else s=1+2*F.sw+r.mst;
+  if(p.c)s+=2*r.coast;if(p.v)s+=2*F.mo;if(/Archipel|Îles|Ysmir|Corsaires/.test(nm))s+=3*r.isl+2*r.coast;if(/Marais|Vael|Mangroves/.test(nm))s+=2*F.sw+2*r.coast;if(/Sables|Orne|Désert|Dunes/.test(nm))s+=3*F.de;if(/Givre|Toundra|Aurores|Glaciers/.test(nm))s+=3*F.sn+2*(1-lat);if(/Monts|Volcan|Plateaux/.test(nm))s+=2*F.mo;if(/Jungle|Zamba/.test(nm))s+=2*F.ju;if(/Forêt|Bois/.test(nm))s+=2*F.fo;if(/Steppe|Plaines/.test(nm))s+=2*F.pl;
+  return s+rd()*.5};
+ const pairs=[];PAYS.forEach((p,idx)=>R.forEach(r=>{if(r.a)pairs.push([sco(p,idx,r),idx,r.s])}));pairs.sort((a,b)=>b[0]-a[0]);
+ const pr=new Int16Array(N).fill(-1),rp=new Int16Array(N).fill(-1);pairs.forEach(([s,pi,ri])=>{if(pr[pi]<0&&rp[ri]<0){pr[pi]=ri;rp[ri]=pi}});
+ const lab2=new Int16Array(n).fill(-1);for(let k=0;k<n;k++){const l=lab[k];if(l===HOME||l===ISLET)lab2[k]=l;else if(l>=0)lab2[k]=rp[l]>=0?rp[l]:ISLET}
+ const G={seed,W,H,n,land,lab:lab2,bio,coast,rv,rivs,E,MO,comp,csz,nl,HOME,ISLET,N,isH,
+  box:[],cen:[],voi:[],nbs:[],reg:R,pr,rp};
+ PAYS.forEach((p,idx)=>{const r=R[pr[idx]];if(!r||!r.a){G.box[idx]=[0,0,1,1];G.cen[idx]=[0,0];G.voi[idx]=[];return}
+  G.box[idx]=[GB.x0+r.x0*CS,GB.y0+r.y0*CS,GB.x0+(r.x1+1)*CS,GB.y0+(r.y1+1)*CS];
+  let bk=-1,bd=1e9;for(let k=0;k<n;k++)if(lab2[k]===idx){const d=Math.hypot(k%W-r.cx,Math.floor(k/W)-r.cy);if(d<bd){bd=d;bk=k}}
+  G.cen[idx]=[xs(bk%W),ys(Math.floor(bk/W))];G.voi[idx]=[...r.vo].map(m=>rp[m]).filter(m=>m>=0)});
+ return G}
 /* carte.js : icônes de race, carte plein écran (monde, pays, ville), voyages et scènes animées */
 const NS='http://www.w3.org/2000/svg';
 const RC={Humain:'#e0b48a',Elfe:'#ecd6bd',Nain:'#d9a273',Orc:'#7fa650',Halfelin:'#e8c19a',Gnome:'#e6b89a',Démon:'#c0504d',Drakéen:'#5fa68a',Félin:'#d9a35c',Sylvain:'#8aa05a',Gobelin:'#8fb04a',Minotaure:'#a8794f',Lutin:'#e9c9d8',Revenant:'#b9c7cf'};
 function icone(r){
  if(r==='Sang-mêlé'){let p=[];try{p=parents()}catch(e){}return '<defs><clipPath id="hl"><rect x="-14" y="-14" width="14" height="28"/></clipPath><clipPath id="hr"><rect x="0" y="-14" width="14" height="28"/></clipPath></defs><g clip-path="url(#hl)">'+icone(p[0]||'Humain')+'</g><g clip-path="url(#hr)">'+icone(p[1]||'Orc')+'</g>'}
  const c=RC[r]||RC.Humain,yeux='<circle cx="-2.2" cy="-.4" r=".75" fill="#222"/><circle cx="2.2" cy="-.4" r=".75" fill="#222"/>';
- let ar='',av='';
+ let ar='',av='';if(typeof EXTRA_ICO!=='undefined'&&EXTRA_ICO[r])return EXTRA_ICO[r](c);
  if(r==='Elfe'){ar='<path d="M-5.5 0l-5-4 1 6zM5.5 0l5-4-1 6z" fill="'+c+'" stroke="#3b2a1a" stroke-width=".4"/>';av='<path d="M-6 -2a6 6 0 0 1 12 0q-6-3-12 0z" fill="#d9dde6"/>'}
  else if(r==='Nain'){ar='<path d="M-6 1q6 13 12 0z" fill="#9a4b1f"/>';av='<path d="M-6.6 -1a6.6 6.6 0 0 1 13.2 0z" fill="#8a8f99"/>'}
  else if(r==='Orc'){av='<path d="M-3.4 3.6l1-3 1 3zM2.4 3.6l1-3 1 3z" fill="#fff"/><path d="M-4 -2.4l3 1M4 -2.4l-3 1" stroke="#222" stroke-width=".6"/>'}
@@ -660,7 +771,7 @@ function monde(){
  const L=tous(),f=n=>n.toFixed(1),disc=n=>!ETR.includes(n)||WORLD.pays.some(pn=>{const p=paysObj(pn);return p&&p.L.some(l=>l[0]===n)});
  const Lv=L.filter(disc),Lc=Lv.filter(n=>!ETR.includes(n)),q=Lv.map(pos),qc=Lc.map(pos);
  let h='<defs><pattern id="plu" width="5" height="6" patternUnits="userSpaceOnUse"><path d="M2 0l-.8 3" stroke="#6d8fb5" stroke-width=".25"/></pattern><pattern id="nei" width="6" height="8" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r=".35" fill="#fff"/><circle cx="5" cy="6" r=".3" fill="#fff"/></pattern></defs>'
- +'<path class="vg" d="M4 14q3-2 6 0t6 0M2 40q3-2 6 0t6 0M3 66q3-2 6 0t6 0M4 92q3-2 6 0t6 0"/><path d="M20 10L70 4L130 8L186 14L196 50L190 100L150 114L90 110L40 106L18 80L24 40Z" fill="var(--terre)" stroke="var(--rel)" stroke-width=".6"/>'
+ +'<path class="vg" d="M4 14q3-2 6 0t6 0M2 40q3-2 6 0t6 0M3 66q3-2 6 0t6 0M4 92q3-2 6 0t6 0"/>'+(GEO?terre17(Lv):'<path d="M20 10L70 4L130 8L186 14L196 50L190 100L150 114L90 110L40 106L18 80L24 40Z" fill="var(--terre)" stroke="var(--rel)" stroke-width=".6"/>')+''
  +'<path d="M24 41H194M20 80H192" stroke="var(--rel)" stroke-width=".4" stroke-dasharray="2 1.5" fill="none"/>'
  +'<path d="M150 34C130 50 110 46 96 62S60 80 40 84" fill="none" stroke="var(--mer)" stroke-width="1.6"/>'
  +'<ellipse cx="160" cy="92" rx="22" ry="12" fill="#d9c58f" opacity=".55"/><ellipse cx="128" cy="76" rx="6" ry="3" fill="var(--mer)"/><ellipse cx="76" cy="52" rx="4" ry="2.4" fill="var(--mer)"/>'
@@ -676,7 +787,7 @@ function monde(){
  for(let i=0;i<18;i++){const x=30+R()*156,y=16+R()*88;if(!pr(x,y,5))h+='<path d="M'+f(x)+' '+f(y)+'l1-1.3 1.2.2.6 1.1z" fill="var(--rel)"/>'}
  /* autres pays */
  const m2=(a,b)=>[(a[0]+b[0])/2,(a[1]+b[1])/2];
- PAYS.forEach((p,pi)=>{const cx=(p.x0+p.x1)/2,cy=(p.y0+p.y1)/2,rx=(p.x1-p.x0)/2,ry=(p.y1-p.y0)/2,pt=[];
+ (GEO?[]:PAYS).forEach((p,pi)=>{const cx=(p.x0+p.x1)/2,cy=(p.y0+p.y1)/2,rx=(p.x1-p.x0)/2,ry=(p.y1-p.y0)/2,pt=[];
   for(let i=0;i<14;i++){const a=i/14*6.283,k=.8+R()*.2;pt.push([cx+Math.cos(a)*rx*k,cy+Math.sin(a)*ry*k])}
   const m0=m2(pt[0],pt[1]);let d='M'+f(m0[0])+' '+f(m0[1]);for(let i=1;i<=14;i++){const a=pt[i%14],b=pt[(i+1)%14],mm=m2(a,b);d+='Q'+f(a[0])+' '+f(a[1])+' '+f(mm[0])+' '+f(mm[1])}d+='Z';
   const dc=WORLD.pays.includes(p.n);
@@ -692,7 +803,7 @@ function monde(){
    else h+='<path d="M'+f(x)+' '+f(y)+'l3.6-8 3.6 8z" fill="var(--rel)" stroke="var(--e)" stroke-width=".12"/>'}
   const E=WORLD.pe[p.n];const l0=pos(p.L[0][0]),cn=(pi<6?Lc.map(pos):Lc.map(pos).concat(PAYS.slice(0,pi).map(q=>pos(q.L[0][0])))).reduce((b,c)=>Math.hypot(c[0]-l0[0],c[1]-l0[1])<Math.hypot(b[0]-l0[0],b[1]-l0[1])?c:b,[100,60]);
   h+='<path d="M'+l0[0]+' '+l0[1]+'L'+cn[0]+' '+cn[1]+'" fill="none" stroke="'+(E&&E.h==='prospère'?'#d9a441':'var(--rel)')+'" stroke-width="'+(E&&E.h==='prospère'?'.9':'.5')+'" stroke-dasharray="'+(E&&E.h==='prospère'?'none':'1.4 1.6')+'" opacity=".75"/>'});
- h+=terr15()+routes14(Lv)+deco14()+noms15();
+ h+=terr15()+(GEO?roads17(Lv):routes14(Lv))+deco14()+(GEO?noms17():noms15());
  if(CARTE_URL)h+='<image href="'+CARTE_URL+'" x="0" y="0" width="200" height="120" preserveAspectRatio="xMidYMid slice"/>';
  q.forEach((c,i)=>{const n=Lv[i],vu=!ETR.includes(n)||WORLD.vus.includes(n),F=WORLD.fond.some(z=>z.n===n);
   const vd='<g class="vd"><circle cx="'+f(c[0])+'" cy="'+f(c[1])+'" r="7" fill="none" stroke="var(--rel)" stroke-width=".35" stroke-dasharray="1 .8"/><path d="M'+f(c[0]-7)+' '+f(c[1])+'H'+f(c[0]+7)+'M'+f(c[0])+' '+f(c[1]-7)+'V'+f(c[1]+7)+'M'+f(c[0]-5)+' '+f(c[1]-5)+'L'+f(c[0]+5)+' '+f(c[1]+5)+'" stroke="var(--rel)" stroke-width=".25" fill="none"/><rect x="'+f(c[0]-1.5)+'" y="'+f(c[1]-1.5)+'" width="3" height="3" fill="var(--terre)" stroke="var(--rel)" stroke-width=".2"/></g>';
@@ -702,22 +813,22 @@ function monde(){
  h+='<g class="nu"><ellipse cx="-30" cy="30" rx="14" ry="3" fill="#fff" opacity=".35"/></g><g class="nu nu2"><ellipse cx="-20" cy="84" rx="12" ry="2.6" fill="#fff" opacity=".3"/></g>'
  +'<g class="bt"><path d="M8 66h5l-1 2h-3zM10 66v-4l2 3" fill="var(--tro)" stroke="var(--e)" stroke-width=".15"/></g><g class="bt b2"><path d="M6 96h5l-1 2h-3zM8 96v-4l2 3" fill="var(--tro)" stroke="var(--e)" stroke-width=".15"/></g>'
  +'<g class="oi"><path d="M0 20q1.2-1.5 2.4 0q1.2-1.5 2.4 0" fill="none" stroke="var(--e)" stroke-width=".3"/></g><g class="oi o2"><path d="M0 60q1.2-1.5 2.4 0q1.2-1.5 2.4 0" fill="none" stroke="var(--e)" stroke-width=".3"/></g>'
- +'<rect id="nuit" x="-300" y="-300" width="1000" height="1000" fill="#0b1b3a"/>'
- +'<rect class="pl" x="-300" y="-300" width="1000" height="1000"/><rect class="ne" x="-300" y="-300" width="1000" height="1000"/><rect class="br" x="-300" y="-300" width="1000" height="1000"/><g id="dyn"></g>';
+ +'<rect id="nuit" x="-420" y="-460" width="1120" height="1060" fill="#0b1b3a"/>'
+ +'<rect class="pl" x="-420" y="-460" width="1120" height="1060"/><rect class="ne" x="-420" y="-460" width="1120" height="1060"/><rect class="br" x="-420" y="-460" width="1120" height="1060"/><g id="dyn"></g>';
  mp.innerHTML=h}
 function sentiers(){let h='<g class="c-s">';const T=tous();Object.keys(WORLD.sent||{}).forEach(k=>{const [a,b]=k.split('|');if(!T.includes(a)||!T.includes(b))return;const A=pos(a),B=pos(b);h+='<line x1="'+A[0]+'" y1="'+A[1]+'" x2="'+B[0]+'" y2="'+B[1]+'" stroke="var(--a)" stroke-width="'+Math.min(1.4,.25+WORLD.sent[k]*.08).toFixed(2)+'" opacity=".28"/>'});((WORLD.v12&&WORLD.v12.routes)||[]).forEach(r=>{if(!T.includes(r.a)||!T.includes(r.b))return;const A=pos(r.a),B=pos(r.b);h+='<line x1="'+A[0]+'" y1="'+A[1]+'" x2="'+B[0]+'" y2="'+B[1]+'" stroke="#d9a441" stroke-width=".8" stroke-dasharray="3 1.5" opacity=".75"/>'});return h+'</g>'}
 function humeursSVG(){let h='<g class="c-h">';tous().forEach(n=>{const u=humeur(n);if(!u)return;if(ETR.includes(n)&&!WORLD.vus.includes(n))return;const p=pos(n);h+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="5.5" fill="none" stroke="'+({'prospère':'#d9a441','en guerre':'#c0504d','en deuil':'#6b7585','en fête':'#d98ac0'}[u]||'#999')+'" stroke-width=".6" stroke-dasharray="1 .8"><title>'+esc(n+' : '+u)+'</title></circle>'});return h+'</g>'}
 function marqueurs(){let h='';if(C.tr){const p=pos(C.tr);h+='<g transform="translate('+p[0]+' '+p[1]+')"><path d="M-2 -2L2 2M2 -2L-2 2" stroke="#b02a2a" stroke-width=".8"/><title>La carte au trésor désigne ce lieu</title></g>'}
  (C.biens||[]).forEach((b,i)=>{const p=pos(b.lieu||C.pos);h+='<g class="vd" transform="translate('+(p[0]-3+i*6)+' '+(p[1]+4.5)+')"><rect x="-1.2" y="-1" width="2.4" height="2" fill="#c9a36a" stroke="#4a3320" stroke-width=".15"/><path d="M-1.6 -1L0 -2.4 1.6 -1z" fill="#7a3b2e"/><text y="3.2" style="font-size:calc(var(--k)*.55px)">'+esc(b.n)+'</text></g>'});return h}
 function dyn(from){let h=sentiers();C.trail.forEach(s=>{const a=pos(s[0]),b=pos(s[1]);h+='<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'" stroke="var(--a)" stroke-width=".5" stroke-dasharray="1.6 1.2"/>'});
- h+=humeursSVG()+marqueurs()+couches()+(typeof traj15==='function'?traj15():'')+'<g id="pas"></g><g id="tk"><circle r="2.9" fill="var(--a)" stroke="var(--s)" stroke-width=".6"/><g transform="scale(.27)">'+icone(race())+'</g></g>';
+ h+=humeursSVG()+marqueurs()+couches()+(typeof traj15==='function'?traj15():'')+(typeof plan17m==='function'?plan17m():'')+'<g id="pas"></g><g id="tk"><circle r="2.9" fill="var(--a)" stroke="var(--s)" stroke-width=".6"/><g transform="scale(.27)">'+icone(race())+'</g></g>';
  $('dyn').innerHTML=h;TP=pos(from||C.pos);mp.dataset.s=SAI[C.t%12];mp.dataset.w=C.meteo}
 function ouvrirCarte(){if(!C.pos)return;monde();$('plein').hidden=false;$('mf').textContent='Fermer';dyn();const q=pos(C.pos);
  $('mt').textContent=(C.nom?C.nom+' : ':'')+C.pos+', '+pays(q)+' ('+cap(SAI[C.t%12])+')';vue(q[0],q[1],(REG.vz||80)*innerHeight/innerWidth)}
 function voyage(ev,de,d){monde();const A=pos(de),B=pos(d),dist=Math.hypot(B[0]-A[0],B[1]-A[1]),h=Math.min(430,Math.max(60,dist*1.4+30))*innerHeight/innerWidth;
  $('plein').hidden=false;$('mf').textContent='Fermer';$('mt').textContent=ev+' : '+de+' vers '+d;
- C.trail.pop();dyn(de);C.trail.push([de,d]);vue(A[0],A[1],h);occ=true;let lx=A[0],ly=A[1];
- tw(3800*vcf(),u=>{const x=A[0]+(B[0]-A[0])*u,y=A[1]+(B[1]-A[1])*u;tok(x,y);vue(x,y,h);
+ C.trail.pop();dyn(de);C.trail.push([de,d]);vue(A[0],A[1],h);occ=true;let lx=A[0],ly=A[1];const RT=GEO?rt17(A,B):null;
+ tw(3800*vcf(),u=>{const q=RT?RT(u):[A[0]+(B[0]-A[0])*u,A[1]+(B[1]-A[1])*u],x=q[0],y=q[1];tok(x,y);vue(x,y,h);
   if(Math.hypot(x-lx,y-ly)>2.2){lx=x;ly=y;$('pas').insertAdjacentHTML('beforeend','<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r=".45" fill="var(--a)" opacity=".8"/>')}},
   ()=>cam(B[0],B[1],24*innerHeight/innerWidth,1400*vcf(),()=>{occ=false;$('mf').textContent='Continuer';$('mt').textContent=(C.fin==='mort'?'Fin du voyage : ':'Arrivée : ')+d+', '+pays(B);ui()}))}
 /* Scène animée sur place : combat, marché, tempête, repos */
@@ -730,7 +841,7 @@ function scene(k,fin){monde();const q=pos(C.pos);$('plein').hidden=false;$('mf')
  if(k==='tempete')mp.dataset.w='Orage';let ok=false;const fermer=()=>{if(ok)return;ok=true;g.remove();$('plein').hidden=true;$('mf').onclick=fermerCarte;fin()};
  $('mf').onclick=fermer;setTimeout(fermer,2600)}
 const fermerCarte=()=>{PLACE=null;memoZoom();$('plein').hidden=true;ui()};const memoZoom=()=>{try{const z=V.h*innerWidth/innerHeight;if(z>=14&&z<=460){REG.vz=Math.round(z);ecrire('reg',REG)}}catch(e){}};$('mf').onclick=fermerCarte;$('vc').onclick=ouvrirCarte;
-const paysTP=()=>PAYS.find(p=>TP[0]>=p.x0&&TP[0]<=p.x1&&TP[1]>=p.y0&&TP[1]<=p.y1);
+const paysTP=()=>{if(GEO){const l=labAt(TP[0],TP[1]);return l>=0&&l<PAYS.length?PAYS[l]:null}return PAYS.find(p=>TP[0]>=p.x0&&TP[0]<=p.x1&&TP[1]>=p.y0&&TP[1]<=p.y1)};
 document.querySelectorAll('.bas button[data-m]').forEach(b=>b.onclick=()=>{const m=b.dataset.m,H=innerHeight/innerWidth;
  if(m==='m')cam(100,60,fitH(),700);else if(m==='p'){const p=paysTP();p?cam((p.x0+p.x1)/2,(p.y0+p.y1)/2,(p.x1-p.x0+30)*H,700):cam(100,60,222*H,700)}else cam(TP[0],TP[1],24*H,700)});
 $('zp').onclick=()=>cam(V.cx,V.cy,V.h/1.5,250);$('zm').onclick=()=>cam(V.cx,V.cy,V.h*1.5,250);
@@ -1050,7 +1161,7 @@ function rapide(n){if(occ||C.fin||!C.pvm||C.rep.length<etapes().length)return;sn
  ui();modal('Partie rapide',L.length+' tirages',C.fin?(C.fin==='mort'?nomS()+' est mort.':'Objectif accompli !'):'',L,null)}
 if($('rp'))$('rp').onclick=()=>rapide(5);
 /* v10.js : destin, relations, chaînes, humeurs, roue truquée, coups du sort, bilan, records, livre d'or, thèmes, export, transfert, test auto */
-const W10=()=>{['pnj','biens','desc','aban','chro','deces','pays'].forEach(k=>WORLD[k]=WORLD[k]||[]);WORLD.hu=WORLD.hu||{};WORLD.pe=WORLD.pe||{};WORLD.sent=WORLD.sent||{};WORLD.vus=WORLD.vus||[]};
+const W10=()=>{['pnj','biens','desc','aban','chro','deces','pays'].forEach(k=>WORLD[k]=WORLD[k]||[]);WORLD.hu=WORLD.hu||{};WORLD.pe=WORLD.pe||{};WORLD.sent=WORLD.sent||{};WORLD.vus=WORLD.vus||[];try{geoSync()}catch(e){console.error('geo',e)}};
 const humeur=l=>{if(!l)return '';const h=(WORLD.hu||{})[l];if(h&&C.an0&&anCourant()-h.an<30)return h.h;const e=(WORLD.pe||{})[paysDe(pos(l))];return e&&C.an0&&anCourant()-e.an<30?e.h:''};
 const HUM=['prospère','en guerre','en deuil','en fête'];
 const PNJR={rival:'Rival',mentor:'Mentor',proche:'Proche'};
@@ -1657,8 +1768,8 @@ async function dynastie(n){if(occ)return;if(C.pvm&&!C.fin&&!confirm('Le personna
  finally{occ=false;ui()}}
 
 /* ---------- Nouveautés ---------- */
-const NEWS12=['Vingt pays de plus (26 en tout) : steppes, jungles, sultanat, royaume des ombres, archipel des corsaires…','Guerres entre pays, conquêtes et frontières qui bougent ; lieux qui grandissent ou tombent en ruines ; religions locales','Magie et écoles, procès, expéditions, ancêtres, compagnons de lignée, carrières et ateliers','Toucher un lieu sur la carte ouvre sa fiche ; bouton Trajet ; fiche « Qui suis-je ? » ; statistiques et livre du monde','Plus de 170 nouveaux lieux sur la carte : hameaux, moulins, phares, tours, ponts, auberges, camps, volcans, lacs, ruines, abbayes, arènes…, chacun avec ses événements','Routes secondaires, routes maritimes, caravanes et navires qui se déplacent, rose des vents, échelle','Primes et avis de recherche, commerce de route, épidémies, récoltes et famines, voyageurs récurrents, domaines familiaux, almanach','Boutons de vitesse (Roue, Carte, Pause) à côté de Lecture auto','Onglets Personnage / Monde / Mémoire / Réglages, ambiance du fond, nouveau monde et archives, glossaire'];
-setTimeout(()=>{try{if(REG.vu!=='15'&&typeof modal==='function'){REG.vu='15';ecrire('reg',REG);modal('Nouveautés','Version 15','',NEWS12,null)}}catch(e){}},1500);
+const NEWS12=['Carte naturelle : un continent différent à chaque nouveau monde (côtes, golfes, îles, fleuves, montagnes), 98 pays aux frontières organiques et plus de 2 000 lieux placés selon le terrain','Plans de villes uniques (quartiers, rues, remparts, fleuve) et événements dans une rue précise ; certaines rues gardent la mémoire d’un duel ou d’une tombe','12 races, cultures par pays, traits, défauts, destins, métiers, objets, objectifs et près de 100 succès en plus','Le monde peut vivre seul (+5 à +50 ans) : dynasties, mariages royaux, usurpations, prix et embargos, ordres transnationaux','Lire une vie en chapitres, exporter la carte en image, modes Hardcore et Bac à sable (Réglages)','Vingt pays de plus (26 en tout) : steppes, jungles, sultanat, royaume des ombres, archipel des corsaires…','Guerres entre pays, conquêtes et frontières qui bougent ; lieux qui grandissent ou tombent en ruines ; religions locales','Magie et écoles, procès, expéditions, ancêtres, compagnons de lignée, carrières et ateliers','Toucher un lieu sur la carte ouvre sa fiche ; bouton Trajet ; fiche « Qui suis-je ? » ; statistiques et livre du monde','Plus de 170 nouveaux lieux sur la carte : hameaux, moulins, phares, tours, ponts, auberges, camps, volcans, lacs, ruines, abbayes, arènes…, chacun avec ses événements','Routes secondaires, routes maritimes, caravanes et navires qui se déplacent, rose des vents, échelle','Primes et avis de recherche, commerce de route, épidémies, récoltes et famines, voyageurs récurrents, domaines familiaux, almanach','Boutons de vitesse (Roue, Carte, Pause) à côté de Lecture auto','Onglets Personnage / Monde / Mémoire / Réglages, ambiance du fond, nouveau monde et archives, glossaire'];
+setTimeout(()=>{try{if(REG.vu!=='17'&&typeof modal==='function'){REG.vu='17';ecrire('reg',REG);modal('Nouveautés','Version 17','',NEWS12,null)}}catch(e){}},1500);
 /* v13a.js : données de la V13 (descriptions, glossaire, héritages, pactes, guildes, fêtes, prophéties, événements) */
 const DESC12={
  /* traits */
@@ -1891,7 +2002,7 @@ function fiche13(){if(!C.pvm)return '';const y=C.v13||{},w=WORLD.v13||{},L=[],li
  if(y.guilde)li('Guilde',esc(y.guilde.n)+' <small>('+RANGG[y.guilde.rang]+', '+y.guilde.pts+' pts)</small>');
  if(y.nomme&&w.nommes&&w.nommes[y.nomme.n]){const r=w.nommes[y.nomme.n];li('Arme nommée',esc(y.nomme.n)+' <small>(niv. '+(r.niv||1)+', '+(r.vic||0)+' victoires, '+r.porteurs.length+' porteur'+(r.porteurs.length>1?'s':'')+')</small>')}
  if(w.proph&&!w.proph.done)li('Prophétie du monde',esc(w.proph.txt)+'<br><small>Étape '+(w.proph.stade+1)+'/3 : '+esc(w.proph.steps[w.proph.stade])+'</small>');
- return L.join('')+fiche14()+fiche15()}
+ return L.join('')+fiche14()+fiche15()+fiche16()+fiche17()}
 
 /* ---------- Ambiance ---------- */
 const AMBT=[[/Port|pilotis|Havre|Mer|Île|Côte/i,'mer'],[/Forêt|Bois|Sylve|Clairière/i,'foret'],[/Montagne|Pic|Col |glace|Glacier|Neige/i,'mont'],[/Désert|Dune|Oasis/i,'desert'],[/Marais|Marécage/i,'marais'],[/Ruine|Crypte|Tombe|Donjon|Caverne|Grotte|Mine|Temple/i,'ruine'],[/Cité|Ville|Capitale|Village|Bourg|Château|Citadelle/i,'ville']];
@@ -1953,7 +2064,7 @@ function monde13(){const c=$('v13-mv');if(!c)return;const w=WORLD.v13||{},h=[];
  h.push('<li><b>Calendrier des fêtes</b>'+cal.map(([m,r])=>MOIS12[m]+' : '+esc(FETES[r].n)+' <small>('+esc(r)+')</small>').join('<br>')+'</li>');
  c.innerHTML='<ul>'+h.join('')+'</ul>'}
 
-function hist13(){try{hist14()}catch(e){}ambiance13();monde13();if(!hist13.m){hist13.m=1;majMondes()}groupeFiche()}
+function hist13(){try{hist14();hist16();hist17()}catch(e){}ambiance13();monde13();if(!hist13.m){hist13.m=1;majMondes()}groupeFiche()}
 
 /* ---------- Fiche : sous-catégories repliables ---------- */
 const GRP13=[['Statistiques',l=>l.classList.contains('st')],['Compétences',l=>/^(Compétences|Surnom|Rang)/.test(lab13(l))],['Liens',l=>/^(Compagnon|Amis|Enfants|Conjoint|Guilde|Réputation ici|Biens|Navire|Ici)/.test(lab13(l))],['États et destin',l=>/^(États|Pacte|Malédiction|Bénédiction|Prophétie|Rumeur|Roue|Marques|Serment|Rêve|Titre|Héritier|Traits acquis)/.test(lab13(l))],['Succès et objectif',l=>/^(Succès|Objectif|Quête)/.test(lab13(l))||!!l.querySelector('details')]];
@@ -1993,6 +2104,8 @@ function structure13(){const main=document.querySelector('main');if(!main||$('ta
  /* détail au toucher */
  $('fi').addEventListener('click',e=>{if(e.target.closest('button,summary,a'))return;const li=e.target.closest('li');if(!li||li.classList.contains('st')||li.dataset.ob||li.classList.contains('sgl'))return;if(li.querySelector('details'))return;detail13(li)});
  if(!$('fond')){const f=document.createElement('div');f.id='fond';document.body.insertBefore(f,document.body.firstChild)}
+ document.querySelectorAll('details[id^="v12-"]').forEach(d=>{d.classList.add('cat');d.dataset.k=d.id});
+ try{barre16()}catch(e){console.error(e)}
  majMondes();ambiance13();ui()}
 setTimeout(structure13,0);
 /* v14a.js : des dizaines de lieux en plus (générés de façon fixe), leurs dessins sur la carte et leurs événements */
@@ -2082,16 +2195,16 @@ EVL14.forEach(e=>{EF[e[1]]=e[3];ETAG[e[1]]=e[4];HIST[e[1]]=e[5];REC[e[1]]=[e[6],
 
 /* génération fixe des lieux */
 (function(){let s=20261101;const rd=()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
- const used=new Set(Object.keys(P)),all=()=>Object.keys(P).map(k=>P[k]);
+ const used=new Set(Object.keys(P)),GR=new Map(),gk=(x,y)=>Math.floor(x/6.2)+','+Math.floor(y/6.2),gadd=(x,y)=>{const k=gk(x,y);(GR.get(k)||GR.set(k,[]).get(k)).push([x,y])},near=(x,y)=>{const gx=Math.floor(x/6.2),gy=Math.floor(y/6.2);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const l=GR.get((gx+a)+','+(gy+b));if(l)for(const q of l)if(Math.hypot(q[0]-x,q[1]-y)<6.2)return true}return false};Object.keys(P).forEach(k=>gadd(P[k][0],P[k][1]));
  const pickT=zone=>{const L=TY14.filter(t=>!(zone.noCoast&&(t[0]==='port'||t[0]==='phare'))&&!(zone.noVol&&t[0]==='volcan'));let r=rd()*L.reduce((a,t)=>a+t[4],0);for(const t of L){if(r<t[4])return t;r-=t[4]}return L[0]};
  const nom=t=>{for(let k=0;k<40;k++){const b=t[3]==='e'?ENS14[Math.floor(rd()*ENS14.length)]:TOP14[Math.floor(rd()*TOP14.length)],n=t[2]+b;if(!used.has(n)){used.add(n);return n}}return null};
  const zones=[];
  [['Royaume du Nord',30,188,14,38,26,{}],['Terres du Centre',32,188,44,76,28,{}],['Marches du Sud',30,186,84,106,24,{}]].forEach(z=>zones.push({reg:z[0],x0:z[1],x1:z[2],y0:z[3],y1:z[4],n:z[5],ell:false,noCoast:false,noVol:z[0]!=='Royaume du Nord',home:true}));
  PAYS.forEach(p=>zones.push({reg:p.n,pays:p,cx:(p.x0+p.x1)/2,cy:(p.y0+p.y1)/2,rx:(p.x1-p.x0)/2*.62,ry:(p.y1-p.y0)/2*.62,n:p.k||16,ell:true,noCoast:!(p.c||['Archipel d’Ysmir','Confins de Brume','Terres du Givre'].includes(p.n)),noVol:!(p.v||['Empire de Karzhad','Terres du Givre'].includes(p.n))}));
  zones.forEach(z=>{let k=0,g=0;while(k<z.n&&g++<900){let x,y;if(z.ell){const a=rd()*6.283,r=Math.sqrt(rd());x=z.cx+Math.cos(a)*z.rx*r;y=z.cy+Math.sin(a)*z.ry*r}else{x=z.x0+rd()*(z.x1-z.x0);y=z.y0+rd()*(z.y1-z.y0)}
-   x=Math.round(x*10)/10;y=Math.round(y*10)/10;if(all().some(q=>Math.hypot(q[0]-x,q[1]-y)<6.2))continue;
-   let t=pickT(z);if(z.home&&(t[0]==='port'||t[0]==='phare')){x=24+rd()*7;if(all().some(q=>Math.hypot(q[0]-x,q[1]-y)<6.2))continue}
-   const n=nom(t);if(!n)continue;P[n]=[x,y];TYPE14[n]=t[0];LIEUX14.push([n,t[0],z.reg]);k++;
+   x=Math.round(x*10)/10;y=Math.round(y*10)/10;if(near(x,y))continue;
+   let t=pickT(z);if(z.home&&(t[0]==='port'||t[0]==='phare')){x=24+rd()*7;if(near(x,y))continue}
+   const n=nom(t);if(!n)continue;P[n]=[x,y];gadd(x,y);TYPE14[n]=t[0];LIEUX14.push([n,t[0],z.reg]);k++;
    const mu=Object.assign({},t[7]);DEF.find(q=>q.n==='Décor').o.push([n,z.home?.07:.05,mu]);
    if(z.pays){ETR.push(n);z.pays.L.push([n,x,y,mu])}
    if(t[0]==='port'||t[0]==='phare'||t[0]==='lac'&&0)PORTS.push(n);
@@ -2145,6 +2258,123 @@ function glyph14(n,x,y){const t=(WORLD.v15&&WORLD.v15.chg&&WORLD.v15.chg[n])||TY
   default:h=toit(-2,0,4,'#7a3b2e')}
  try{const fe=FETES[LIEUX14.find(z=>z[0]===n)?.[2]];if(fe&&C.t%12===fe.m&&['village','bourg','marche','auberge','port','chateau'].includes(t))h+='<path class="mai" d="M'+f(x+4)+' '+f(y-1)+'v-5l2.4 1-2.4 1" fill="#d98ac0"/>'}catch(e){}
  return h}
+/* v17b.js : lieux supplémentaires, contours organiques, placement par terrain, routes, rendu de la carte naturelle */
+const GEOC={};
+/* ---------- plus de lieux pour les 26 pays d'origine (après la génération fixe de v14a) ---------- */
+(function(){let s=20261117;const rd=()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+ const used=new Set(Object.keys(P)),D=DEF.find(q=>q.n==='Décor');
+ PAYS.forEach(p=>{if(p.g17)return;const want=20+Math.floor(rd()*8);let have=p.L.length,g=0;const noC=!(p.c||['Archipel d’Ysmir','Confins de Brume','Terres du Givre'].includes(p.n)),noV=!(p.v||['Empire de Karzhad','Terres du Givre'].includes(p.n));
+  while(have<want&&g++<300){const L=TY14.filter(t=>!(noC&&(t[0]==='port'||t[0]==='phare'))&&!(noV&&t[0]==='volcan'));let r=rd()*L.reduce((a,t)=>a+t[4],0),t=L[0];for(const q of L){if(r<q[4]){t=q;break}r-=q[4]}
+   let n=null;for(let k=0;k<40;k++){const b=t[3]==='e'?ENS14[Math.floor(rd()*ENS14.length)]:TOP14[Math.floor(rd()*TOP14.length)],nm=t[2]+b;if(!used.has(nm)){used.add(nm);n=nm;break}}if(!n)continue;
+   const x=(p.x0+p.x1)/2,y=(p.y0+p.y1)/2,mu=Object.assign({},t[7]);P[n]=[x,y];TYPE14[n]=t[0];LIEUX14.push([n,t[0],p.n]);D.o.push([n,.006,mu]);ETR.push(n);p.L.push([n,x,y,mu]);have++;
+   if(t[0]==='port'||t[0]==='phare')PORTS.push(n);if(['bourg','village','marche','chateau','auberge','port','relais'].includes(t[0])&&!VILLES.includes(n))VILLES.push(n)}})})();
+
+/* ---------- contours (marching squares sur un masque flouté) ---------- */
+function contour17(G,test){const W=G.W,H=G.H;let i0=1e9,j0=1e9,i1=-1,j1=-1;for(let k=0;k<G.n;k++)if(test(G.lab[k])){const i=k%W,j=(k-i)/W;if(i<i0)i0=i;if(i>i1)i1=i;if(j<j0)j0=j;if(j>j1)j1=j}
+ if(i1<0)return '';const pad=3,gi=Math.max(0,i0-pad),gj=Math.max(0,j0-pad),gw=Math.min(W-1,i1+pad)-gi+1,gh=Math.min(H-1,j1+pad)-gj+1;let F=new Float32Array(gw*gh);
+ for(let j=0;j<gh;j++)for(let i=0;i<gw;i++)if(test(G.lab[(gj+j)*W+gi+i]))F[j*gw+i]=1;
+ for(let it=0;it<2;it++){const T=new Float32Array(gw*gh);for(let j=0;j<gh;j++)for(let i=0;i<gw;i++){const a=F[j*gw+Math.max(0,i-1)],b=F[j*gw+i],c=F[j*gw+Math.min(gw-1,i+1)];T[j*gw+i]=(a+2*b+c)/4}const U=new Float32Array(gw*gh);for(let j=0;j<gh;j++)for(let i=0;i<gw;i++){const a=T[Math.max(0,j-1)*gw+i],b=T[j*gw+i],c=T[Math.min(gh-1,j+1)*gw+i];U[j*gw+i]=(a+2*b+c)/4}F=U}
+ const L=.5,adj=new Map(),pt=new Map(),add=(a,b)=>{(adj.get(a)||adj.set(a,[]).get(a)).push(b);(adj.get(b)||adj.set(b,[]).get(b)).push(a)};
+ const eT=(i,j)=>(j*gw+i)*2,eL=(i,j)=>(j*gw+i)*2+1;
+ const P2=(e)=>{if(pt.has(e))return pt.get(e);const v=e&1,c=e>>1,i=c%gw,j=(c-i)/gw;let x,y;if(!v){const a=F[j*gw+i],b=F[j*gw+i+1],t=(L-a)/(b-a);x=i+t;y=j}else{const a=F[j*gw+i],b=F[(j+1)*gw+i],t=(L-a)/(b-a);x=i;y=j+t}const r=[GB.x0+(gi+x+.5)*CS,GB.y0+(gj+y+.5)*CS];pt.set(e,r);return r};
+ for(let j=0;j<gh-1;j++)for(let i=0;i<gw-1;i++){const a=F[j*gw+i],b=F[j*gw+i+1],c=F[(j+1)*gw+i+1],d=F[(j+1)*gw+i],cs=(a>L?1:0)|(b>L?2:0)|(c>L?4:0)|(d>L?8:0);if(cs===0||cs===15)continue;
+  const T=eT(i,j),Bt=eT(i,j+1),Lf=eL(i,j),Rt=eL(i+1,j);
+  switch(cs){case 1:case 14:add(Lf,T);break;case 2:case 13:add(T,Rt);break;case 3:case 12:add(Lf,Rt);break;case 4:case 11:add(Rt,Bt);break;case 6:case 9:add(T,Bt);break;case 7:case 8:add(Lf,Bt);break;
+   case 5:if((a+b+c+d)/4>L){add(T,Rt);add(Lf,Bt)}else{add(Lf,T);add(Rt,Bt)}break;case 10:if((a+b+c+d)/4>L){add(Lf,T);add(Rt,Bt)}else{add(T,Rt);add(Lf,Bt)}break}}
+ const seen=new Set();let d='';
+ for(const [e0] of adj){if(seen.has(e0))continue;const ring=[];let prev=-1,cur=e0,g=0;while(g++<20000){seen.add(cur);ring.push(P2(cur));const nb=adj.get(cur);let nx=nb[0];if(nb.length>1&&nx===prev)nx=nb[1];if(nx===e0||seen.has(nx)&&nx!==e0)break;prev=cur;cur=nx}
+  if(ring.length<4)continue;const m=ring.length,q=[];for(let i=0;i<m;i++){const a=ring[i],b=ring[(i+1)%m];q.push([.75*a[0]+.25*b[0],.75*a[1]+.25*b[1]],[.25*a[0]+.75*b[0],.25*a[1]+.75*b[1]])}
+  d+='M'+q.map(v=>v[0].toFixed(1)+' '+v[1].toFixed(1)).join('L')+'Z'}
+ return d}
+const path17=l=>{const G=GEO;G.paths=G.paths||{};if(G.paths[l]===undefined)G.paths[l]=contour17(G,l==='all'?(x=>x>=0):(x=>x===l));return G.paths[l]};
+const cellOf=(x,y)=>{const i=Math.floor((x-GB.x0)/CS),j=Math.floor((y-GB.y0)/CS);return(i<0||j<0||i>=GW||j>=GH)?-1:j*GW+i};
+const labAt=(x,y)=>{if(!GEO)return -1;const k=cellOf(x,y);return k<0?-1:GEO.lab[k]};
+
+/* ---------- placement des lieux selon le terrain ---------- */
+const PREFP={port:['co'],phare:['co'],volcan:['b4','b3'],col:['b4','b3'],grotte:['b4','b3'],mine:['b4','b3'],carriere:['b3','b4'],observatoire:['b3','b4'],forge:['b3','b1'],pont:['rv'],moulin:['rv','b1'],source:['rv','b3'],lac:['rv','b8','b1'],foret:['b2','b7'],ermite:['b2','b4','b3'],verger:['b1'],vignoble:['b3','b1'],ferme:['b1'],bergerie:['b3','b1'],hameau:['b1','b2','b3'],village:['b1','rv'],bourg:['b1','rv'],auberge:['b1','b3'],relais:['b1'],camp:['b1','b3','b6'],marche:['b1','rv'],chateau:['b3','b1'],abbaye:['b3','b1'],temple:['b3','b1'],arene:['b1'],biblio:['b1'],mage:['b3','b4','b2'],tour:['b3','b4'],cimetiere:['b1','b3'],megalithe:['b3','b1'],ruines:['b1','b2','b6','b7','b3']};
+const prefNom=n=>/Port|Havre|Rade|Phare|Île|Repaire|Pilotis/.test(n)?['co']:/Forge|Mine|Col |Forteresse|Bastion|Citadelle|Monastère/.test(n)?['b3','b4']:/Forêt|Clairière|Cité-arbre|Bois/.test(n)?['b2']:/Oasis/.test(n)?['b6','b1']:/Marais|Brume/.test(n)?['b8','co','b1']:/Temple|Abbaye|Observatoire|Nécropole/.test(n)?['b3','b1']:['b1','b3'];
+function appliquer17(){const G=GEO,W=G.W,H=G.H,N=G.N,rv2=new Uint8Array(G.n);
+ for(let k=0;k<G.n;k++)if(G.rv[k]){rv2[k]=1;const i=k%W,j=(k-i)/W;if(i>0)rv2[k-1]=1;if(i<W-1)rv2[k+1]=1;if(j>0)rv2[k-W]=1;if(j<H-1)rv2[k+W]=1}
+ G.rv2=rv2;G.cells=[];for(let s=0;s<N;s++)G.cells.push([]);for(let k=0;k<G.n;k++){const l=G.lab[k];if(l>=0&&l<N)G.cells[l].push(k)}
+ PAYS.forEach((p,i)=>{const b=G.box[i],c=G.cen[i];p.x0=b[0];p.y0=b[1];p.x1=b[2];p.y1=b[3];p.cx=c[0];p.cy=c[1]});
+ const occ=new Map(),key=(x,y)=>Math.floor(x/6)+','+Math.floor(y/6),put=(x,y)=>{const k=key(x,y);(occ.get(k)||occ.set(k,[]).get(k)).push([x,y])};
+ const far=(x,y,r)=>{const gx=Math.floor(x/6),gy=Math.floor(y/6);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const l=occ.get((gx+a)+','+(gy+b));if(l)for(const q of l)if(Math.hypot(q[0]-x,q[1]-y)<r)return false}return true};
+ const ETRs=new Set(ETR);Object.keys(P).forEach(n=>{if(!ETRs.has(n))put(P[n][0],P[n][1])});
+ const pool=(s,kind)=>{G.pl=G.pl||{};const id=s+kind;if(G.pl[id])return G.pl[id];const cl=G.cells[s],o=[];for(const k of cl){const b=G.bio[k];if(kind==='co'?G.coast[k]:kind==='rv'?G.rv2[k]:b===+kind.slice(1))o.push(k)}return G.pl[id]=o};
+ PAYS.forEach((p,s)=>{const rd=mulb(G.seed*97+s*13+1),cl=G.cells[s];if(!cl.length)return;
+  p.L.forEach((l,idx)=>{const n=l[0],t=TYPE14[n],pf=(t&&PREFP[t])||prefNom(n);let pl=null;for(const kd of pf){const q=pool(s,kd);if(q.length>=4){pl=q;break}}if(!pl)pl=cl;
+   let best=null,bd=-1;for(let rr=0;rr<3&&!best;rr++){const rad=[6.2,4.4,2.6][rr];
+    if(idx===0&&!t){const cx=p.cx,cy=p.cy;for(const k of pl){const x=GB.x0+(k%W+.5)*CS,y=GB.y0+(Math.floor(k/W)+.5)*CS,d=-Math.hypot(x-cx,y-cy);if(d>bd&&far(x,y,rad)){bd=d;best=[x,y]}}}
+    else for(let a=0;a<26;a++){const k=pl[Math.floor(rd()*pl.length)],x=GB.x0+(k%W+rd())*CS,y=GB.y0+(Math.floor(k/W)+rd())*CS;if(!far(x,y,rad))continue;let md=1e9;for(let b=-1;b<=1;b++)for(let c=-1;c<=1;c++){const q=occ.get((Math.floor(x/6)+b)+','+(Math.floor(y/6)+c));if(q)for(const z of q)md=Math.min(md,Math.hypot(z[0]-x,z[1]-y))}if(md>bd){bd=md;best=[x,y]}}}
+   if(!best){const k=cl[Math.floor(rd()*cl.length)];best=[GB.x0+(k%W+.5)*CS,GB.y0+(Math.floor(k/W)+.5)*CS]}
+   const x=Math.round(best[0]*10)/10,y=Math.round(best[1]*10)/10;put(x,y);P[n]=[x,y];l[1]=x;l[2]=y})});
+ G.roads={};G.mer=PAYS.map((p,i)=>PAYS.map((q,j)=>[j,Math.hypot(q.cx-p.cx,q.cy-p.cy)]).filter(z=>z[0]!==i&&!G.voi[i].includes(z[0])&&z[1]<110&&PAYS[i].cx!==undefined).sort((a,b)=>a[1]-b[1]).slice(0,2).map(z=>z[0]));built=false}
+function geoSync(){const w=WORLD;if(!w)return;if(w.geo===undefined)w.geo=NOSAVE?7:Math.floor(Math.random()*900000)+1;if(GEO&&GEO.seed===w.geo)return;
+ const ks=Object.keys(GEOC);if(ks.length>2)delete GEOC[ks[0]];GEO=GEOC[w.geo]||(GEOC[w.geo]=genGeo(w.geo));appliquer17()}
+
+/* ---------- rendu ---------- */
+const labPays17=n=>{const i=PAYS.findIndex(p=>p.n===n);return i};
+function rivs17(disc){const G=GEO,W=G.W;let h='';G.rivs.forEach((r,ri)=>{const m=r[r.length>>1],l=G.lab[m];if(!(l===G.HOME||disc.has(l)))return;const pts=r.filter((k,i)=>i%2===0||i===r.length-1).map(k=>[GB.x0+(k%W+.5)*CS,GB.y0+(Math.floor(k/W)+.5)*CS]);if(pts.length<3)return;
+  let d='M'+pts[0][0].toFixed(1)+' '+pts[0][1].toFixed(1);for(let i=1;i<pts.length-1;i++){const mx=(pts[i][0]+pts[i+1][0])/2,my=(pts[i][1]+pts[i+1][1])/2;d+='Q'+pts[i][0].toFixed(1)+' '+pts[i][1].toFixed(1)+' '+mx.toFixed(1)+' '+my.toFixed(1)}d+='L'+pts[pts.length-1][0].toFixed(1)+' '+pts[pts.length-1][1].toFixed(1);
+  h+='<path d="'+d+'" fill="none" stroke="var(--mer)" stroke-width="'+(Math.min(1.6,.45+r.length*.012)).toFixed(2)+'" stroke-linecap="round" stroke-linejoin="round"/>'});return h}
+function terre17(Lv){const G=GEO,W=G.W,f=v=>v.toFixed(1),disc=new Set(),xs=i=>GB.x0+(i+.5)*CS,ys=j=>GB.y0+(j+.5)*CS;
+ PAYS.forEach((p,i)=>{if(WORLD.pays.includes(p.n))disc.add(i)});
+ let h='<g class="ter"><path d="'+path17('all')+'" fill="none" stroke="#fff" stroke-opacity=".34" stroke-width="5" stroke-linejoin="round"/>';
+ h+='<path d="'+path17(G.HOME)+'" fill="var(--terre)" stroke="var(--rel)" stroke-width=".5" fill-rule="evenodd"/>';
+ const is=path17(G.ISLET);if(is)h+='<path d="'+is+'" fill="var(--terre)" stroke="var(--rel)" stroke-width=".5" fill-rule="evenodd"/>';
+ PAYS.forEach((p,i)=>{const d=path17(i);if(!d)return;const dc=disc.has(i);h+='<path d="'+d+'" fill="'+(dc?p.col:'#cfd6e0')+'" fill-rule="evenodd" stroke="var(--rel)" stroke-width="'+(dc?.55:.4)+'"'+(dc?'':' opacity=".6" stroke-dasharray="2 1.5"')+'/>'});
+ h+=rivs17(disc);
+ /* décors par biome dans les pays découverts */
+ const hs=new Map();Lv.forEach(n=>{const q=pos(n),k=Math.floor(q[0]/5)+','+Math.floor(q[1]/5);(hs.get(k)||hs.set(k,[]).get(k)).push(q)});
+ const near=(x,y,r)=>{const gx=Math.floor(x/5),gy=Math.floor(y/5);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const l=hs.get((gx+a)+','+(gy+b));if(l)for(const q of l)if(Math.hypot(q[0]-x,q[1]-y)<r)return true}return false};
+ let mt='',sn='',hl='',tr='',jg='',du='',sw='',gr='';
+ const tree=(x,y,r)=>'M'+f(x-r)+' '+f(y)+'a'+r+' '+r+' 0 1 0 '+f(2*r)+' 0a'+r+' '+r+' 0 1 0 '+f(-2*r)+' 0';
+ disc.forEach(s=>{const rd=mulb(G.seed*5+s*3+2);G.cells[s].forEach(k=>{const b=G.bio[k],i=k%W,j=(k-i)/W,x=xs(i)+(rd()-.5)*CS,y=ys(j)+(rd()-.5)*CS,u=rd();if(u>.6||near(x,y,6))return;
+  if(b===4&&u<.5)mt+='M'+f(x)+' '+f(y)+'l2.6-6 2.6 6z';else if(b===5&&u<.4)sn+='M'+f(x)+' '+f(y)+'l2.2-5 2.2 5z';else if(b===3&&u<.28)hl+='M'+f(x)+' '+f(y)+'q1.8-2.6 3.6 0';else if(b===2&&u<.5)tr+=tree(x,y,1.2);else if(b===7&&u<.55)jg+=tree(x,y,1.5);else if(b===6&&u<.35)du+='M'+f(x)+' '+f(y)+'q3-2.4 6 0';else if(b===8&&u<.35)sw+='M'+f(x)+' '+f(y)+'l1.4-1.6M'+f(x+1)+' '+f(y)+'l0-2M'+f(x+2)+' '+f(y)+'l-1.2-1.6';else if(b===1&&u<.07)gr+='M'+f(x)+' '+f(y)+'l.4-1.6M'+f(x+1)+' '+f(y)+'l0-1.8'})});
+ h+='<path d="'+mt+'" fill="var(--rel)" stroke="var(--e)" stroke-width=".14"/><path d="'+sn+'" fill="#fff" stroke="#9fb7c4" stroke-width=".2"/><path d="'+hl+'" fill="none" stroke="var(--rel)" stroke-width=".4"/><path class="t2" d="'+tr+'" fill="var(--arb)"/><path class="t2 jg" d="'+jg+'" fill="#2f6b3a" opacity=".85"/><path d="'+du+'" fill="none" stroke="#c9a96a" stroke-width=".45"/><path d="'+sw+'" fill="none" stroke="#6d8f7a" stroke-width=".3"/><path d="'+gr+'" fill="none" stroke="#9aa85a" stroke-width=".3"/>';
+ /* noms de pays */
+ disc.forEach(i=>{const p=PAYS[i],ws=p.n.split(' '),mid=Math.ceil(ws.length/2),ls=p.n.length>13&&ws.length>1?[ws.slice(0,mid).join(' '),ws.slice(mid).join(' ')]:[p.n];h+='<text class="pa" x="'+f(p.cx)+'" y="'+f(p.cy)+'">'+ls.map((l,k)=>'<tspan x="'+f(p.cx)+'" dy="'+(k?'1.05em':'0')+'">'+esc(l)+'</tspan>').join('')+'</text>'});
+ return h+'</g>'}
+
+/* ---------- routes (A* sur la grille, évitent la mer et les montagnes) ---------- */
+function astar17(a,b){const G=GEO,W=G.W,H=G.H,n=G.n,sk=cellOf(a[0],a[1]),tk=cellOf(b[0],b[1]);if(sk<0||tk<0)return null;const key=sk+'>'+tk;if(G.roads[key]!==undefined)return G.roads[key];
+ const tx=tk%W,ty=Math.floor(tk/W),dist=new Map(),from=new Map(),hp=new Heap(60000);dist.set(sk,0);hp.push(0,sk,0);let it=0,found=false;
+ const cost=k=>{const b=G.bio[k];if(!G.land[k])return k===tk||k===sk?1:1e9;return(b===4?7:b===5?5:b===8?2.6:b===3?1.7:b===2?1.25:b===7?1.8:b===6?1.4:1)+(G.rv[k]?3.5:0)};
+ while(hp.n&&it++<14000){const [d,k]=hp.pop();if(k===tk){found=true;break}if(d>(dist.get(k)||1e9)+.01)continue;const i=k%W,j=(k-i)/W,nbs=[];if(i>0)nbs.push(k-1);if(i<W-1)nbs.push(k+1);if(j>0)nbs.push(k-W);if(j<H-1)nbs.push(k+W);
+  for(const m of nbs){const c=cost(m);if(c>=1e8)continue;const nd=(dist.get(k)||0)+c,old=dist.get(m);if(old===undefined||nd<old){dist.set(m,nd);from.set(m,k);const hx=Math.abs(m%W-tx),hy=Math.abs(Math.floor(m/W)-ty);hp.push(nd+(hx+hy)*.9,m,0)}}}
+ if(!found){G.roads[key]=null;return null}
+ const path=[];let k=tk;while(k!==sk&&path.length<2000){path.push(k);k=from.get(k)}path.push(sk);path.reverse();G.roads[key]=path;return path}
+const MAJ17=['bourg','village','marche','chateau','port','relais','auberge','abbaye','temple','forge','mine'];
+function roads17(Lv){const G=GEO,W=G.W,f=v=>v.toFixed(1);let h='<g class="c-s2" fill="none">';
+ const grp=new Map();Lv.forEach(n=>{const t=TYPE14[n],isMaj=t?MAJ17.includes(t):true;if(!isMaj)return;const q=pos(n),l=labAt(q[0],q[1]);if(l<0)return;(grp.get(l)||grp.set(l,[]).get(l)).push([n,q])});
+ const drawPath=(p,major)=>{if(!p||p.length<2)return '';const pts=p.map(k=>[GB.x0+(k%W+.5)*CS,GB.y0+(Math.floor(k/W)+.5)*CS]);let d='M'+f(pts[0][0])+' '+f(pts[0][1]);for(let i=1;i<pts.length-1;i+=2){const q=pts[i],r=pts[Math.min(pts.length-1,i+1)];d+='Q'+f(q[0])+' '+f(q[1])+' '+f(r[0])+' '+f(r[1])}return '<path d="'+d+'" stroke="'+(major?'#c9a36a':'var(--rel)')+'" stroke-width="'+(major?.45:.3)+'" stroke-dasharray="'+(major?'none':'.8 .7')+'" opacity=".75"/>'};
+ const caps=[];
+ grp.forEach((arr,l)=>{if(arr.length<2){if(arr.length)caps.push([l,arr[0]]);return}const inT=[arr[0]],rest=arr.slice(1);caps.push([l,arr[0]]);
+  while(rest.length){let bi=-1,bj=-1,bd=1e9;rest.forEach((r,j)=>inT.forEach((t,i)=>{const d=Math.hypot(r[1][0]-t[1][0],r[1][1]-t[1][1]);if(d<bd){bd=d;bi=i;bj=j}}));if(bd<60)h+=drawPath(astar17(inT[bi][1],rest[bj][1]),false);inT.push(rest[bj]);rest.splice(bj,1)}});
+ /* routes principales : capitale vers capitale voisine */
+ const done=new Set();caps.forEach(([l,c])=>{const vs=(l<G.N?G.voi[l]:[])||[];vs.forEach(v=>{const o=caps.find(z=>z[0]===v);if(!o)return;const k=Math.min(l,v)+'-'+Math.max(l,v);if(done.has(k))return;done.add(k);h+=drawPath(astar17(c[1],o[1][1]),true)})});
+ /* liaisons maritimes entre ports proches */
+ const pt=Lv.filter(n=>['port','phare'].includes(TYPE14[n])||BASET14[n]==='port').sort((a,b)=>pos(a)[0]-pos(b)[0]);
+ for(let i=0;i+1<pt.length;i++){const a=pos(pt[i]),b=pos(pt[i+1]);if(Math.hypot(a[0]-b[0],a[1]-b[1])<60)h+='<path d="M'+f(a[0])+' '+f(a[1])+'L'+f(b[0])+' '+f(b[1])+'" stroke="#6d8fb5" stroke-width=".35" stroke-dasharray="1.6 1.2" opacity=".6"/>'}
+ return h+'</g>'}
+
+/* ---------- noms géographiques ---------- */
+function noms17(){const G=GEO,W=G.W,H=G.H,f=v=>v.toFixed(1),rd=mulb(G.seed*3+9),used=new Set(),sy=()=>{for(let g=0;g<50;g++){const n=SY_A[Math.floor(rd()*SY_A.length)]+(rd()<.5?SY_M[Math.floor(rd()*SY_M.length)]:'')+SY_E[Math.floor(rd()*SY_E.length)];if(!used.has(n)&&n.length<10){used.add(n);return n}}return 'Zor'};
+ const de=(a,n)=>/^[AEIOUY]/i.test(n)?a+' d’'+n:a+' de '+n;if(!G.dw){const dw=new Int16Array(G.n).fill(-1),q=new Int32Array(G.n);let a=0,b=0;for(let k=0;k<G.n;k++)if(G.land[k]){dw[k]=0;q[b++]=k}while(a<b){const k=q[a++],i=k%W,j=(k-i)/W,nb=[];if(i>0)nb.push(k-1);if(i<W-1)nb.push(k+1);if(j>0)nb.push(k-W);if(j<H-1)nb.push(k+W);for(const m of nb)if(dw[m]<0){dw[m]=dw[k]+1;q[b++]=m}}G.dw=dw;
+  const wc=new Int32Array(G.n).fill(-1),T=[];let c=0;for(let s=0;s<G.n;s++){if(G.land[s]||wc[s]>=0)continue;let a2=0,b2=0;q[b2++]=s;wc[s]=c;let best=s,sz=0,edge=0;while(a2<b2){const k=q[a2++];sz++;if(dw[k]>dw[best])best=k;const i=k%W,j=(k-i)/W;if(i===0||j===0||i===W-1||j===H-1)edge=1;const nb=[];if(i>0)nb.push(k-1);if(i<W-1)nb.push(k+1);if(j>0)nb.push(k-W);if(j<H-1)nb.push(k+W);for(const m of nb)if(!G.land[m]&&wc[m]<0){wc[m]=c;q[b2++]=m}}T.push({best,sz,edge});c++}
+  G.eaux=T.filter(t=>t.sz>350).sort((a,b)=>b.sz-a.sz).slice(0,5);
+  const bc=new Int32Array(G.n).fill(-1),R=[];[[4,5],[2,7],[6],[8]].forEach((bs,ty)=>{for(let s=0;s<G.n;s++){if(bc[s]>=0||!bs.includes(G.bio[s]))continue;let a2=0,b2=0;q[b2++]=s;bc[s]=ty;let sx=0,sy2=0;const cells=[];while(a2<b2){const k=q[a2++];cells.push(k);sx+=k%W;sy2+=Math.floor(k/W);const i=k%W,j=(k-i)/W,nb=[];if(i>0)nb.push(k-1);if(i<W-1)nb.push(k+1);if(j>0)nb.push(k-W);if(j<H-1)nb.push(k+W);for(const m of nb)if(bc[m]<0&&bs.includes(G.bio[m])&&G.land[m]){bc[m]=ty;q[b2++]=m}}
+   if(cells.length>=(ty===0?30:40)){const cx=sx/cells.length,cy=sy2/cells.length;let bk=cells[0],bd=1e9;for(const k of cells){const d=Math.hypot(k%W-cx,Math.floor(k/W)-cy);if(d<bd){bd=d;bk=k}}R.push({ty,k:bk,n:cells.length})}}});
+  G.reliefs=[0,1,2,3].map(ty=>R.filter(r=>r.ty===ty).sort((a,b)=>b.n-a.n).slice(0,ty===0?5:ty===1?4:2))}
+ if(!G.noms){const o=[];G.eaux.forEach((t,i)=>{const nm=t.edge?(i===0?de('Océan',sy()):de('Grande Mer',sy())):(G.dw[t.best]>9?de('Mer',sy()):de('Golfe',sy()));o.push([nm,GB.x0+(t.best%W+.5)*CS,GB.y0+(Math.floor(t.best/W)+.5)*CS])});
+  [['Monts',0],['Forêt',1],['Désert',2],['Marais',3]].forEach(([a,ty])=>G.reliefs[ty].forEach(r=>o.push([de(ty===0&&rd()<.4?'Chaîne':a,sy()),GB.x0+(r.k%W+.5)*CS,GB.y0+(Math.floor(r.k/W)+.5)*CS])));
+  G.rivs.slice().sort((a,b)=>b.length-a.length).slice(0,6).forEach(r=>{const k=r[r.length>>1],l=G.lab[k];o.push([de(rd()<.5?'Fleuve':'Rivière',sy()),GB.x0+(k%W+.5)*CS,GB.y0+(Math.floor(k/W)+.5)*CS,1])});G.noms=o}
+ const disc=new Set();PAYS.forEach((p,i)=>{if(WORLD.pays.includes(p.n))disc.add(i)});
+ return G.noms.map(z=>{const l=labAt(z[1],z[2]),ok=l<0||l===G.HOME||disc.has(l);return ok?'<text class="'+(z[3]?'nm15':'pa nm17')+'" x="'+f(z[1])+'" y="'+f(z[2])+'" style="font-style:italic;opacity:.65">'+esc(z[0])+'</text>':''}).join('')}
+
+/* trajet qui suit les routes */
+function rt17(A,B){const p=astar17(A,B);if(!p||p.length<2)return null;const W=GEO.W,pts=p.map(k=>[GB.x0+(k%W+.5)*CS,GB.y0+(Math.floor(k/W)+.5)*CS]);pts[0]=A.slice();pts[pts.length-1]=B.slice();const cum=[0];for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));const T=cum[cum.length-1]||1;
+ return u=>{const d=u*T;let i=1;while(i<cum.length-1&&cum[i]<d)i++;const a=pts[i-1],b=pts[i],t=cum[i]>cum[i-1]?(d-cum[i-1])/(cum[i]-cum[i-1]):0;return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t]}}
 /* v14b.js : routes et animation de la carte, primes, commerce, épidémies, récoltes, voyageurs, domaines, almanach, explorateur de lieux, boutons de vitesse */
 const W14=()=>{W13();const w=WORLD.v14=WORLD.v14||{};w.primes=w.primes||[];w.mal=w.mal||{};w.rec=w.rec||{};w.voy=w.voy||[];w.prix=w.prix||{};if(!w.an)w.an=0;return w};
 const Y14=()=>C.v14=C.v14||{};
@@ -2158,8 +2388,8 @@ function routes14(Lv){const f=v=>v.toFixed(1),M=Lv.filter(n=>TYPE14[n]),A=Lv,pts
  const pt=M.filter(n=>['port','phare'].includes(TYPE14[n])).concat(Lv.filter(n=>!TYPE14[n]&&BASET14[n]==='port')).sort((a,b)=>pts(a)[1]-pts(b)[1]);
  for(let i=0;i+1<pt.length;i++){const a=pts(pt[i]),b=pts(pt[i+1]);if(Math.hypot(a[0]-b[0],a[1]-b[1])<70)h+='<path d="M'+f(a[0])+' '+f(a[1])+'L'+f(b[0])+' '+f(b[1])+'" stroke="#6d8fb5" stroke-width=".35" stroke-dasharray="1.6 1.2" opacity=".7"/>'}
  return h+'</g>'}
-function deco14(){return '<g class="boussole" transform="translate(-100 -160)"><circle r="9" fill="var(--s)" stroke="var(--rel)" stroke-width=".4" opacity=".85"/><path d="M0 -8l2 8-2 8-2-8z" fill="var(--a)"/><path d="M-8 0l8-2 8 2-8 2z" fill="var(--rel)"/><text class="pa" y="-10.5" style="opacity:.9">N</text></g>'
- +'<g transform="translate(-100 -140)"><path d="M0 0h20" stroke="var(--e)" stroke-width=".5"/><path d="M0 -1v2M10 -1v2M20 -1v2" stroke="var(--e)" stroke-width=".4"/><text class="pa" x="10" y="4.6" style="opacity:.8">≈ 20 lieues</text></g>'}
+function deco14(){return '<g class="boussole" transform="translate(-300 -350)"><circle r="9" fill="var(--s)" stroke="var(--rel)" stroke-width=".4" opacity=".85"/><path d="M0 -8l2 8-2 8-2-8z" fill="var(--a)"/><path d="M-8 0l8-2 8 2-8 2z" fill="var(--rel)"/><text class="pa" y="-10.5" style="opacity:.9">N</text></g>'
+ +'<g transform="translate(-300 -325)"><path d="M0 0h20" stroke="var(--e)" stroke-width=".5"/><path d="M0 -1v2M10 -1v2M20 -1v2" stroke="var(--e)" stroke-width=".4"/><text class="pa" x="10" y="4.6" style="opacity:.8">≈ 20 lieues</text></g>'}
 function anim14(Lv){if(!REG.anim)return '';const f=v=>v.toFixed(1),G=Lv.filter(n=>['bourg','village','marche','chateau','port','relais','auberge'].includes(typeDe(n))),out=[];let s=3;const rd=()=>(s=s*16807%2147483647)/2147483647;
  for(let k=0;k<5&&G.length>3;k++){const a=pos(G[Math.floor(rd()*G.length)]),b=pos(G[Math.floor(rd()*G.length)]),d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(d<14||d>55)continue;
   out.push('<g class="mai-c"><rect x="-.9" y="-.5" width="1.8" height="1" fill="#8a5a2a" stroke="var(--e)" stroke-width=".1"/><circle cx="-1.2" cy="0" r=".45" fill="#e8e2cf"/><animateMotion dur="'+f(30+d)+'s" repeatCount="indefinite" path="M'+f(a[0])+' '+f(a[1])+'L'+f(b[0])+' '+f(b[1])+'L'+f(a[0])+' '+f(a[1])+'"/></g>')}
@@ -2179,7 +2409,7 @@ function v14Flags(){if(!C.pos)return;const y=Y14(),w=W14(),reg=rg(C.pos),t=typeD
  if(w.rec[reg]==='mauvaise')add('_Famine ici');if(w.rec[reg]==='bonne')add('_Récolte ici');
  if(w.primes.some(p=>p.reg===reg&&!p.perso))add('_Prime ici');
  if(y.rech)add('_Recherché');
- if(y.dom)add('_Domaine');else if(C.or>=60&&C.vie.length>=5&&['village','bourg','ferme','hameau'].includes(t))add('_Peut acquérir');v15Flags()}
+ if(y.dom)add('_Domaine');else if(C.or>=60&&C.vie.length>=5&&['village','bourg','ferme','hameau'].includes(t))add('_Peut acquérir');v15Flags();try{v17Flags()}catch(e){}}
 
 /* ---------- Passage des années ---------- */
 function tickAn14(w){const R=REGIONS;R.forEach(r=>{const q=w.rec[r];w.rec[r]=Math.random()<.14?'mauvaise':Math.random()<.22?'bonne':'normale';w.prix[r]=w.rec[r]==='mauvaise'?1.35:w.rec[r]==='bonne'?.85:1;
@@ -2222,10 +2452,10 @@ function v14Apres(v,ok,tx){const w=W14(),y=Y14(),reg=C.pos?rg(C.pos):'';
  if(v==='Acquérir un domaine'&&!y.dom){y.dom={n:pick(['Domaine','Manoir','Métairie','Seigneurie'])+' de '+pick(TOP14),niv:1,lieu:C.pos};tx.push(y.dom.n+' est à vous')}
  if(v==='Gérer le domaine'&&y.dom&&ok&&y.dom.niv<5&&Math.random()<.4){y.dom.niv++;tx.push(y.dom.n+' gagne en importance (niveau '+y.dom.niv+')')}
  if(y.dom&&Math.random()<.2){const g=2*y.dom.niv;C.or+=g;tx.push('Revenus du domaine : or +'+g)}
- v15Apres(v,ok,tx);v14Flags()}
+ v15Apres(v,ok,tx);try{v17Apres(v,ok,tx)}catch(e){console.error(e)}v14Flags()}
 function v14Debut(){const y=C.v14={},l=C.lig&&LIG.find(z=>z.nom===C.lig.nom);try{tick14()}catch(e){}
  if(l&&l.dom){y.dom=Object.assign({},l.dom);(C.famTx=C.famTx||[]).push('Domaine familial : '+y.dom.n+' (niveau '+y.dom.niv+')');C.or+=3*y.dom.niv}v15Debut()}
-function v14Fin(){v15Fin();const y=C.v14||{};if(y.dom&&C.lig){const l=LIG.find(z=>z.nom===C.lig.nom);if(l){l.dom=y.dom;ecrire('lig',LIG)}}ecrire('monde',WORLD)}
+function v14Fin(){v15Fin();try{v17Fin()}catch(e){}const y=C.v14||{};if(y.dom&&C.lig){const l=LIG.find(z=>z.nom===C.lig.nom);if(l){l.dom=y.dom;ecrire('lig',LIG)}}ecrire('monde',WORLD)}
 const fiche14=()=>{if(!C.pvm)return '';const y=C.v14||{},w=WORLD.v14||{},L=[],li=(a,b)=>L.push('<li><b>'+a+'</b>'+b+'</li>'),reg=C.pos?rg(C.pos):'',t=C.pos?typeDe(C.pos):'';
  if(t&&T14[t])li('Lieu',esc(T14[t][1])+' <small>('+esc(T14[t][6])+')</small>');
  if(y.cargo)li('Cargaison','achetée à '+esc(y.cargo.de));if(y.dom)li('Domaine',esc(y.dom.n)+' <small>(niveau '+y.dom.niv+')</small>');if(y.rech)li('Recherché','un avis de recherche circule à votre nom');
@@ -2262,19 +2492,19 @@ const ECOLES=['École du Feu','École de l’Eau','École des Illusions','École
 const SORTS={0:['Étincelle','Boule de feu','Mur de flammes','Pluie de braise','Nova ardente'],1:['Brume','Vague','Bouclier d’eau','Glace vive','Marée haute'],2:['Mirage','Double','Voile de peur','Sosie','Songe éveillé'],3:['Ronce','Peau d’écorce','Appel du loup','Floraison','Colère des bois'],4:['Souffle froid','Appel des os','Ombre vivante','Main de cendre','Linceul'],5:['Lueur','Soin','Aura','Éclat solaire','Jugement']};
 const CARR=['Apprenti','Compagnon','Maître','Chef d’atelier'],ARCT={Combattant:'combat',Voyageur:'voyage',Érudit:'savoir',Artisan:'artisanat',Commerçant:'commerce',Mystique:'mystique',Roublard:'ruse',Soigneur:'soin'};
 const CENT15={'Royaume du Nord':[107,24,85,12],'Terres du Centre':[107,60,85,16],'Marches du Sud':[107,95,85,12]};
-const rc15=r=>{const p=PAYS.find(z=>z.n===r);return p?[(p.x0+p.x1)/2,(p.y0+p.y1)/2,(p.x1-p.x0)/2,(p.y1-p.y0)/2]:(CENT15[r]||[100,60,60,30])};
+const rc15=r=>{const p=PAYS.find(z=>z.n===r);return p?[p.cx!==undefined&&GEO?p.cx:(p.x0+p.x1)/2,p.cy!==undefined&&GEO?p.cy:(p.y0+p.y1)/2,(p.x1-p.x0)/2,(p.y1-p.y0)/2]:(CENT15[r]||[100,60,60,30])};
 const col15=r=>{const p=PAYS.find(z=>z.n===r);return p?p.col:'#b8862d'};
-const vois15=r=>{const a=rc15(r);return REGIONS.filter(o=>o!==r&&Math.hypot(rc15(o)[0]-a[0],rc15(o)[1]-a[1])<230)};
+const vois15=r=>{if(GEO){const i=PAYS.findIndex(p=>p.n===r);if(i>=0)return GEO.voi[i].map(j=>PAYS[j].n).concat(GEO.mer&&GEO.mer[i]?GEO.mer[i].map(j=>PAYS[j].n):[])}const a=rc15(r);return REGIONS.filter(o=>o!==r&&Math.hypot(rc15(o)[0]-a[0],rc15(o)[1]-a[1])<230)};
 
 /* ---------- Carte : territoires et guerres ---------- */
 function terr15(){const w=WORLD.v15;if(!w)return '';const f=v=>v.toFixed(1),ok=r=>CENT15[r]||(WORLD.pays||[]).includes(r);let h='<g class="c-t2">';
- Object.keys(w.terr).forEach(r=>{if(!ok(r))return;const c=rc15(r),o=w.terr[r].o,k=col15(o);h+='<ellipse cx="'+f(c[0])+'" cy="'+f(c[1])+'" rx="'+f(c[2]*.95)+'" ry="'+f(c[3]*.95)+'" fill="'+k+'" opacity=".38" stroke="#7a3b2e" stroke-width=".5" stroke-dasharray="2 1.4"/><text class="pa" x="'+f(c[0])+'" y="'+f(c[1]+c[3]*.55)+'" style="opacity:.9">occupé par '+esc(o)+'</text>'});
+ Object.keys(w.terr).forEach(r=>{if(!ok(r))return;const c=rc15(r),o=w.terr[r].o,k=col15(o);const pi=GEO?PAYS.findIndex(z=>z.n===r):-1;h+=(pi>=0?'<path d="'+path17(pi)+'" fill="'+k+'" fill-rule="evenodd" opacity=".38" stroke="#7a3b2e" stroke-width=".5" stroke-dasharray="2 1.4"/>':'<ellipse cx="'+f(c[0])+'" cy="'+f(c[1])+'" rx="'+f(c[2]*.95)+'" ry="'+f(c[3]*.95)+'" fill="'+k+'" opacity=".38" stroke="#7a3b2e" stroke-width=".5" stroke-dasharray="2 1.4"/>')+'<text class="pa" x="'+f(c[0])+'" y="'+f(c[1]+c[3]*.55)+'" style="opacity:.9">occupé par '+esc(o)+'</text>'});
  w.war.forEach(g=>{if(!ok(g.a)||!ok(g.b))return;const a=rc15(g.a),b=rc15(g.b),mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;h+='<path d="M'+f(a[0])+' '+f(a[1])+'L'+f(b[0])+' '+f(b[1])+'" stroke="#c0504d" stroke-width=".9" stroke-dasharray="2 1.2" opacity=".8"/><path d="M'+f(mx-3)+' '+f(my-3)+'l6 6M'+f(mx+3)+' '+f(my-3)+'l-6 6" stroke="#c0504d" stroke-width="1.2"/>'});
  return h+'</g>'}
 function noms15(){const t=[['Fleuve Aldre',120,48],['Monts du Givre',152,26],['Désert d’Aride',160,98],['Mer d’Ysmir',-45,70],['Grand Océan du Levant',250,70],['Océan des Brumes',-40,245],['Forêt de Sombrebois',60,28],['Lac Miroir',128,70]];return t.map(z=>'<text class="nm15" x="'+z[1]+'" y="'+z[2]+'" style="font-style:italic;opacity:.65">'+z[0]+'</text>').join('')}
 
 /* ---------- Années qui passent ---------- */
-function tickAn15(w){REGIONS.forEach(r=>{if(!w.dieux[r])w.dieux[r]=pick(DIEUX)[0]});const ar=anCourant(),act=w.war;
+function tickAn15(w){tickAn17hook(w.an);REGIONS.forEach(r=>{if(!w.dieux[r])w.dieux[r]=pick(DIEUX)[0]});const ar=anCourant(),act=w.war;
  for(let i=act.length-1;i>=0;i--){const g=act[i];if(Math.random()<.5)g.sa++;else g.sb++;if(ar-g.an>=1+rnd(3)){const win=g.sa>=g.sb?g.a:g.b,los=win===g.a?g.b:g.a;act.splice(i,1);
   if(Math.random()<.4&&!(w.terr[los])){w.terr[los]={o:win,an:ar};chro(win+' conquiert '+los+' ('+g.sa+' à '+g.sb+')')}else chro('La paix revient entre '+g.a+' et '+g.b);
   delete WORLD.pe[g.a];delete WORLD.pe[g.b];built=false}}
@@ -2282,7 +2512,7 @@ function tickAn15(w){REGIONS.forEach(r=>{if(!w.dieux[r])w.dieux[r]=pick(DIEUX)[0
  Object.keys(w.terr).forEach(r=>{if(ar-w.terr[r].an>35&&Math.random()<.2){delete w.terr[r];chro(r+' retrouve son indépendance');built=false}});
  const reg=n=>(LIEUX14.find(z=>z[0]===n)||[])[2];
  if(Math.random()<.5){const p=Object.keys(TYPE14).filter(n=>!w.chg[n]&&['hameau','village'].includes(TYPE14[n]));if(p.length){const n=pick(p);w.chg[n]=TYPE14[n]==='hameau'?'village':'bourg';chro(n+' prospère et devient un '+(w.chg[n]==='bourg'?'bourg':'village'));built=false}}
- if(Math.random()<.3){const bad=r=>act.some(g=>g.a===r||g.b===r)||w.mal[r];const p=Object.keys(TYPE14).filter(n=>{const t=w.chg[n]||TYPE14[n];return ['hameau','village','bourg','ferme','camp','chateau','auberge'].includes(t)&&(bad(reg(n))||Math.random()<.15)});if(p.length){const n=pick(p);w.chg[n]='ruines';chro(n+' est abandonné et tombe en ruines');built=false}}}
+ if(Math.random()<.3){const bad=r=>act.some(g=>g.a===r||g.b===r)||((WORLD.v14||{}).mal||{})[r];const p=Object.keys(TYPE14).filter(n=>{const t=w.chg[n]||TYPE14[n];return ['hameau','village','bourg','ferme','camp','chateau','auberge'].includes(t)&&(bad(reg(n))||Math.random()<.15)});if(p.length){const n=pick(p);w.chg[n]='ruines';chro(n+' est abandonné et tombe en ruines');built=false}}}
 function tick15(){const w=W15(),ar=anCourant();if(!w.an){w.an=ar;tickAn15(w);return}let k=0;while(w.an<ar&&k++<6){w.an++;tickAn15(w)}w.an=Math.max(w.an,ar)}
 
 /* ---------- Contexte ---------- */
@@ -2335,7 +2565,7 @@ function v15Apres(v,ok,tx){const w=W15(),y=Y15(),Y4=Y14(),reg=C.pos?rg(C.pos):''
  v15Flags()}
 function v15Debut(){const y=C.v15={},l=C.lig&&LIG.find(z=>z.nom===C.lig.nom);try{tick15()}catch(e){}
  if(l&&l.cmp&&!C.cmp&&Math.random()<.6){C.cmp=Object.assign({},l.cmp);if(C.cmp.ty==='Animal'){C.cmp.n=C.cmp.n.replace(/ \(descendant\)$/,'')+' (descendant)';C.cmp.ag=rnd(3)}else C.cmp.ag=Math.min(C.cmp.ag||18,40);(C.famTx=C.famTx||[]).push('Compagnon de lignée : '+C.cmp.n+' rejoint votre route');delete l.cmp}
- if(l&&l.atelier&&Math.random()<.7){y.atelier={n:l.atelier.n,niv:Math.max(1,l.atelier.niv-1)};(C.famTx=C.famTx||[]).push('Atelier familial : '+y.atelier.n+' (niveau '+y.atelier.niv+')')}}
+ if(l&&l.atelier&&Math.random()<.7){y.atelier={n:l.atelier.n,niv:Math.max(1,l.atelier.niv-1)};(C.famTx=C.famTx||[]).push('Atelier familial : '+y.atelier.n+' (niveau '+y.atelier.niv+')')};try{v16Debut()}catch(e){}}
 function v15Fin(){const y=C.v15||{};if(C.lig){const l=LIG.find(z=>z.nom===C.lig.nom);if(l){if(C.cmp&&(C.cmp.ty!=='Animal'||(C.cmp.ag||0)<10))l.cmp=Object.assign({},C.cmp);if(y.atelier)l.atelier=y.atelier;ecrire('lig',LIG)}}ecrire('monde',WORLD)}
 const fiche15=()=>{if(!C.pvm)return '';const y=C.v15||{},w=WORLD.v15||{},L=[],li=(a,b)=>L.push('<li><b>'+a+'</b>'+b+'</li>'),ar=(C.rep.find(r=>r[0]==='Archétype')||[])[1],reg=C.pos?rg(C.pos):'';
  if(y.carr||y.cpts)li('Carrière',esc(CARR[y.carr||0])+' <small>('+esc(ar||'')+', '+(y.cpts||0)+' réussites)</small>');
@@ -2359,7 +2589,7 @@ function fichePlace15(n){const ty=typeDe(n),d=T14[ty],w=WORLD.v14||{},w5=WORLD.v
  const s=WORLD.sites.find(z=>z.n===n);if(s)o.push('Découvert par '+s.par+' (an '+s.an+'), '+s.expl+' exploration'+(s.expl>1?'s':''));
  const ev=EVL14.filter(e=>e[0]===ty).map(e=>e[1]);if(ev.length)o.push('Événement possible : '+ev.join(', '));
  if(C.pos===n)o.push('Votre personnage est ici');
- modal('Lieu',n,d?d[6]:(BASET14[n]?'Un lieu majeur de la région.':''),o,()=>{})}
+ modal('Lieu',n,d?d[6]:(BASET14[n]?'Un lieu majeur de la région.':''),o,()=>{});try{planBtn17(n)}catch(e){}}
 mp.addEventListener('pointerup',e=>{if(occ||mv||pts.size>0||PLACE)return;const x=e.clientX,y=e.clientY;setTimeout(()=>{if(!lastTap||Date.now()-lastTap<300||!$('plein')||$('plein').hidden)return;
  try{const pt=mp.createSVGPoint();pt.x=x;pt.y=y;const q=pt.matrixTransform(mp.getScreenCTM().inverse()),r=Math.max(2.5,V.h*.04);let b=null,bd=r;tous().filter(visible15).forEach(n=>{const p=pos(n),d=Math.hypot(p[0]-q.x,p[1]-q.y);if(d<bd){bd=d;b=n}});if(b){lastTap=0;fichePlace15(b)}}catch(er){}},340)});
 
@@ -2372,10 +2602,10 @@ function initCarte15(){const b=document.querySelector('.bas');if(!b||$('rc-t'))r
 
 /* pays du monde */
 function pays15(){const c=$('v15-pays');if(!c)return;const w=WORLD.v15||{},v14=WORLD.v14||{};
- c.innerHTML='<ul>'+REGIONS.map(r=>{const p=paysObj(r),home=!p,dec=home||(WORLD.pays||[]).includes(r),k=(WORLD.v12&&WORLD.v12.roy||{})[r],g=(w.war||[]).some(z=>z.a===r||z.b===r);
-  return '<li data-pays="'+esc(r)+'" style="cursor:pointer"><b>'+(dec?esc(r):'Terres inconnues')+'</b>'+(dec?esc(p?p.d||'':'Une région du royaume connu.')+(k?' <small>('+(k.vacant?'trône vacant':'souverain : '+esc(k.souv))+')</small>':'')+(g?' <small>· en guerre</small>':'')+((w.terr||{})[r]?' <small>· occupé par '+esc(w.terr[r].o)+'</small>':''):'<small>Pas encore découvert</small>')+'</li>'}).join('')+'</ul>';
+ const inc=REGIONS.filter(r=>paysObj(r)&&!(WORLD.pays||[]).includes(r)).length;c.innerHTML='<ul>'+REGIONS.filter(r=>!paysObj(r)||(WORLD.pays||[]).includes(r)).map(r=>{const p=paysObj(r),home=!p,dec=home||(WORLD.pays||[]).includes(r),k=(WORLD.v12&&WORLD.v12.roy||{})[r],g=(w.war||[]).some(z=>z.a===r||z.b===r);
+  return '<li data-pays="'+esc(r)+'" style="cursor:pointer"><b>'+(dec?esc(r):'Terres inconnues')+'</b>'+(dec?esc(p?p.d||'':'Une région du royaume connu.')+(k?' <small>('+(k.vacant?'trône vacant':'souverain : '+esc(k.souv))+')</small>':'')+(g?' <small>· en guerre</small>':'')+((w.terr||{})[r]?' <small>· occupé par '+esc(w.terr[r].o)+'</small>':''):'<small>Pas encore découvert</small>')+'</li>'}).join('')+(inc?'<li><b>'+inc+' contrées inconnues</b><small>Elles apparaissent sur la carte quand un voyageur les atteint.</small></li>':'')+'</ul>';
  c.onclick=e=>{const li=e.target.closest('[data-pays]');if(!li)return;const r=li.dataset.pays,p=paysObj(r),dec=!p||(WORLD.pays||[]).includes(r);if(!dec)return modal('Pays','Terres inconnues','Aucun voyageur n’a encore atteint cette contrée.',[],()=>{});
-  const o=[],dn=(w.dieux||{})[r],g=DIEUX.find(z=>z[0]===dn),fe=FETES[r];if(g)o.push('Culte : '+g[0]+' ('+g[1]+')');if(fe)o.push('Fête : '+fe.n+' ('+MOIS12[fe.m]+')');
+  const o=[],dn=(w.dieux||{})[r],g=DIEUX.find(z=>z[0]===dn),fe=FETES[r];if(p&&p.reg)o.push('Régime : '+p.reg);if(g)o.push('Culte : '+g[0]+' ('+g[1]+')');if(fe)o.push('Fête : '+fe.n+' ('+MOIS12[fe.m]+')');
   const L=LIEUX14.filter(z=>z[2]===r&&visible15(z[0]));o.push(L.length+' lieu'+(L.length>1?'x':'')+' connu'+(L.length>1?'s':'')+' sur '+LIEUX14.filter(z=>z[2]===r).length);
   if(v14.mal&&v14.mal[r])o.push('Épidémie en cours');if(v14.rec&&v14.rec[r]==='mauvaise')o.push('Famine');if((v14.primes||[]).some(z=>z.reg===r))o.push('Primes offertes dans le pays');
   if(p)o.push('Lieux majeurs : '+p.L.map(l=>l[0]).join(', '));modal('Pays',r,p?p.d:'Une région du royaume connu.',o,()=>{})}}
@@ -2418,6 +2648,350 @@ function livre15(){monde();const E=[];(WORLD.chro||[]).forEach(e=>E.push([e.an,e
 function hist15(){pays15();stats15();if(!$('qs')&&$('fi')&&$('fi').parentElement){const b=document.createElement('button');b.id='qs';b.textContent='Qui suis-je ?';b.style.cssText='width:100%;margin:0 0 8px';b.onclick=quiSuisJe;$('fi').parentElement.insertBefore(b,$('fi'))}
  const m=$('v15-sm');if(m&&!$('lv-b')){const b=document.createElement('button');b.id='lv-b';b.textContent='Exporter le livre du monde';b.style.cssText='width:100%;margin-top:8px';b.onclick=livre15;m.parentElement.appendChild(b)}
  initCarte15()}
+/* v16a.js : menu du bas, onglet Quêtes, bandeau d'état, recherche, favoris, texte de roue adaptatif */
+
+/* ---------- Texte de la roue : plusieurs lignes, taille adaptée, lisible ---------- */
+function lignes16(t,n){const w=t.split(/\s+/);if(n===1||w.length<2)return [t];const tot=t.length,L=[];let cur='';w.forEach((x,i)=>{const cible=tot/n*(L.length+1);if(cur&&(cur+' '+x).length>cible+3&&L.length<n-1){L.push(cur);cur=x}else cur=cur?cur+' '+x:x});L.push(cur);return L}
+function texteRoue(txt,m,d,faded){const len=106,arc=d*84;let best=null;
+ const essai=t=>{[1,2,3].forEach(n=>{const L=lignes16(t,n);if(L.length<n&&n>1)return;const mx=Math.max(...L.map(z=>z.length)),fs=Math.min(13,len/(.56*mx),arc/(1.12*L.length+.3));if(!best||fs>best.fs*(n>best.L.length?1.18:1))best={fs,L}})};
+ essai(txt);if(!best||best.fs<7){const c=txt.replace(/\s*\([^)]*\)\s*/g,' ').trim();if(c&&c!==txt)essai(c)}
+ if(!best||best.fs<7){const fs=Math.min(7.5,arc/1.5);if(fs<5.5)return '';const n=Math.max(1,Math.min(3,Math.floor((arc-.3*fs)/(1.12*fs)))),mc=Math.floor(len/(.56*fs));let L=lignes16(txt.replace(/\s*\([^)]*\)\s*/g,' ').trim(),n);L=L.map(z=>z.length>mc?z.slice(0,mc-1)+'…':z);best={fs,L}}
+ const a=m*180/Math.PI,flip=Math.cos(m)<0,L=flip?best.L.slice().reverse():best.L,fs=best.fs;
+ return '<text transform="translate('+(150+84*Math.cos(m)).toFixed(1)+' '+(150+84*Math.sin(m)).toFixed(1)+') rotate('+(flip?a+180:a).toFixed(1)+')" text-anchor="middle" font-size="'+fs.toFixed(1)+'" fill="#fff" opacity="'+(faded?.3:1)+'">'+L.map((l,i)=>'<tspan x="0" dy="'+(i?'1.12em':(-(L.length-1)/2*1.12+.35).toFixed(2)+'em')+'">'+esc(l)+'</tspan>').join('')+'</text>'}
+
+/* ---------- Onglet Quêtes ---------- */
+function quetes16(){const o=$('v16-obj'),s=$('v16-sec'),p=$('v16-succ');if(!o)return;
+ if(!C.pvm){o.innerHTML='<p style="color:var(--m)">Terminez la création du personnage pour recevoir un objectif.</p>'}
+ else{const q=etq(),h=[];h.push('<li><b>Objectif</b>'+esc(C.obj||'aucun')+'</li>');
+  if(q.length)h.push('<li><b>Étapes</b>'+q.map((e,i)=>(i<C.qs?'✔ ':i===C.qs?'▶ ':'… ')+esc(e[0])+(i===C.qs?esc(progTxt(e))+'<br><small>À faire : '+esc(afaire(e))+'</small>':'')).join('<br>')+'</li>');
+  if(C.fin)h.push('<li><b>Issue</b>'+(C.fin==='victoire'?'objectif accompli':'le personnage est mort')+'</li>');o.innerHTML='<ul>'+h.join('')+'</ul>'}
+ const L=[],x=C.v12||{},y=C.v13||{},w=WORLD.v13||{},y4=C.v14||{},y5=C.v15||{};
+ if(C.sq)L.push('<li><b>Quête secondaire</b>'+esc(C.sq.txt)+'</li>');if(C.mnd)L.push('<li><b>Mission en cours</b>'+esc(C.mnd.n)+'</li>');
+ if(x.serment)L.push('<li><b>Serment</b>'+esc(x.serment.txt)+' <small>('+x.serment.tenu+'/4)</small></li>');if(x.reve)L.push('<li><b>Rêve</b>'+esc(x.reve.txt)+'</li>');
+ if(w.proph&&!w.proph.done)L.push('<li><b>Prophétie du monde</b>'+esc(w.proph.txt)+'<br><small>Étape '+(w.proph.stade+1)+'/3 : '+esc(w.proph.steps[w.proph.stade])+'</small></li>');
+ if(y.herede!==undefined&&HEREDS[y.herede]&&HEREDS[y.herede].k==='m'){const l=C.lig&&LIG.find(z=>z.nom===C.lig.nom);L.push('<li><b>Lever la malédiction</b>'+esc(HEREDS[y.herede].n)+' <small>('+((l&&l.herede&&l.herede.prog)||0)+'/'+HEREDS[y.herede].need+' : '+HEREDS[y.herede].lever.map(esc).join(', ')+')</small></li>')}
+ if(y.pacte)L.push('<li><b>Pacte à payer</b>'+esc(y.pacte.n)+'</li>');if(y.guilde)L.push('<li><b>Guilde</b>'+esc(y.guilde.n)+' <small>('+RANGG[y.guilde.rang]+', '+y.guilde.pts+' pts)</small></li>');
+ if(y4.rech)L.push('<li><b>Avis de recherche</b>un procès ou une fuite vous attend</li>');if(y4.cargo)L.push('<li><b>Cargaison à revendre</b>achetée à '+esc(y4.cargo.de)+'</li>');if(y4.dom)L.push('<li><b>Domaine</b>'+esc(y4.dom.n)+'</li>');
+ if(y5.ecole!==undefined)L.push('<li><b>Magie</b>'+esc(ECOLES[y5.ecole])+' : '+(y5.sorts||0)+'/5 sorts</li>');if(y5.carr||y5.cpts)L.push('<li><b>Carrière</b>'+esc(CARR[y5.carr||0])+' ('+(y5.cpts||0)+' réussites)</li>');
+ if(C.pvm&&(C.cmp))L.push('<li><b>Compagnon</b>'+esc(C.cmp.n)+' (niveau '+C.cmp.niv+')</li>');
+ s.innerHTML=L.length?'<ul>'+L.join('')+'</ul>':'<p style="color:var(--m)">Aucune mission secondaire pour l’instant. Elles apparaissent au fil des événements.</p>';
+ const f=($('sp-f')||{}).value||'';if(!p.dataset.ok){p.dataset.ok=1;p.innerHTML='<select id="sp-f"><option value="">Tous les succès</option><option value="a">À obtenir</option><option value="f">Obtenus par ce personnage</option><option value="m">Pris par le monde</option></select><ul id="sp-l"></ul>';$('sp-f').onchange=quetes16}
+ const rows=SUCC.map(z=>{const mine=C.succ.includes(z[0]),pr=WORLD.succ[z[0]];return{z,mine,pr}}).filter(r=>f==='a'?!r.pr:f==='f'?r.mine:f==='m'?!!r.pr:true);
+ $('sp-l').innerHTML='<li><small>'+Object.keys(WORLD.succ).length+' pris sur '+SUCC.length+'</small></li>'+rows.map(r=>'<li><b>'+(r.mine?'★ ':'')+esc(r.z[0])+(r.pr?' <small>(pris par '+esc(r.pr.par)+', an '+r.pr.an+')</small>':'')+'</b>'+esc(r.z[3]||'')+'</li>').join('')}
+
+/* ---------- Bandeau d'état ---------- */
+function strip16(){const s=$('strip16');if(!s)return;const q=C.pvm?etq():[],ob=C.pvm&&C.obj?(q[C.qs]?afaire(q[C.qs]):C.obj):'';
+ s.querySelector('.st16').innerHTML=C.pvm?'<b>'+esc(C.nom||'Personnage')+'</b> · Vie '+C.pv+'/'+C.pvm+' · Énergie '+C.en+'/'+C.enm+' · Or '+C.or+(ob&&!C.fin?'<br><small>▶ '+esc(ob.length>70?ob.slice(0,68)+'…':ob)+'</small>':''):'<b>Création du personnage</b>';
+ const fv=(REG.fav||[]).slice(0,5);s.querySelector('.fv16').innerHTML=fv.map(k=>{const d=document.querySelector('details.cat[data-k="'+k+'"]');return d?'<button data-fj="'+k+'">★ '+esc(d.querySelector('summary b').textContent)+'</button>':''}).join('')}
+function aller16(k){const d=document.querySelector('details.cat[data-k="'+k+'"]');if(!d)return;const t=d.closest('.tp');if(t)onglet16(t.dataset.t);d.open=true;setTimeout(()=>d.scrollIntoView({behavior:'smooth',block:'start'}),60)}
+let onglet16=()=>{};
+
+/* ---------- Recherche globale ---------- */
+function recherche16(){const o=document.createElement('div');o.className='ov13';o.innerHTML='<div class="bu13" role="dialog" aria-modal="true"><input id="rq16" placeholder="Rechercher : catégorie, lieu, pays, succès, terme…" aria-label="Recherche"><ul id="rl16" style="margin-top:8px"></ul><div class="l"><button class="n">Fermer</button></div></div>';document.body.appendChild(o);const q=o.querySelector('#rq16'),l=o.querySelector('#rl16');
+ const items=()=>{const A=[];document.querySelectorAll('details.cat').forEach(d=>A.push(['Catégorie',d.querySelector('summary b').textContent,()=>aller16(d.dataset.k)]));
+  GLOS.forEach(g=>A.push(['Glossaire',g[0],()=>modal('Glossaire',g[0],g[1],[],()=>{})]));
+  SUCC.forEach(z=>A.push(['Succès',z[0],()=>modal('Succès',z[0],z[3]||'',[WORLD.succ[z[0]]?'Pris par '+WORLD.succ[z[0]].par+' (an '+WORLD.succ[z[0]].an+')':'Encore libre'],()=>{})]));
+  Object.keys(TYPE14).concat(Object.keys(BASET14)).filter(visible15).forEach(n=>A.push(['Lieu',n,()=>fichePlace15(n)]));
+  REGIONS.filter(r=>!paysObj(r)||(WORLD.pays||[]).includes(r)).forEach(r=>A.push(['Pays',r,()=>{aller16('c-pays15')}]));return A};
+ const I=items(),rend=()=>{const v=q.value.trim().toLowerCase();const R=v?I.filter(z=>z[1].toLowerCase().includes(v)).slice(0,40):I.filter(z=>z[0]==='Catégorie');l.innerHTML=R.map((z,i)=>'<li data-i="'+i+'" style="cursor:pointer"><b>'+z[0]+'</b>'+esc(z[1])+'</li>').join('')||'<li>Aucun résultat.</li>';l._R=R};
+ q.oninput=rend;rend();l.onclick=e=>{const li=e.target.closest('[data-i]');if(!li)return;const r=l._R[+li.dataset.i];o.remove();r[2]()};o.querySelector('.n').onclick=()=>o.remove();q.focus()}
+
+/* ---------- Favoris ---------- */
+function etoiles16(){document.querySelectorAll('details.cat').forEach(d=>{const s=d.querySelector('summary');if(s.querySelector('.fav16'))return;const b=document.createElement('span');b.className='fav16';b.setAttribute('role','button');b.setAttribute('aria-label','Mettre en favori');const maj=()=>{b.textContent=(REG.fav||[]).includes(d.dataset.k)?'★':'☆'};maj();
+  b.onclick=e=>{e.preventDefault();e.stopPropagation();const f=REG.fav=REG.fav||[],i=f.indexOf(d.dataset.k);if(i>=0)f.splice(i,1);else f.unshift(d.dataset.k);ecrire('reg',REG);maj();strip16()};s.appendChild(b)})}
+
+function hist16(){quetes16();strip16()}
+
+/* ---------- Mise en place : bandeau, onglets du bas, bouton Lancer ---------- */
+function barre16(){const main=document.querySelector('main'),nav=$('tabs13');if(!main||!nav||$('strip16'))return;
+ const w=document.createElement('div');w.id='jeu13';const first=main.firstElementChild;main.insertBefore(w,first);['.haut','.nomrow','#fin','#et','#roue','#leg','#go','#res','#act','#bar'].forEach(s=>{const e=main.querySelector(':scope > '+s);if(e)w.appendChild(e)});
+ const st=document.createElement('div');st.id='strip16';st.innerHTML='<div class="r1"><div class="st16"></div><button id="srch16" aria-label="Rechercher">Rechercher</button></div><div class="fv16"></div>';main.insertBefore(st,w);
+ nav.innerHTML=[['p','Jeu'],['q','Quêtes'],['m','Monde'],['r','Mémoire'],['g','Réglages']].map(([k,t])=>'<button data-t="'+k+'">'+t+'</button>').join('');document.body.appendChild(nav);
+ const sec=document.querySelector('.tp[data-t=r]'),mk=(k,l)=>{const s=document.createElement('section');s.className='tp';s.dataset.t=k;s.hidden=true;sec.insertAdjacentElement('beforebegin',s);return s};
+ const q=mk('q'),mkc=(id)=>{const d=document.createElement('div');d.id=id;return d};
+ const take=n=>n&&n.closest?n:null;
+ const cats=[cat13('c-obj','Objectif en cours',[mkc('v16-obj')],true),cat13('c-sec','Missions secondaires',[mkc('v16-sec')],true),cat13('c-sp','Succès possibles',[mkc('v16-succ')]),$('v12-cach'),$('lo')&&$('lo').closest('details'),document.querySelector('details.cat[data-k=c-rc]'),$('v12-leg')];
+ cats.filter(Boolean).forEach(c=>q.appendChild(c));
+ const fab=document.createElement('button');fab.id='fab16';fab.textContent='Lancer';document.body.appendChild(fab);
+ onglet16=k=>{REG.tab=k;ecrire('reg',REG);nav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.t===k));document.querySelectorAll('.tp').forEach(s=>s.hidden=s.dataset.t!==k);w.hidden=k!=='p';fab.hidden=k==='p';if(k!=='p')scrollTo(0,0)};
+ nav.onclick=e=>{const b=e.target.closest('button');if(b)onglet16(b.dataset.t)};fab.onclick=()=>{onglet16('p');setTimeout(()=>$('go').click(),50)};
+ $('srch16').onclick=recherche16;st.querySelector('.fv16').onclick=e=>{const b=e.target.closest('[data-fj]');if(b)aller16(b.dataset.fj)};
+ onglet16(REG.tab==='q'||REG.tab==='m'||REG.tab==='r'||REG.tab==='g'?REG.tab:'p');etoiles16();document.body.classList.add('nav16');hist16();try{init17()}catch(e){console.error(e)}}
+/* v16b.js : 12 races, cultures par pays, métiers, traits, défauts, destins, objets, objectifs et près de 100 succès en plus */
+const NR16=[
+['Ogre',1,{For:2,End:2,Esp:-2,Cha:-1},['Poigne d’ogre','combat'],'Une montagne de muscles au sourire timide : on le craint avant de le connaître.','#b5a27a'],
+['Harpie',.8,{Agi:2,Cha:1,For:-1,End:-1},['Cri strident','social'],'Des plumes à la place des cheveux, un chant qui fait fuir ou fait rêver.','#c9a6d6'],
+['Naga',.8,{Esp:1,Agi:1,End:1,For:-1},['Écailles lisses','survie'],'Un regard fendu, une peau d’écailles, une patience de reptile.','#6fbf9a'],
+['Centaure',.9,{For:1,End:2,Agi:1,Esp:-1},['Galop de plaine','voyage'],'Moitié cheval, moitié sage : il n’aime ni les murs ni les foules.','#c79a6a'],
+['Troll',.8,{For:2,End:2,Esp:-2,Cha:-2},['Peau de pierre','survie'],'Une peau comme l’écorce, un appétit énorme et des blessures qui se referment.','#7f9a6a'],
+['Fée',.7,{Agi:2,Esp:2,For:-2,End:-2},['Poussière d’étoile','mystique'],'Minuscule, ailée et capricieuse : sa magie dépasse sa taille.','#f0d9f5'],
+['Loup-garou',.9,{For:2,Agi:1,Cha:-2},['Flair du loup','survie'],'Le jour, un voisin discret. La nuit, tout autre chose.','#a08060'],
+['Golem',.5,{End:3,For:2,Agi:-2,Cha:-2},['Corps de pierre','artisanat'],'Façonné dans la glaise et l’obstination, animé par un mot oublié.','#9a9aa0'],
+['Satyre',.9,{Cha:2,Agi:1,End:-1},['Flûte de pan','social'],'Des cornes, des pattes de bouc, et toujours une chanson à la bouche.','#d9a77a'],
+['Vampire',.7,{Cha:2,Esp:1,For:1,End:-1},['Regard hypnotique','social'],'Pâle, élégant et ancien : il vit de nuits et de secrets.','#e6d8dc'],
+['Kobold',1,{Agi:1,Esp:1,For:-2,End:-1},['Instinct de tunnel','survie'],'Petit, rusé, couvert de suie : il connaît chaque galerie sous la terre.','#c08a5a'],
+['Triton',.9,{End:2,Agi:1,Cha:1,For:-1},['Souffle de l’abysse','voyage'],'Des branchies, des nageoires et la mer dans les veines.','#7ab6d6']];
+const NRA16={Ogre:{Combattant:2.5,Artisan:.8},Harpie:{Voyageur:2,Roublard:1.5},Naga:{Mystique:2,Érudit:1.3},Centaure:{Voyageur:2.5,Combattant:1.5},Troll:{Combattant:2,Artisan:1.5},Fée:{Mystique:3,Soigneur:1.5},'Loup-garou':{Voyageur:1.5,Combattant:1.5},Golem:{Artisan:2.5,Combattant:1.5},Satyre:{Commerçant:1.5,Mystique:1.5},Vampire:{Érudit:2,Roublard:1.5,Mystique:1.5},Kobold:{Roublard:2,Artisan:1.5},Triton:{Voyageur:2,Commerçant:1.3}};
+NR16.forEach(r=>{RACES.push([r[0],r[1]]);DEF.find(t=>t.n==='Race').o.push([r[0],r[1]]);SB[r[0]]=r[2];RSK[r[0]]=r[3];HIST[r[0]]=r[4];RDESC[r[0]]=r[4];RC[r[0]]=r[5];Object.keys(NRA16[r[0]]||{}).forEach(a=>{if(ARCH[a])ARCH[a][1][r[0]]=NRA16[r[0]][a]})});
+/* dessins des nouvelles races (visage de rayon 6 centré en 0,0) */
+const EX16=(c,ar,av)=>ar+'<circle r="6" fill="'+c+'" stroke="#3b2a1a" stroke-width=".5"/><circle cx="-2.2" cy="-.4" r=".75" fill="#222"/><circle cx="2.2" cy="-.4" r=".75" fill="#222"/>'+av;
+const EXTRA_ICO={
+ Ogre:c=>EX16(c,'','<path d="M-3.6 3.4l.8-2.4.8 2.4zM2.8 3.4l.8-2.4.8 2.4z" fill="#fff"/><path d="M-4.2 -2.2l3.2 1M4.2 -2.2l-3.2 1" stroke="#222" stroke-width=".8"/>'),
+ Harpie:c=>EX16(c,'<path d="M-6 -2l-6-5 1 7zM6 -2l6-5-1 7z" fill="#8a5aa0" stroke="#3b2a1a" stroke-width=".3"/>','<path d="M-5 -4q5-6 10 0q-5-2-10 0z" fill="#7a4a90"/><path d="M-1 2.4l1 1.6 1-1.6z" fill="#e8a23a"/>'),
+ Naga:c=>EX16(c,'<path d="M-6 0q-6-8 0-10 3 3 6 3 3 0 6-3 6 2 0 10z" fill="#3f8f6a" opacity=".85"/>','<path d="M-2.6 -.5h1M1.6 -.5h1" stroke="#fff" stroke-width=".4"/><path d="M0 3v2l-.7.8M0 5l.7.8" stroke="#c33" stroke-width=".3" fill="none"/>'),
+ Centaure:c=>EX16(c,'','<path d="M-5 -3q0-5 5-5t5 5q-5-2-10 0z" fill="#5a3a1f"/><path d="M-6 -2q-2 4 0 8M6 -2q2 4 0 8" stroke="#5a3a1f" stroke-width="1" fill="none"/>'),
+ Troll:c=>EX16(c,'','<path d="M-5 -2q2-5 5-5t5 5q-5-2-10 0z" fill="#4f6a3a"/><ellipse cx="0" cy="2" rx="1.8" ry="1.4" fill="#6a8a55"/><path d="M-3 3.8h6" stroke="#222" stroke-width=".4"/>'),
+ Fée:c=>EX16(c,'<path d="M-6 0q-9-9-5 2 2 3 5 0zM6 0q9-9 5 2-2 3-5 0z" fill="#e9f3ff" stroke="#9ab8d8" stroke-width=".3" opacity=".9"/>','<path d="M-5 -3q5-5 10 0q-5-1-10 0z" fill="#d86ab5"/><circle cx="4" cy="-5" r=".7" fill="#ffd96a"/>'),
+ 'Loup-garou':c=>EX16(c,'<path d="M-5.5 -3l-1-7 4.5 4zM5.5 -3l1-7-4.5 4z" fill="'+c+'" stroke="#3b2a1a" stroke-width=".4"/>','<ellipse cx="0" cy="2.6" rx="2.2" ry="1.7" fill="#7a5a3a"/><circle cx="0" cy="1.8" r=".6" fill="#222"/><path d="M-1 3.8l.6-1.4.6 1.4z" fill="#fff"/>'),
+ Golem:c=>EX16(c,'','<path d="M-6 -6h12v12h-12z" fill="none" stroke="#6b6b73" stroke-width=".8"/><path d="M-3 -6l2 4-2 3M4 -1l-2 3" stroke="#555" stroke-width=".4" fill="none"/><path d="M-2.8 3.2h5.6" stroke="#222" stroke-width=".5"/>'),
+ Satyre:c=>EX16(c,'<path d="M-4.6 -4q-2-5-4.6-3.4M4.6 -4q2-5 4.6-3.4" stroke="#6b4a2b" stroke-width="1.4" fill="none" stroke-linecap="round"/>','<path d="M-4 -3q4-4 8 0q-4-1-8 0z" fill="#6b4a2b"/><path d="M-1.6 4q1.6 2 3.2 0q-1.6 4-3.2 0z" fill="#6b4a2b"/>'),
+ Vampire:c=>EX16(c,'','<path d="M-6 -1q0-6 6-6t6 6q-6-3-12 0z" fill="#1a1520"/><path d="M-2 2.6l.7 2 .7-2zM1.2 2.6l.7 2 .7-2z" fill="#fff"/><path d="M-1.6 2.4h3.2" stroke="#8a1a2a" stroke-width=".4"/>'),
+ Kobold:c=>EX16(c,'<path d="M-4.4 -4l-2-5 4 2.4zM4.4 -4l2-5-4 2.4z" fill="#8a5a2a"/>','<ellipse cx="0" cy="2.6" rx="1.8" ry="1.4" fill="#a8714a"/><path d="M-5 3q3 3 10 0" stroke="#3a2a1a" stroke-width=".3" fill="none" opacity=".5"/>'),
+ Triton:c=>EX16(c,'<path d="M-6 -1l-5-4 1 6zM6 -1l5-4-1 6z" fill="#4f9ac0" stroke="#2a5a7a" stroke-width=".3"/>','<path d="M-5 -2q5-5 10 0" stroke="#2a5a7a" stroke-width=".5" fill="none"/><path d="M-5.6 1.4h-2M-5.6 2.4h-2M5.6 1.4h2M5.6 2.4h2" stroke="#2a5a7a" stroke-width=".3"/>')};
+
+/* ---------- Cultures par pays ---------- */
+const CULT16={g:['survie','le froid forge'],f:['savoir','les forêts murmurent'],m:['artisanat','la pierre enseigne'],s:['commerce','le désert pousse au troc'],w:['voyage','les eaux voyagent'],h:['hospitalité','la plaine accueille'],j:['mystique','la jungle cache ses dieux'],o:['ruse','l’ombre apprend la ruse'],home:['social','les cités parlent']};
+const adj16=r=>r.replace(/^(Royaume|Terres?|Empire|Marais|Confins|Sables|Archipel|Duché|Cités-États|Khanat|Jungles|Sultanat|Monts|Rivages|Forêt|Pampa|Désert|Îles|Plaines|Hauts-Plateaux|Mangroves|Marches)\s+(des?|du|d’|de la|de l’|d’)?\s*/i,'').replace(/^l’/,'');
+function v16Debut(){const y=C.v16={};if(!C.pos)return;const reg=rg(C.pos),p=paysObj(reg),th=p?(p.th||TH[PAYS.indexOf(p)]||'home'):'home',c=CULT16[th]||CULT16.home;y.cult={reg,th,tag:c[0],txt:c[1]};(C.famTx=C.famTx||[]).push('Culture d’origine : '+race()+' '+(p?'de '+adj16(reg):'du royaume')+' ('+c[1]+' : '+c[0]+' plus fréquent)')}
+function v16Boost(n){if(!C.pvm||C.fin)return 1;let m=1;const y=C.v16||{},d=(C.rep.find(r=>r[0]==='Destin')||[])[1],g=ETAG[n];
+ if(y.cult&&g===y.cult.tag)m*=1.2;
+ if(d==='Voyageur du vent'){if(g==='voyage')m*=1.5;if(n==='Traversée en mer')m*=1.5}
+ else if(d==='Fils de la tempête'){if(g==='combat'||g==='survie')m*=1.3;if(g==='hospitalité')m*=.7}
+ else if(d==='Ombre de l’oubli'){if(g==='ruse')m*=1.5;if(g==='social')m*=.7}
+ try{const q=etq()[C.qs];if(q&&q[3]&&q[3].t==='ev'&&q[3].v===n)m*=4}catch(e){}
+ return m}
+const fiche16=()=>{if(!C.pvm)return '';const y=C.v16||{};return y.cult?'<li><b>Culture</b>'+esc(race())+' '+(paysObj(y.cult.reg)?'de '+esc(adj16(y.cult.reg)):'du royaume')+' <small>('+esc(y.cult.txt)+' : '+esc(y.cult.tag)+' plus fréquent)</small></li>':''};
+
+/* ---------- Métiers ---------- */
+const NM16={Combattant:[['Garde du corps','Protège un puissant, de près et sans bruit.'],['Chevalier errant','Un code d’honneur, un cheval, et aucun toit fixe.'],['Archer d’élite','Une flèche, une cible : rarement un second essai.'],['Chasseur de primes','Traque ceux dont la tête est mise à prix.']],
+ Voyageur:[['Éclaireur','Marche devant l’armée et revient avec les mauvaises nouvelles.'],['Pilote de fleuve','Connaît chaque banc de sable de la rivière.'],['Pèlerin','Va de sanctuaire en sanctuaire, le cœur léger.'],['Courrier royal','Porte des plis qui valent des royaumes.']],
+ Érudit:[['Archiviste','Gardien de la mémoire écrite, et de ses secrets.'],['Astronome','Compte les étoiles et leurs présages.'],['Traducteur','Fait parler les langues mortes et vivantes.'],['Chroniqueur','Note tout, et choisit ce qu’il montre.']],
+ Artisan:[['Verrier','Souffle le verre et dompte le feu.'],['Orfèvre','Travaille l’or et la patience.'],['Maçon','Pose pierre après pierre ce que d’autres admireront.'],['Potier','Tourne l’argile, cuit l’espoir.']],
+ Commerçant:[['Armateur','Possède des navires et leurs risques.'],['Marchand d’épices','Vend des saveurs d’ailleurs au prix du mystère.'],['Banquier','Prête de l’or et se souvient de tout.'],['Colporteur','Un ballot sur le dos et le monde pour clientèle.']],
+ Roublard:[['Faussaire','Un trait de plume, et l’on est quelqu’un d’autre.'],['Pickpocket','Des doigts légers et un sens aigu du timing.'],['Passeur','Fait passer frontières et marchandises sans poser de questions.'],['Escroc','Vend du vent avec un grand sourire.']],
+ Soigneur:[['Chirurgien','Une main sûre et des outils redoutables.'],['Herboriste','Connaît chaque plante, utile ou mortelle.'],['Infirmier de guerre','Recoud les soldats sur le champ de bataille.']],
+ Mystique:[['Oracle','Voit des choses dont il vaudrait mieux ne pas parler.'],['Exorciste','Chasse ce qui ne devrait pas être là.'],['Géomancien','Lit la terre comme un livre.'],['Moine','Prière, jeûne et un très grand calme.']]};
+{const arcs=Object.keys(MET),mt=DEF.find(t=>t.n==='Métier').o,ex=new Set(mt.map(x=>x[0]));
+ Object.keys(NM16).forEach(a=>NM16[a].forEach(m=>{if(ex.has(m[0]))return;ex.add(m[0]);MET[a].push([m[0],1.2]);const mu={};arcs.forEach(b=>{mu[b]=b===a?5:.25});mt.push([m[0],1.2,mu]);DESC12[m[0]]=m[1]}))}
+
+/* ---------- Traits, défauts, destins ---------- */
+const NT16={Patient:[2,{'Chasse au trésor':1.3,'Commande importante':1.4,'Combat de rue':.7},'Il sait attendre : les longues tâches et les chasses lui réussissent, les bagarres moins.'],
+ Méthodique:[2,{'Commande importante':1.5,'Fouille des ruines':1.3,'Cambriolage':.6},'Il planifie tout : travail soigné, peu d’aventures louches.'],
+ Chanceux:[2,{'Marché florissant':1.4,'Chasse au trésor':1.4,'Une maladie':.7},'La chance lui sourit : trésors, bonnes affaires et peu de maladies.'],
+ Superstitieux:[2,{'Voyage lointain':.8,'Fouille des ruines':.7,'Vision étrange':1.5},'Il voit des signes partout : plus de visions, moins de ruines.'],
+ Charmeur:[2,{'Banquet':1.6,'Noces':1.6,'Négociation tendue':1.3},'Un sourire désarmant : banquets, noces et négociations lui sont favorables.'],
+ Stoïque:[2,{'Une maladie':.7,'Un deuil':.8,'Embuscade':.8},'Rien ne l’ébranle : maladies, deuils et embuscades l’atteignent moins.'],
+ Rêveur:[2,{'Vision étrange':1.8,'Voyage lointain':1.3,'Commande importante':.7},'La tête dans les nuages : visions et voyages, mais travail moins régulier.'],
+ Pragmatique:[2,{'Marché florissant':1.3,'Négociation tendue':1.4,'Banquet':.8},'Il va à l’essentiel : affaires et négociations plutôt que fêtes.'],
+ Fidèle:[2,{'Rencontre d’un allié':1.5,'Une trahison':.5,'Mission de l’allié':1.4},'Il garde ses amis : alliances fréquentes, trahisons rares.'],
+ Aventurier:[2,{'Voyage lointain':1.6,'Fouille des ruines':1.4,'Embuscade':1.2},'Il court après l’inconnu : voyages et ruines, au risque des embuscades.'],
+ Précautionneux:[2,{'Embuscade':.6,'Voyage lointain':.8,'Cambriolage':.5},'Il vérifie deux fois : moins d’embuscades et de cambriolages, moins de voyages.'],
+ 'Soif de savoir':[2,{'Fouille des ruines':1.5,'Étude des sorts':1.5,'Vision étrange':1.2},'Il veut tout comprendre : ruines, grimoires et visions.']};
+const ND16={Distrait:[1,{'Cambriolage':1.4,'Commande importante':.7},'Il perd ses affaires et le fil des commandes.'],
+ Paresseux:[1,{'Commande importante':.6,'Repos à l’auberge':1.5},'Il fuit l’effort : moins de travail, plus d’auberge.'],
+ Jaloux:[1,{'Une trahison':1.4,'Duel avec le rival':1.4},'Il envie le succès des autres : trahisons et duels.'],
+ Naïf:[1,{'Une trahison':1.6,'Cambriolage':1.3},'Il croit tout le monde : trahisons et vols plus fréquents.'],
+ Radin:[1,{'Banquet':.5,'Marché florissant':1.3,'Une dette':.7},'Il compte chaque pièce : moins de fêtes, plus d’affaires, peu de dettes.'],
+ Bavard:[1,{'Soirée de taverne':1.5,'Embuscade':1.2},'Il parle trop : tavernes, et quelques embuscades.'],
+ Impulsif:[1,{'Combat de rue':1.5,'Tournoi':1.3},'Il agit avant de penser : bagarres et tournois.'],
+ Vaniteux:[1,{'Tournoi':1.5,'Banquet':1.4},'Il aime briller : tournois et banquets.'],
+ 'Soupe au lait':[1,{'Combat de rue':1.6,'Vengeance de l’ennemi':1.3},'Il s’enflamme pour un rien : bagarres et vengeances.'],
+ Indécis:[1,{'Voyage lointain':.7,'Négociation tendue':.7},'Il hésite sans cesse : moins de voyages et de négociations.'],
+ Maladroit:[1,{'Une maladie':1.2,'Cambriolage':1.3},'Il se blesse et se fait voler plus que de raison.'],
+ Insomniaque:[1,{'Vision étrange':1.5,'Repos à l’auberge':.7},'Il dort mal : visions, et peu de vrais repos.']};
+{const add=(nom,L)=>{const t=DEF.find(q=>q.n===nom).o,ex=new Set(t.map(x=>x[0]));Object.keys(L).forEach(k=>{if(ex.has(k))return;t.push([k,L[k][0],{}]);TR[k]=L[k][1];DESC12[k]=L[k][2]})};add('Trait de caractère',NT16);add('Défaut',ND16)}
+DESTIN0.push(['Voyageur du vent',1],['Fils de la tempête',1],['Ombre de l’oubli',1]);
+Object.assign(DESC12,{'Voyageur du vent':'Le vent le pousse vers l’horizon : les voyages et les traversées sont 1,5 fois plus fréquents.','Fils de la tempête':'Né dans l’orage : combats et épreuves de survie 1,3 fois plus fréquents, fêtes plus rares.','Ombre de l’oubli':'On l’oublie dès qu’il s’éloigne : les ruses sont 1,5 fois plus fréquentes, la vie sociale plus rare.'});
+
+/* ---------- Objets ---------- */
+Object.assign(ITEMS,{'Cape de voyageur':{End:1,p:15},'Loupe d’érudit':{Esp:1,p:14},'Bottes de cuir':{Agi:1,p:12},'Gantelets':{For:1,p:16},'Grimoire':{Esp:2,p:30},'Bague d’argent':{Cha:1,p:20},'Cotte de mailles':{End:2,p:35},'Luth':{Cha:1,p:18},'Boussole':{Agi:1,p:12},'Épée longue':{For:2,p:26},'Hache':{For:2,p:22},'Lance':{For:1,Agi:1,p:20},'Rapière':{Agi:2,p:24}});
+Object.assign(DUR,{'Épée longue':10,'Hache':10,'Lance':9,'Rapière':9});['Épée longue','Hache','Lance','Rapière'].forEach(a=>{if(!ARMES.includes(a))ARMES.push(a)});
+
+/* ---------- Objectifs ---------- */
+const NO16=[['Amasser 150 pièces d’or',1.5,[{t:'or',n:150}]],['Devenir un maître d’armes',1.5,[{t:'tag',v:'combat',n:5}]],['Parcourir le monde',1.5,[{t:'lieux',n:8}]],['Devenir un grand savant',1.5,[{t:'tag',v:'savoir',n:5}]],['Gagner la faveur du peuple',1.5,[{t:'tag',v:'social',n:5}]],['Atteindre un grand âge',1,[{t:'vie',n:20}]],['Maîtriser un art',1.2,[{t:'comp',n:3}]],['Devenir mage',1,[{t:'ev',v:'Apprentissage de la magie',n:1},{t:'ev',v:'Étude des sorts',n:2}]],['Mener une expédition',1,[{t:'ev',v:'Lancer une expédition',n:1}]],['Posséder un domaine',1,[{t:'ev',v:'Acquérir un domaine',n:1}]],['Entrer dans une guilde',1.2,[{t:'ev',v:'Rejoindre une guilde',n:1},{t:'ev',v:'Quête de guilde',n:2}]],['Faire fortune par le commerce',1.2,[{t:'ev',v:'Acheter en gros',n:1},{t:'ev',v:'Revendre la cargaison',n:2}]],['Traverser les mers',1.2,[{t:'ev',v:'Traversée en mer',n:2}]],['Se marier',1.2,[{t:'ev',v:'Noces',n:1}]],['Devenir fidèle d’un dieu',1,[{t:'ev',v:'Offrande au dieu local',n:3}]],['Sommet de Force',.8,[{t:'stat',k:'For',n:9}]],['Sommet d’Esprit',.8,[{t:'stat',k:'Esp',n:9}]],['Sommet de Charisme',.8,[{t:'stat',k:'Cha',n:9}]]];
+{const ot=DEF.find(t=>t.n==='Objectif').o,ex=new Set(ot.map(x=>x[0]));NO16.forEach(o=>{if(ex.has(o[0]))return;ot.push([o[0],o[1],{}]);OBJD[o[0]]=o[2];DESC12[o[0]]=DESC12[o[0]]||'Objectif : '+o[2].map(s=>({or:'atteindre '+s.n+' pièces d’or',tag:s.n+' réussites de type « '+s.v+' »',lieux:'visiter '+s.n+' lieux',vie:'tenir '+s.n+' événements',comp:'une compétence de niveau '+s.n,ev:s.n+'× « '+s.v+' »',stat:(S[s.k]||s.k)+' à '+s.n}[s.t]||'')).join(', ')+'.'})}
+
+/* ---------- Succès ---------- */
+{const F=[['combat','For',['Lame confirmée','Bretteur redouté','Légende du champ de bataille']],['social','Cha',['Homme du monde','Diplomate né','Voix des puissants']],['commerce','Cha',['Négociant avisé','Marchand prospère','Magnat des routes']],['savoir','Esp',['Rat de bibliothèque','Docteur ès mystères','Sage reconnu']],['voyage','End',['Globe-trotter','Routier infatigable','Grand explorateur']],['survie','End',['Débrouillard','Survivant coriace','Maître de la nature']],['mystique','Esp',['Initié','Adepte des arcanes','Porte-voix des dieux']],['artisanat','For',['Main habile','Artisan réputé','Maître d’œuvre']],['ruse','Agi',['Fin renard','Roi de l’esquive','Ombre insaisissable']],['soin','Esp',['Aide-soignant','Guérisseur estimé','Sauveur de vies']],['hospitalité','Cha',['Convive apprécié','Hôte généreux','Âme de la fête']]],N=[4,7,10];
+ F.forEach(([tg,st,nm])=>nm.forEach((n,i)=>SUCC.push([n,c=>c.vie.filter(e=>ETAG[e.t]===tg&&e.ok).length>=N[i],i===0?{or:8}:i===1?{st:{[st]:1}}:{or:25,st:{[st]:1}},N[i]+' réussites de type « '+tg+' » dans une même vie.']))) }
+{const A=(n,f,g,d)=>SUCC.push([n,f,g,d]),ev=(c,v,k)=>c.vie.filter(e=>e.t===v&&e.ok).length>=(k||1);
+ A('Arpenteur',c=>c.vis.length>=10,{or:10},'Dix lieux visités dans une même vie.');A('Vagabond des royaumes',c=>c.vis.length>=14,{st:{End:1}},'Quatorze lieux visités.');A('Cartographe du monde',c=>c.vis.length>=20,{or:30,st:{Esp:1}},'Vingt lieux visités.');
+ A('Bourse bien garnie',c=>c.or>=100,{or:10},'Cent pièces d’or en poche.');A('Riche comme un seigneur',c=>c.or>=200,{st:{Cha:1}},'Deux cents pièces d’or.');A('Fortune de dragon',c=>c.or>=400,{or:50},'Quatre cents pièces d’or.');
+ A('Cheveux blancs',c=>c.fin&&c.age0+Math.floor(c.t/12)>=55,{or:10},'Fin de vie à 55 ans ou plus.');A('Vénérable',c=>c.fin&&c.age0+Math.floor(c.t/12)>=65,{st:{End:1}},'Fin de vie à 65 ans ou plus.');A('Doyen du monde',c=>c.fin&&c.age0+Math.floor(c.t/12)>=75,{or:40},'Fin de vie à 75 ans ou plus.');
+ Object.keys(S).forEach(k=>A('Sommet : '+S[k],c=>c.st[k]>=10,{or:12},S[k]+' à 10 ou plus.'));
+ A('Équilibré',c=>Object.keys(S).every(k=>c.st[k]>=6),{or:15},'Toutes les caractéristiques à 6 ou plus.');
+ A('Compagnon fidèle',c=>c.cmp&&c.cmp.niv>=3,{or:10},'Un compagnon de niveau 3.');A('Fierté de la lignée',c=>c.lig&&c.fin==='victoire',{or:12},'Objectif atteint au nom d’une lignée.');A('Père de famille',c=>(c.enf||[]).length>=2,{st:{Cha:1}},'Deux enfants ou plus.');
+ A('Loup de mer',c=>ev(c,'Traversée en mer',2),{st:{End:1}},'Deux traversées en mer.');A('Maître de guilde',c=>c.v13&&c.v13.guilde&&c.v13.guilde.rang>=2,{or:20},'Rang de maître dans une guilde.');A('Parole donnée, prix payé',c=>c.v13&&c.v13.pactes>=1,{or:12},'Un pacte conclu, puis payé.');
+ A('Archimage',c=>c.v15&&c.v15.sorts>=5,{or:30,st:{Esp:1}},'Cinq sorts maîtrisés.');A('Fidèle',c=>c.v15&&c.v15.fidele,{or:10},'Fidèle d’un dieu.');A('Patron',c=>c.v15&&c.v15.atelier&&c.v15.atelier.niv>=3,{or:20},'Un atelier de niveau 3.');A('Châtelain',c=>c.v14&&c.v14.dom&&c.v14.dom.niv>=3,{or:20},'Un domaine de niveau 3.');A('Chef d’atelier',c=>c.v15&&c.v15.carr>=3,{or:25},'Sommet d’une carrière.');
+ A('Chasseur de primes',c=>ev(c,'Chasse à la prime'),{or:12},'Une prime touchée.');A('Chef d’expédition',c=>ev(c,'Lancer une expédition'),{or:12},'Une expédition menée.');A('Innocenté',c=>ev(c,'Procès'),{or:10},'Acquitté lors d’un procès.');A('Revendeur chevronné',c=>ev(c,'Revendre la cargaison',2),{or:15},'Deux cargaisons revendues.');A('Survivant de l’épidémie',c=>ev(c,'Contagion'),{st:{End:1}},'Résister à une épidémie.');A('Tête de fête',c=>ev(c,'Fête locale',2),{st:{Cha:1}},'Deux fêtes locales.');A('Ancêtre honoré',c=>ev(c,'Sur les traces d’un ancêtre'),{or:10},'Retrouver les traces d’un ancêtre.');
+ A('Mort en héros',c=>c.fin==='mort'&&c.vie.filter(e=>ETAG[e.t]==='combat'&&e.ok).length>=5,{or:15},'Mourir après cinq victoires au combat.');A('Mort pauvre',c=>c.fin==='mort'&&c.or===0&&c.vie.length>=10,{st:{End:1}},'Mourir sans un sou après une longue vie.');A('Mort riche',c=>c.fin==='mort'&&c.or>=150,{or:10},'Mourir avec plus de 150 pièces d’or.');A('Pacifiste',c=>c.fin==='victoire'&&!c.vie.some(e=>ETAG[e.t]==='combat'),{or:20},'Victoire sans le moindre combat.');A('Éternel voyageur',c=>c.fin&&c.vis.length>=12,{or:15},'Finir sa vie après douze lieux visités.');
+ A('Sang bleu',c=>c.titre||(c.v12&&c.v12.titre),{or:12},'Obtenir un titre.');A('Amitié durable',c=>c.v12&&(c.v12.amis||[]).some(a=>a.pts>=3),{or:10},'Un ami durable.');A('Revenu des morts',c=>c.fl.includes('Revenu'),{or:10},'Revenir d’un état proche de la mort.')}
+/* succès cachés en plus */
+{const H=(n,f,g,d)=>CACH.push([n,f,g,d]);
+ H('Ami des bêtes',()=>C.cmp&&C.cmp.ty==='Animal'&&C.cmp.niv>=3,{or:10},'Un compagnon animal de niveau 3.');H('Collectionneur',()=>C.inv.length>=8,{or:10},'Huit objets dans l’inventaire.');H('Fantôme de taverne',()=>C.vie.filter(e=>e.t==='Soirée de taverne').length>=3,{st:{Cha:1}},'Trois soirées de taverne.');
+ H('Voleur repenti',()=>C.vie.filter(e=>e.t==='Cambriolage'&&e.ok).length>=2&&C.vie.some(e=>e.t==='Offrande au dieu local'),{or:15},'Cambrioler, puis prier.');H('Enfant de la mer',()=>C.vie.filter(e=>e.t==='Traversée en mer').length>=3,{or:15},'Trois traversées en mer.');
+ H('Maître des échanges',()=>C.vie.filter(e=>e.t==='Revendre la cargaison').length>=3,{or:20},'Trois cargaisons revendues.');H('Œil de lynx',()=>C.st.Agi>=11,{or:10},'Agilité à 11.');H('Corps de fer',()=>C.st.End>=11,{or:10},'Endurance à 11.');H('Tête bien faite',()=>C.st.Esp>=11,{or:10},'Esprit à 11.');
+ H('Voix d’or',()=>C.st.Cha>=11,{or:10},'Charisme à 11.');H('Poigne d’acier',()=>C.st.For>=11,{or:10},'Force à 11.');H('Pèlerin infatigable',()=>C.vie.filter(e=>e.t==='Offrande au dieu local').length>=4,{st:{Esp:1}},'Quatre offrandes à un dieu.');
+ H('Apprenti de génie',()=>C.v15&&C.v15.sorts>=3&&C.vie.length<=12,{or:15},'Trois sorts en douze actions.');H('Évadé',()=>C.vie.some(e=>e.t==='Fuir les chasseurs de primes'&&e.ok),{or:10},'Semer des chasseurs de primes.');H('Mari ou épouse comblé',()=>C.v13&&C.v13.conjoint&&C.vie.length>=15,{or:10},'Marié et toujours là après quinze actions.');
+ H('Homme de peu de mots',()=>C.vie.length>=12&&!C.vie.some(e=>ETAG[e.t]==='social'),{or:12},'Douze actions sans aucun événement social.');H('Fils de personne',()=>C.vie.length>=12&&!C.lig,{or:10},'Une longue vie sans lignée.');H('Dernier de la lignée',()=>C.lig&&C.fin==='mort'&&!(C.enf||[]).length,{or:10},'Mourir sans enfants au nom d’une lignée.');
+ H('Rescapé',()=>C.pvm&&C.pv<=2&&!C.fin&&C.vie.length>=8,{or:12},'Survivre avec deux points de vie ou moins.');H('Nez fin',()=>C.vie.filter(e=>e.t==='Fouille des ruines'&&e.ok).length>=3,{or:15},'Trois fouilles de ruines réussies.')}
+/* v17c.js : plans de villes générés à partir du nom, rues et bâtiments nommés, événements dans une rue précise */
+const RUE_PRE=['Rue','Rue','Rue','Ruelle','Allée','Impasse','Passage','Chemin','Cour'];
+const RUE_ART=['des Tanneurs','des Forgerons','des Tisserands','des Meuniers','des Potiers','des Charpentiers','des Bouchers','des Drapiers','des Orfèvres','des Cordiers','des Brasseurs','des Boulangers','des Bateliers','des Pêcheurs','des Chandeliers','des Teinturiers','des Savetiers','du Vieux Puits','du Grand Chêne','du Corbeau','du Chat Noir','des Tilleuls','des Trois Pigeons','de la Vieille Tour','de la Fontaine','de la Lune','du Moulin','du Cerf','du Coq','de la Brume','des Remparts','des Roses','des Sablons','des Halles','des Pendus','des Cloches','des Loups','des Saules','des Hirondelles','du Bout du Monde','de l’Ancre','du Sel','des Chiffonniers','de la Soif','du Dernier Sou'];
+const ENS17=['Hibou Sage','Sanglier Rouge','Corbeau Borgne','Trois Lanternes','Dragon Endormi','Vieux Chêne','Loup Gris','Marteau d’Or','Poisson d’Argent','Cerf Blanc','Chat Noir','Renard Rusé','Lanterne Bleue','Bouclier Brisé','Pigeon Voyageur','Tonneau Percé','Ours Joyeux','Étoile du Soir'];
+const QUA17=['Haute-Ville','Basse-Ville','Vieille Ville','Quartier des Tanneurs','Quartier du Marché','Faubourg du Port','Quartier des Forges','Faubourg des Moulins','Quartier des Cloches','Quartier des Brumes'];
+const BAT17=[['auberge','Auberge','#b9824a'],['temple','Temple','#cfd6e0'],['forge','Forge','#6b6b73'],['apo','Apothicairerie','#8fb080'],['guilde','Maison de guilde','#c9a441'],['prison','Prison','#7a7a82'],['biblio','Bibliothèque','#b69fd0'],['halle','Halle aux grains','#d9b97a'],['tour','Beffroi','#a89d8f'],['quai','Entrepôt du quai','#7a98b5'],['moulin','Moulin','#cfc6b4'],['caserne','Caserne','#9a6a5a']];
+const PL17={};
+const taille17=n=>{const t=(typeof typeDe==='function'&&typeDe(n))||(BASET14[n])||'',S={hameau:1,ferme:1,camp:1,auberge:1,relais:1,moulin:1,village:2,abbaye:2,forge:2,bourg:3,marche:3,port:3,chateau:3};if(S[t])return S[t];if(!t&&(P[n]))return/Capitale|Cité|Port|Palais|Citadelle|Forteresse/.test(n)?4:3;return 0};
+function hash17(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function plan17(n){const key=n+'|'+((typeof WORLD!=='undefined'&&WORLD.geo)||0);if(PL17[key])return PL17[key];const sz=taille17(n);if(!sz)return null;
+ const rd=mulb(hash17(key)),pk=a=>a[Math.floor(rd()*a.length)],t=(typeof typeDe==='function'&&typeDe(n))||'',used=new Set(),
+ nomR=pre=>{for(let g=0;g<30;g++){const a=pre||pk(RUE_PRE),b=pk(RUE_ART),nm=a+' '+b;if(!used.has(nm)){used.add(nm);return nm}}return 'Rue sans nom'};
+ const c=[50+(rd()-.5)*10,50+(rd()-.5)*10],R=sz>=4?40:sz===3?36:sz===2?28:20,coast=['port','phare'].includes(t)||/Port|Havre/.test(n),river=!coast&&rd()<.45;
+ const out={n,sz,c,R,streets:[],squares:[],bats:[],quart:[],houses:'',wall:null,gates:[],river:null,sea:coast?pk(['n','s','e','o']):null};
+ const wall=sz>=3&&(rd()<.85);
+ if(river){const a=rd()*6.28,dx=Math.cos(a),dy=Math.sin(a),px=-dy,py=dx,o=(rd()-.5)*24,pts=[];for(let i=0;i<=8;i++){const u=i/8-.5;pts.push([c[0]+dx*u*130+px*(o+Math.sin(i*1.3+rd())*7),c[1]+dy*u*130+py*(o+Math.sin(i*1.3+rd())*7)])}out.river=pts}
+ if(wall){const pts=[];for(let i=0;i<20;i++){const a=i/20*6.283,r=R*(.94+.1*rd());pts.push([c[0]+Math.cos(a)*r,c[1]+Math.sin(a)*r*.9])}out.wall=pts}
+ const ng=sz>=3?4:sz===2?3:2,a0=rd()*6.28,ga=[];for(let i=0;i<ng;i++)ga.push(a0+i*6.283/ng+(rd()-.5)*.5);
+ const curve=(p0,p1,w)=>{const pts=[],dx=p1[0]-p0[0],dy=p1[1]-p0[1],L=Math.hypot(dx,dy)||1,px=-dy/L,py=dx/L,ph=rd()*6;for(let i=0;i<=4;i++){const u=i/4,m=(i===0||i===4)?0:(rd()-.5)*w+Math.sin(u*3+ph)*w*.3;pts.push([p0[0]+dx*u+px*m,p0[1]+dy*u+py*m])}return pts};
+ const gname=['Porte du Nord','Porte de l’Est','Porte du Sud','Porte de l’Ouest'];
+ ga.forEach((a,i)=>{const g=[c[0]+Math.cos(a)*R*1.02,c[1]+Math.sin(a)*R*.92];out.gates.push({n:wall?pk(gname.concat(['Porte du Marché','Porte des Tanneurs','Porte du Pont'])):'Entrée',p:g});out.streets.push({n:i===0?nomR('Grand-Rue'.slice(0,0)||'Rue'):nomR(),pts:curve(g,c,8),w:1.5,main:1})});
+ out.streets[0].n='Grand-Rue';used.add('Grand-Rue');
+ if(sz>=3){const ring=[];for(let i=0;i<=14;i++){const a=i/14*6.283,r=R*.55*(.92+.16*rd());ring.push([c[0]+Math.cos(a)*r,c[1]+Math.sin(a)*r*.9])}out.streets.push({n:'Rue des Remparts',pts:ring,w:1,ring:1})}
+ const nl=sz*3+2;for(let i=0;i<nl;i++){const s=pk(out.streets.filter(z=>z.main||z.ring)),u=.15+rd()*.7,k=Math.min(s.pts.length-2,Math.floor(u*(s.pts.length-1))),p=s.pts[k],q=s.pts[k+1],dx=q[0]-p[0],dy=q[1]-p[1],L=Math.hypot(dx,dy)||1,sg=rd()<.5?1:-1,len=7+rd()*(sz*3+4),e=[p[0]-dy/L*len*sg,p[1]+dx/L*len*sg];if(Math.hypot(e[0]-c[0],e[1]-c[1])>R*1.05)continue;out.streets.push({n:nomR(rd()<.3?'Impasse':rd()<.4?'Ruelle':null),pts:curve(p,e,3),w:.7,lane:1})}
+ out.squares.push({n:sz>=2?'Place du Marché':'Place du Puits',p:[c[0]-5,c[1]-3.5,10,7]});
+ if(sz>=3){const a=ga[1]+.9;out.squares.push({n:'Place de l’Église',p:[c[0]+Math.cos(a)*R*.55-4,c[1]+Math.sin(a)*R*.5-3,8,6]})}
+ if(coast){out.streets.push({n:'Quai des Brumes',pts:[[8,c[1]+R*.7],[30,c[1]+R*.8],[60,c[1]+R*.78],[92,c[1]+R*.7]],w:1.3,quai:1})}
+ /* bâtiments nommés */
+ const want=['auberge','temple','forge','apo','guilde','prison','biblio','halle','tour','caserne'].slice(0,2+sz*2);if(river)want.push('moulin');if(coast)want.push('quai');
+ const tries=[];out.bats=[];
+ want.forEach(k=>{const def=BAT17.find(z=>z[0]===k),cand=out.streets.filter(z=>!z.ring||sz>=3);for(let g=0;g<30;g++){const s=pk(cand),i=Math.floor(rd()*(s.pts.length-1)),u=rd(),p=s.pts[i],q=s.pts[i+1],x=p[0]+(q[0]-p[0])*u,y=p[1]+(q[1]-p[1])*u,dx=q[0]-p[0],dy=q[1]-p[1],L=Math.hypot(dx,dy)||1,sg=rd()<.5?1:-1,bx=x-dy/L*3.2*sg,by=y+dx/L*3.2*sg;if(Math.hypot(bx-c[0],by-c[1])>R)continue;if(out.bats.some(b=>Math.hypot(b.x-bx,b.y-by)<7))continue;
+   const nm=k==='auberge'?'Auberge « '+pk(ENS17)+' »':k==='guilde'?'Maison des '+pk(['Marchands','Forgerons','Tisserands','Bateliers','Écrivains']):k==='temple'?'Temple de '+(typeof DIEUX!=='undefined'?pk(DIEUX)[0]:'la Lumière'):def[1];
+   out.bats.push({k,n:nm,x:bx,y:by,col:def[2],a:Math.atan2(dy,dx),rue:s.n});break}});
+ /* maisons */
+ let hs='';out.streets.forEach(s=>{for(let i=0;i<s.pts.length-1;i++){const p=s.pts[i],q=s.pts[i+1],dx=q[0]-p[0],dy=q[1]-p[1],L=Math.hypot(dx,dy);if(L<1)continue;const nx=-dy/L,ny=dx/L,ang=Math.atan2(dy,dx)*57.3;for(let d=1.5;d<L-1;d+=3.1)for(const sg of [-1,1]){if(rd()<.22)continue;const x=p[0]+dx/L*d+nx*sg*(s.w+1.5),y=p[1]+dy/L*d+ny*sg*(s.w+1.5);if(Math.hypot(x-c[0],y-c[1])>R*1.02||(Math.abs(x-c[0])<7&&Math.abs(y-c[1])<5.5))continue;if(out.bats.some(b=>Math.hypot(b.x-x,b.y-y)<3.4))continue;hs+='M'+x.toFixed(1)+' '+y.toFixed(1)+'h2.2v1.6h-2.2z'}}});out.houses=hs;
+ /* quartiers */
+ const qn=[];while(qn.length<Math.min(ng,sz+1)){const q=pk(QUA17);if(!qn.includes(q))qn.push(q)}qn.forEach((q,i)=>{const a=(ga[i]+ga[(i+1)%ng]+(i===ng-1?6.283:0))/2;out.quart.push({n:q,p:[c[0]+Math.cos(a)*R*.72,c[1]+Math.sin(a)*R*.66]})});
+ return PL17[key]=out}
+const mem17=()=>{W10();WORLD.v17=WORLD.v17||{};WORLD.v17.rues=WORLD.v17.rues||{};return WORLD.v17.rues};
+function planSVG17(n,opt){const p=plan17(n);if(!p)return '';opt=opt||{};const f=v=>v.toFixed(1),line=pts=>'M'+pts.map(q=>f(q[0])+' '+f(q[1])).join('L'),sm=pts=>{let d='M'+f(pts[0][0])+' '+f(pts[0][1]);for(let i=1;i<pts.length-1;i++){const m=[(pts[i][0]+pts[i+1][0])/2,(pts[i][1]+pts[i+1][1])/2];d+='Q'+f(pts[i][0])+' '+f(pts[i][1])+' '+f(m[0])+' '+f(m[1])}return d+'L'+f(pts[pts.length-1][0])+' '+f(pts[pts.length-1][1])};
+ let h='';const M=mem17()[n]||{};
+ if(!opt.carte)h+='<rect x="0" y="0" width="100" height="100" fill="var(--terre)"/>';else h+='<circle cx="'+f(p.c[0])+'" cy="'+f(p.c[1])+'" r="'+f(p.R*1.1)+'" fill="var(--terre)" opacity=".8"/>';
+ if(p.sea){const s=p.sea;h+='<rect x="'+(s==='o'?-20:s==='e'?88:-20)+'" y="'+(s==='n'?-20:s==='s'?88:-20)+'" width="'+(s==='o'||s==='e'?32:140)+'" height="'+(s==='n'||s==='s'?32:140)+'" fill="var(--mer)" opacity=".9"/>'}
+ if(p.river)h+='<path d="'+sm(p.river)+'" fill="none" stroke="var(--mer)" stroke-width="5" stroke-linecap="round"/>';
+ p.squares.forEach(s=>{h+='<rect x="'+f(s.p[0])+'" y="'+f(s.p[1])+'" width="'+s.p[2]+'" height="'+s.p[3]+'" rx="1.4" fill="#efe6cf" stroke="var(--rel)" stroke-width=".3"/>'});
+ p.streets.forEach(s=>{h+='<path d="'+sm(s.pts)+'" fill="none" stroke="'+(s.quai?'#8a7a5a':'#c9b88e')+'" stroke-width="'+(s.w*1.6)+'" stroke-linecap="round" stroke-linejoin="round"/><path d="'+sm(s.pts)+'" fill="none" stroke="#efe6cf" stroke-width="'+(s.w*.9)+'" stroke-linecap="round" stroke-linejoin="round"/>'});
+ h+='<path d="'+p.houses+'" fill="var(--rel)" opacity=".55"/>';
+ p.bats.forEach(b=>{h+='<g transform="translate('+f(b.x)+' '+f(b.y)+') rotate('+f(b.a*57.3)+')"><rect x="-2.6" y="-1.8" width="5.2" height="3.6" fill="'+b.col+'" stroke="var(--e)" stroke-width=".3"/></g>'});
+ if(p.wall){h+='<path d="'+line(p.wall)+'Z" fill="none" stroke="#6b6358" stroke-width="1.5" stroke-dasharray="0"/>';p.gates.forEach(g=>{h+='<rect x="'+f(g.p[0]-1.7)+'" y="'+f(g.p[1]-1.7)+'" width="3.4" height="3.4" fill="#8a7f70" stroke="var(--e)" stroke-width=".3"/>'})}
+ Object.keys(M).forEach(k=>{const s=p.streets.find(z=>z.n===k);if(!s)return;const q=s.pts[s.pts.length>>1];h+='<g><circle cx="'+f(q[0])+'" cy="'+f(q[1])+'" r="2.2" fill="#fff" stroke="#b02a2a" stroke-width=".5"/><path d="M'+f(q[0]-1)+' '+f(q[1]-1)+'l2 2M'+f(q[0]+1)+' '+f(q[1]-1)+'l-2 2" stroke="#b02a2a" stroke-width=".5"/></g>'});
+ if(!opt.carte||opt.noms){p.quart.forEach(q=>{h+='<text x="'+f(q.p[0])+'" y="'+f(q.p[1])+'" class="q17" style="font-style:italic;opacity:.7;font-size:'+(opt.carte?2.2:3.2)+'px">'+esc(q.n)+'</text>'});
+  p.streets.filter(s=>s.main||s.quai).forEach(s=>{const q=s.pts[Math.min(s.pts.length-1,2)];h+='<text x="'+f(q[0])+'" y="'+f(q[1]-1.2)+'" style="font-size:'+(opt.carte?2.2:2.6)+'px">'+esc(s.n)+'</text>'});
+  p.bats.forEach(b=>{if(opt.carte&&b.k!=='auberge'&&b.k!=='temple')return;h+='<text x="'+f(b.x)+'" y="'+f(b.y+(opt.carte?-3.6:5))+'" style="font-size:'+(opt.carte?2:2.2)+'px">'+esc(b.n.replace(/^Auberge « (.*) »$/,'$1'))+'</text>'})}
+ return h}
+function legende17(n){const p=plan17(n),M=mem17()[n]||{};if(!p)return [];const o=[];if(Object.keys(M).length)o.push('Mémoire des rues : '+Object.keys(M).map(k=>k+' ('+M[k].ev+', an '+M[k].an+')').join(' ; '));
+ o.push('Quartiers : '+p.quart.map(q=>q.n).join(', '));o.push('Rues : '+p.streets.map(s=>s.n).filter((v,i,a)=>a.indexOf(v)===i).join(', '));o.push('Bâtiments : '+p.bats.map(b=>b.n+' ('+b.rue+')').join(' ; '));if(p.gates.length&&p.wall)o.push('Portes : '+p.gates.map(g=>g.n).join(', '));return o}
+function planVille17(n){const p=plan17(n);if(!p)return;const o=document.createElement('div');o.className='ov13';
+ o.innerHTML='<div class="bu13" role="dialog" aria-modal="true"><h3>Plan de '+esc(n)+'</h3><svg viewBox="0 0 100 100" style="width:100%;border-radius:10px;border:1px solid var(--l);background:var(--terre)" id="pl17">'+planSVG17(n)+'</svg><ul style="margin-top:8px;font-size:13px">'+legende17(n).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul><div class="l"><button class="n">Fermer</button></div></div>';
+ document.body.appendChild(o);o.querySelector('.n').onclick=()=>o.remove();o.onclick=e=>{if(e.target===o)o.remove()}}
+function planBtn17(n){const l=$('mli');if(!l||!plan17(n))return;const li=document.createElement('li');li.innerHTML='<button class="n" id="pl17b" style="width:100%;margin-top:6px">Voir le plan de la ville</button>';l.appendChild(li);$('pl17b').onclick=()=>planVille17(n)}
+
+/* ---------- événements dans une rue précise ---------- */
+const OU17={combat:['lane','prison'],commerce:['halle','place'],hospitalité:['auberge'],soin:['apo'],ruse:['lane'],social:['place','auberge'],savoir:['biblio','temple'],voyage:['gate'],mystique:['temple'],artisanat:['forge'],survie:['lane']};
+function ou17(n,tag){const p=plan17(n);if(!p)return null;const pk=a=>a[Math.floor(Math.random()*a.length)],ks=OU17[tag]||['place'];let k=pk(ks);
+ if(k==='lane'){const L=p.streets.filter(s=>s.lane||s.main);const s=pk(L);return{rue:s.n,txt:(/^(Ruelle|Impasse|Passage|Allée|Cour)/.test(s.n)?'dans la ':'dans la ')+s.n.replace(/^(Rue|Ruelle|Impasse|Allée|Passage|Chemin|Cour) /,m=>m.toLowerCase())}}
+ if(k==='place'){const s=pk(p.squares);return{rue:s.n,txt:'sur la '+s.n}}
+ if(k==='gate'){const g=pk(p.gates);return{rue:g.n,txt:'à la '+g.n}}
+ const b=p.bats.find(z=>z.k===k)||pk(p.bats);if(!b)return null;return{rue:b.rue,txt:'à '+(b.k==='auberge'?'l’':'la ')+b.n.charAt(0).toLowerCase()+b.n.slice(1)+' ('+b.rue+')'}}
+function v17Apres(v,ok,tx){if(!C.pos||!C.pvm)return;try{v17Apres2(v,ok,tx)}catch(e){console.error(e)}const g=ETAG[v];if(!g)return;const w=ou17(C.pos,g);if(!w)return;const y=C.v17=C.v17||{};y.ou=y.ou||[];y.ou.push([C.pos,w.rue]);
+ tx.push('Où ? '+cap(w.txt)+'.');
+ if(g==='combat'&&Math.random()<.16){const M=mem17();M[C.pos]=M[C.pos]||{};const p=plan17(C.pos),s=p.streets.find(z=>z.n===w.rue)||p.streets[0];if(!M[C.pos][s.n]){M[C.pos][s.n]={ev:(ok?'duel gagné par ':'duel perdu par ')+nomS(),an:anCourant()};tx.push('La rue en gardera le souvenir : '+s.n+' (duel).')}}}
+function v17Fin(){if(!C.pos||C.fin!=='mort')return;const p=plan17(C.pos);if(!p)return;const M=mem17();M[C.pos]=M[C.pos]||{};const s=p.streets.filter(z=>z.lane)[0]||p.streets[0];if(!M[C.pos][s.n])M[C.pos][s.n]={ev:'tombe de '+nomS(),an:anCourant()}}
+const fiche17=()=>{if(!C.pvm)return '';const y=C.v17||{};const l=(y.ou||[]).slice(-1)[0];return l?'<li><b>Dernier lieu précis</b>'+esc(l[1])+' <small>('+esc(l[0])+')</small></li>':''};
+
+function plan17m(){if(!C.pos||!GEO||!plan17(C.pos))return '';const q=pos(C.pos),s=.13;return '<g class="pl17m" transform="translate('+(q[0]-50*s).toFixed(2)+' '+(q[1]-50*s).toFixed(2)+') scale('+s+')">'+planSVG17(C.pos,{carte:1,noms:1})+'</g>'}
+/* v17d.js : monde qui vit seul, dynasties, économie, ordres, chapitres, export de la carte, modes Hardcore et Bac à sable */
+const W17=()=>{W10();const w=WORLD.v17=WORLD.v17||{};w.rues=w.rues||{};w.dyn=w.dyn||{};w.eco=w.eco||{prix:{},emb:[]};w.alli=w.alli||[];w.an=w.an||0;return w};
+const PROD17={g:['fourrures','poisson'],f:['bois','miel'],m:['fer','pierre'],s:['épices','sel'],w:['poisson','sel'],h:['blé','laine','vin'],j:['épices','soie'],o:['herbes','ivoire'],home:['blé','laine','vin']};
+const DEN17=['blé','laine','vin','fer','pierre','bois','miel','épices','sel','poisson','soie','fourrures','herbes','ivoire'];
+const prod17=r=>{const p=paysObj(r),th=p?(p.th||TH[PAYS.indexOf(p)]||'f'):'home';return PROD17[th]||PROD17.h};
+const ORD17=[['Ordre de l’Aube','des chevaliers et des soigneurs'],['Cercle des Arcanes','des mages et des érudits'],['Compagnie du Sel','des marchands et des armateurs'],['Confrérie des Cordes Noires','des espions et des contrebandiers'],['Concile des Cartographes','des voyageurs et des explorateurs']];
+const NUM17=['Ier','II','III','IV','le Sage','le Juste','le Bref','le Hardi'];
+const MAISON17=()=>'Maison '+(typeof SY_A!=='undefined'?SY_A[rnd(SY_A.length)]+SY_E[rnd(SY_E.length)]:'Aldor');
+function dyn17(r,w){let d=w.dyn[r];if(!d){d=w.dyn[r]={maison:MAISON17(),roi:{n:NOMS1[rnd(NOMS1.length)]+' '+NUM17[rnd(NUM17.length)],age:28+rnd(35)},hr:[],vac:0};for(let k=rnd(4);k>0;k--)d.hr.push({n:NOMS1[rnd(NOMS1.length)],age:rnd(30)})}return d}
+function sync12(r,d){const k=W12().roy[r]=W12().roy[r]||{souv:'',fin:1e9,vacant:false};k.souv=d.roi?d.roi.n:k.souv;k.fin=1e9;k.vf=1e9;k.vacant=!d.roi}
+function tick17(an){const w=W17();if(w.tk===an)return;w.tk=an;const R=REGIONS;
+ R.forEach(r=>{const d=dyn17(r,w);
+  if(d.roi){d.roi.age++;d.hr.forEach(h=>h.age++);if(d.roi.age<50&&d.hr.length<4&&Math.random()<.09)d.hr.push({n:NOMS1[rnd(NOMS1.length)],age:0});
+   const p=d.roi.age>55?(d.roi.age-55)*.02+.01:.004;
+   if(Math.random()<p){const old=d.roi.n;d.hr.sort((a,b)=>b.age-a.age);if(d.hr.length){const h=d.hr.shift();d.roi={n:h.n+' '+NUM17[rnd(4)],age:h.age};chro('Mort du roi '+old+' en '+r+' : '+d.roi.n+' lui succède ('+d.maison+(h.age<16?', sous régence)':')'))}else{d.roi=null;d.vac=2+rnd(4);chro('Mort du roi '+old+' en '+r+' : la '+d.maison.replace(/^Maison/,'maison')+' s’éteint, le trône est vacant')}}
+   else if(Math.random()<.004){const ancien=d.maison;d.maison=MAISON17();d.roi={n:NOMS1[rnd(NOMS1.length)]+' '+NUM17[rnd(4)],age:25+rnd(25)};d.hr=[];WORLD.pe[r]={h:'en guerre',an};chro('Usurpation en '+r+' : '+d.roi.n+' ('+d.maison+') renverse la '+ancien.replace(/^Maison/,'maison'));built=false}}
+  else if(d.vac>0){d.vac--;if(!d.vac){d.maison=MAISON17();d.roi={n:NOMS1[rnd(NOMS1.length)]+' '+NUM17[rnd(4)],age:30+rnd(20)};chro('Nouvelle dynastie en '+r+' : '+d.roi.n+' ('+d.maison+') prend la couronne')}}
+  sync12(r,d)});
+ w.alli=w.alli.filter(z=>an-z.an<25&&!(WORLD.v15&&(WORLD.v15.war||[]).some(g=>(g.a===z.a&&g.b===z.b)||(g.a===z.b&&g.b===z.a))));
+ if(Math.random()<.09){const a=R[rnd(R.length)],vs=vois15(a),b=vs.length?vs[rnd(vs.length)]:null,da=w.dyn[a],db=b&&w.dyn[b];if(b&&da&&db&&da.hr.length&&db.hr.length&&!w.alli.some(z=>(z.a===a&&z.b===b)||(z.a===b&&z.b===a))){w.alli.push({a,b,an});chro('Mariage royal : '+da.hr[0].n+' ('+da.maison+') épouse '+db.hr[0].n+' ('+db.maison+') ; alliance entre '+a+' et '+b)}}
+ /* économie */
+ const e=w.eco,v14=WORLD.v14||{},war=(WORLD.v15&&WORLD.v15.war)||[];
+ R.forEach(r=>{const pr=e.prix[r]=e.prix[r]||{},pd=prod17(r),rec=(v14.rec||{})[r],gw=war.some(g=>g.a===r||g.b===r);DEN17.forEach(d=>{const tg=(pd.includes(d)?.62:1.25)*(rec==='mauvaise'?1.2:rec==='bonne'?.92:1)*(gw?1.25:1)*(e.emb.some(z=>(z.a===r||z.b===r)&&prod17(z.a===r?z.b:z.a).includes(d))?1.4:1),p=pr[d]||tg;pr[d]=Math.round((p+(tg-p)*.4)*(.94+Math.random()*.12)*100)/100})});
+ e.emb=e.emb.filter(z=>war.some(g=>(g.a===z.a&&g.b===z.b)||(g.a===z.b&&g.b===z.a)));
+ war.forEach(g=>{if(!e.emb.some(z=>(z.a===g.a&&z.b===g.b)||(z.a===g.b&&z.b===g.a))&&Math.random()<.6){e.emb.push({a:g.a,b:g.b,an});chro('Embargo entre '+g.a+' et '+g.b+' : les marchés se ferment')}});
+ /* ordres */
+ if(!w.ord){w.ord={};ORD17.forEach(o=>{const inf={};for(let k=0;k<3;k++)inf[R[rnd(R.length)]]=3+rnd(3);w.ord[o[0]]={inf}})}
+ ORD17.forEach(o=>{const inf=w.ord[o[0]].inf;Object.keys(inf).forEach(r=>{if(inf[r]>=2&&Math.random()<.3){const vs=vois15(r);if(vs.length){const b=vs[rnd(vs.length)];inf[b]=Math.min(5,(inf[b]||0)+1)}}if(Math.random()<.08)inf[r]--;if(WORLD.pe[r]&&WORLD.pe[r].h==='en guerre'&&Math.random()<.2)inf[r]--;if(inf[r]<=0)delete inf[r]});if(!Object.keys(inf).length)inf[R[rnd(R.length)]]=2})}
+function tickAn17hook(an){try{tick17(an)}catch(e){console.error('tick17',e)}}
+/* ---------- événements ---------- */
+const EV17=[['Spéculer sur les prix',3,'_Cour',{jet:['Cha',9],EN:-1},'commerce','Les prix varient d’un royaume à l’autre : de quoi s’enrichir, ou s’endetter.','{n} spécule sur les prix des royaumes.','{n} se trompe de marché.'],
+ ['Rejoindre un ordre',2,'_Cour',{jet:['Cha',9]},'social','Un ordre recrute : ses insignes ouvrent bien des portes.','{n} est reçu dans un ordre.','{n} voit sa candidature refusée.'],
+ ['Mission de l’ordre',4,'_Ordre',{jet:['End',9],or:4},'social','L’ordre réclame un service.','{n} accomplit une mission de l’ordre.','{n} échoue dans une mission de l’ordre.'],
+ ['Audience à la cour',2,'_Cour',{jet:['Cha',10],or:5},'social','Un souverain reçoit ses sujets ; on peut y plaider sa cause.','{n} obtient une audience à la cour.','{n} est éconduit par les gardes.']];
+DEF.find(t=>t.vie).o.push(...EV17.map(e=>[e[0],e[1],{},e[2]]));EV17.forEach(e=>{EF[e[0]]=e[3];ETAG[e[0]]=e[4];HIST[e[0]]=e[5];REC[e[0]]=[e[6],e[7]]});
+function v17Flags(){if(!C.pvm)return;const y=C.v17=C.v17||{};if(y.ordre&&!C.fl.includes('_Ordre'))C.fl.push('_Ordre')}
+function v17Apres2(v,ok,tx){const y=C.v17=C.v17||{},w=W17(),reg=rg(C.pos);
+ if(v==='Spéculer sur les prix'){if(ok){const pr=w.eco.prix,here=pr[reg]||{};let best=null;DEN17.forEach(d=>{REGIONS.forEach(r=>{if(r===reg||!(pr[r]&&here[d]))return;const g=pr[r][d]/here[d];if(!best||g>best.g)best={d,r,g}})});if(best){const gain=Math.max(2,Math.min(16,Math.round((best.g-1)*10)));C.or+=gain;y.spec=(y.spec||0)+1;tx.push('Vous achetez du '+best.d+' à '+reg+' ('+here[best.d]+') et le revendez à '+best.r+' ('+w.eco.prix[best.r][best.d]+') : or +'+gain)}}else if(C.or>=2){C.or-=2;tx.push('Le marché tourne : or -2')}}
+ if(v==='Rejoindre un ordre'&&ok&&!y.ordre){const o=w.ord||{},L=ORD17.map(z=>[z[0],((o[z[0]]||{}).inf||{})[reg]||0.3]),t=L.reduce((a,z)=>a+z[1],0);let r=Math.random()*t,n=L[0][0];for(const z of L){if(r<z[1]){n=z[0];break}r-=z[1]}y.ordre={n,rang:1,m:0};tx.push('Vous rejoignez '+n+' (rang d’initié)')}
+ if(v==='Mission de l’ordre'&&y.ordre){if(ok){y.ordre.m++;const R=['Initié','Frère','Gardien','Maître','Grand Maître'];if(y.ordre.m%3===0&&y.ordre.rang<4){y.ordre.rang++;tx.push('Promotion : '+R[y.ordre.rang]+' de '+y.ordre.n)}}else if(Math.random()<.2){tx.push('L’ordre vous renvoie : vous perdez votre rang');delete y.ordre}}
+ if(v==='Audience à la cour'&&ok){const d=w.dyn[reg];y.aud=(y.aud||0)+1;if(d&&d.roi)tx.push('Le roi '+d.roi.n+' ('+d.maison+') vous reçoit'+(w.alli.some(z=>z.a===reg||z.b===reg)?' ; sa famille est alliée à une autre couronne':''))}}
+{const S=[['Frère d’ordre',c=>c.v17&&c.v17.ordre&&c.v17.ordre.rang>=2,{or:12},'Rang de frère dans un ordre.'],['Maître d’ordre',c=>c.v17&&c.v17.ordre&&c.v17.ordre.rang>=4,{or:35,st:{Cha:1}},'Sommet d’un ordre transnational.'],['Courtisan',c=>c.v17&&c.v17.aud>=2,{or:12},'Deux audiences obtenues à la cour.'],['Spéculateur',c=>c.v17&&c.v17.spec>=3,{or:18},'Trois spéculations réussies sur les prix des royaumes.'],['Survivant du Hardcore',c=>c.mode==='hard'&&c.fin==='victoire',{or:35,st:{End:1}},'Objectif atteint en mode Hardcore.']];S.forEach(s=>SUCC.push(s))}
+/* ---------- le monde vit seul ---------- */
+function vivre17(n){if(occ)return;if(C.pvm&&!C.fin)return modal('Monde','Un personnage est en vie','Terminez ou archivez le personnage en cours : le temps du monde est lié à sa vie.',[],()=>{});
+ const sv=C;let L0=0;try{W10();L0=WORLD.chro.length;C=Object.assign(nouveau(),{an0:WORLD.annee,t:0});
+  for(let i=0;i<n;i++){C.an0=WORLD.annee+i+1;C.t=0;try{tick14();tick15();monde12();paysDrift()}catch(e){console.error(e)}}
+  WORLD.annee+=n}finally{C=sv}
+ built=false;ecrire('monde',WORLD);const l=WORLD.chro.slice(L0).filter(z=>z).slice(-16);modal('Monde','Le monde a vécu '+n+' ans','Nous sommes maintenant en l’an '+WORLD.annee+'.',l.length?l.map(z=>'An '+z.an+' : '+z.txt):['Rien de notable ne s’est produit.'],()=>{});hist17()}
+/* ---------- affichage ---------- */
+function hist17(){const w=W17(),el=id=>$(id);
+ if(el('v17-dyn')){const L=REGIONS.filter(r=>r==='Royaume du Nord'||r==='Terres du Centre'||r==='Marches du Sud'||(WORLD.pays||[]).includes(r));el('v17-dyn').innerHTML='<ul>'+L.map(r=>{const d=w.dyn[r];if(!d)return '';const al=w.alli.filter(z=>z.a===r||z.b===r).map(z=>z.a===r?z.b:z.a);return '<li><b>'+esc(r)+'</b>'+(d.roi?esc(d.roi.n)+' ('+d.roi.age+' ans), '+esc(d.maison):'trône vacant')+' <small>· '+d.hr.length+' héritier'+(d.hr.length>1?'s':'')+(al.length?' · allié à '+esc(al.join(', ')):'')+'</small></li>'}).join('')+'</ul>'||'<p>Aucune dynastie connue.</p>'}
+ if(el('v17-eco')){const pr=w.eco.prix,L=REGIONS.filter(r=>r==='Terres du Centre'||(WORLD.pays||[]).includes(r)),g=[];DEN17.forEach(d=>{let mn=null,mx=null;L.forEach(r=>{const p=(pr[r]||{})[d];if(!p)return;if(!mn||p<mn[1])mn=[r,p];if(!mx||p>mx[1])mx=[r,p]});if(mn&&mx&&mn[0]!==mx[0])g.push([d,mn,mx,mx[1]/mn[1]])});g.sort((a,b)=>b[3]-a[3]);
+  el('v17-eco').innerHTML=(g.length?'<ul>'+g.slice(0,8).map(z=>'<li><b>'+esc(cap(z[0]))+'</b>moins cher à '+esc(z[1][0])+' ('+z[1][1]+'), plus cher à '+esc(z[2][0])+' ('+z[2][1]+')</li>').join('')+'</ul>':'<p>Découvrez d’autres contrées pour comparer les marchés.</p>')+(w.eco.emb.length?'<p><b>Embargos :</b> '+w.eco.emb.map(z=>esc(z.a+' / '+z.b)).join(' ; ')+'</p>':'')}
+ if(el('v17-ord')&&w.ord){el('v17-ord').innerHTML='<ul>'+ORD17.map(o=>{const inf=(w.ord[o[0]]||{}).inf||{},t=Object.keys(inf).sort((a,b)=>inf[b]-inf[a]).slice(0,4);return '<li><b>'+esc(o[0])+'</b>'+esc(cap(o[1]))+' <small>· influence : '+(t.length?esc(t.map(r=>r+' '+inf[r]).join(', ')):'faible')+'</small></li>'}).join('')+'</ul>'+(C.pvm&&C.v17&&C.v17.ordre?'<p>Votre ordre : <b>'+esc(C.v17.ordre.n)+'</b> (rang '+C.v17.ordre.rang+')</p>':'')}
+ const f17=$('fin17');if(f17)f17.hidden=!(C.pvm&&!C.fin&&C.mode==='sand');const m=$('v17-mode');if(m)m.textContent=C.pvm?('Mode de ce personnage : '+({hard:'Hardcore',sand:'Bac à sable'}[C.mode]||'Normal')):''}
+function init17(){const sec=document.querySelector('.tp[data-t=m]');if(!sec||$('v17-dyn'))return;const mk=(id)=>{const d=document.createElement('div');d.id=id;return d};
+ const vit=document.createElement('div');vit.innerHTML='<p style="color:var(--m);font-size:14px">Faites passer le temps sans personnage : dynasties, guerres, récoltes, épidémies et marchés évoluent.</p><div style="display:flex;gap:8px;flex-wrap:wrap">'+[5,10,25,50].map(n=>'<button class="n" data-vv="'+n+'">+ '+n+' ans</button>').join('')+'</div>';vit.onclick=e=>{const b=e.target.closest('[data-vv]');if(b)vivre17(+b.dataset.vv)};
+ [cat13('c-vit','Faire vivre le monde',[vit],false),cat13('c-dyn','Dynasties royales',[mk('v17-dyn')]),cat13('c-eco','Économie du monde',[mk('v17-eco')]),cat13('c-ord','Ordres et factions',[mk('v17-ord')])].forEach(c=>sec.appendChild(c));
+ const g=document.querySelector('.tp[data-t=g]')||document.body,rgb=$('reg');
+ if(rgb&&!$('rg-mode')){const lb=document.createElement('label');lb.innerHTML='Mode de jeu (prochain personnage) <select id="rg-mode"><option value="normal">Normal</option><option value="hard">Hardcore : pas d’annulation, jets plus durs</option><option value="sand">Bac à sable : on ne meurt pas</option></select><small id="v17-mode" style="display:block;color:var(--m)"></small>';rgb.appendChild(lb);const s=$('rg-mode');s.value=REG.mode||'normal';s.onchange=()=>{REG.mode=s.value;ecrire('reg',REG)}}
+ const mem=document.querySelector('.tp[data-t=r]');if(mem&&!$('ch17')){const b=document.createElement('button');b.id='ch17';b.className='n';b.textContent='Lire cette vie en chapitres';b.style.cssText='width:100%;margin:8px 0';b.onclick=chapitres17;mem.insertBefore(b,mem.firstChild);const e=document.createElement('button');e.id='fin17';e.className='n';e.textContent='Terminer cette vie (bac à sable)';e.style.cssText='width:100%;margin:8px 0';e.hidden=true;e.onclick=()=>{if(C.mode==='sand'&&C.pvm&&!C.fin&&confirm('Terminer la vie de ce personnage ?')){C.fin='mort';ui()}};mem.insertBefore(e,mem.firstChild)}
+ const pl=$('plein');if(pl&&!$('ex17')){const b=document.createElement('button');b.id='ex17';b.textContent='Image';b.className='n';b.style.cssText='position:absolute;right:10px;bottom:96px;z-index:3';b.onclick=()=>exportCarte17();pl.appendChild(b)}
+ hist17()}
+/* ---------- chapitres ---------- */
+const TCH17={combat:'Le fer et le sang',commerce:'Les comptes du monde',savoir:'Les pages et la cendre',voyage:'Les routes',survie:'Les épreuves',mystique:'Les voix invisibles',artisanat:'Les mains au travail',ruse:'L’ombre et le vent',soin:'Les mains qui guérissent',social:'Les visages',hospitalité:'Les tables et les feux'};
+function chapitres17(){if(!C.pvm)return modal('Récit','Aucune vie','Créez un personnage pour lire son histoire en chapitres.',[],()=>{});
+ const g=k=>(C.rep.find(r=>r[0]===k)||[])[1]||'',nom=(C.nom||'Le personnage').split(' ')[0],V=C.vie.filter(e=>e.t!=='Objet'),ch=[],k=Math.max(3,Math.ceil(V.length/Math.max(1,Math.min(6,Math.round(V.length/4)))));
+ const txt=e=>{const r=REC[e.t];let s=r?(r[e.ok?0:1]||''):(HIST[e.t]||e.t);s=s.replace(/\{n\}/g,nom);return s+(e.p?' ('+e.p+')':'')};
+ ch.push(['Prologue','',[nomS()+', '+g('Race').toLowerCase()+' '+g('Métier').toLowerCase()+'.',(HIST[g('Origine')]||''),(C.v16&&C.v16.cult?'Culture : '+C.v16.cult.txt+'.':'')].filter(Boolean)]);
+ for(let i=0;i<V.length;i+=k){const a=V.slice(i,i+k),f={};a.forEach(e=>f[ETAG[e.t]||'social']=(f[ETAG[e.t]||'social']||0)+1);const top=Object.keys(f).sort((x,y)=>f[y]-f[x])[0];ch.push(['Chapitre '+(ch.length)+' — '+(TCH17[top]||'Les jours'),a[0].p?'à '+a[0].p:'',a.map(txt)])}
+ ch.push(['Épilogue','',[C.fin==='victoire'?nom+' atteint son but : '+(C.obj||'')+'.':C.fin==='mort'?nom+' s’éteint, laissant derrière lui '+(C.vis||[]).length+' lieu'+((C.vis||[]).length>1?'x':'')+' visité'+((C.vis||[]).length>1?'s':'')+'.':'L’histoire n’est pas finie.',(C.succ||[]).length?'Succès : '+C.succ.join(', ')+'.':''].filter(Boolean)]);
+ const o=document.createElement('div');o.className='ov13';o.innerHTML='<div class="bu13" role="dialog" aria-modal="true"><h3>'+esc(nomS())+'</h3>'+ch.map(c=>'<h4 style="margin:12px 0 4px">'+esc(c[0])+(c[1]?' <small style="color:var(--m);font-weight:400">'+esc(c[1])+'</small>':'')+'</h4><p style="margin:0;font-size:14px;line-height:1.5">'+c[2].map(esc).join(' ')+'</p>').join('')+'<div class="l"><button class="n" id="chc">Copier</button><button class="n" id="chx">Fermer</button></div></div>';document.body.appendChild(o);
+ o.querySelector('#chx').onclick=()=>o.remove();o.onclick=e=>{if(e.target===o)o.remove()};o.querySelector('#chc').onclick=()=>{const t=ch.map(c=>c[0]+(c[1]?' ('+c[1]+')':'')+'\n'+c[2].join(' ')).join('\n\n');try{navigator.clipboard.writeText(t);o.querySelector('#chc').textContent='Copié'}catch(e){}}}
+/* ---------- export de la carte en image ---------- */
+function exportCarte17(retour){monde();const svg=mp.cloneNode(true),vb=mp.getAttribute('viewBox').split(' ').map(Number),W=1600,Hh=Math.round(W*vb[3]/vb[2]),cs=getComputedStyle(document.documentElement);
+ let css=':root{'+['--mer','--terre','--rel','--e','--a','--s','--arb','--tro','--m','--l'].map(k=>k+':'+cs.getPropertyValue(k)).join(';')+'}';
+ try{for(const sh of document.styleSheets)for(const r of sh.cssRules)if(r.selectorText&&r.selectorText.includes('#mp')&&!r.cssText.includes('@keyframes'))css+=r.cssText}catch(e){}
+ svg.setAttribute('xmlns','http://www.w3.org/2000/svg');svg.setAttribute('width',W);svg.setAttribute('height',Hh);svg.style.cssText='background:'+cs.getPropertyValue('--mer');svg.querySelectorAll('animateMotion,.fog').forEach(n=>{if(n.tagName==='animateMotion')n.remove()});
+ const st=document.createElementNS('http://www.w3.org/2000/svg','style');st.textContent=css;svg.insertBefore(st,svg.firstChild);svg.style.setProperty('--k',mp.style.getPropertyValue('--k'));
+ const src='<?xml version="1.0"?>'+new XMLSerializer().serializeToString(svg),url='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(src);
+ return new Promise(res=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=W;c.height=Hh;const x=c.getContext('2d');x.fillStyle=cs.getPropertyValue('--mer')||'#bcd0dc';x.fillRect(0,0,W,Hh);x.drawImage(im,0,0,W,Hh);
+   c.toBlob(b=>{if(retour){res(b?b.size:0);return}const f=new File([b],'carte-'+(WORLD.nomM||'monde')+'.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Carte du monde'}).catch(()=>{})}else{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=f.name;document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),500)}res(b.size)})};im.onerror=()=>res(0);im.src=url})}
 /* jeu.js : état du personnage, roulette, jets, objets, boutique, saisons, quêtes, fin de partie, interface */
 const nouveau=()=>({nom:'',rep:[],vie:[],pos:null,trail:[],st:{},pv:0,pvm:0,en:0,enm:0,inv:[],or:0,fl:[],comp:[],vis:[],rel:{Marchands:0,Couronne:0,Pègre:0,Peuple:0},cic:[],us:{},fat:0,cd:0,nem:'',ally:'',mnd:null,succ:[],expl:[],dec:0,boss:0,an0:0,lig:null,ligTrait:'',ligTx:[],fonde:'',obj:'',qs:0,t:0,age0:20,meteo:'Clair',fin:null,arch:0,lat:[],sur:'',cmp:null,bl:[],rang:0,enf:[],sq:null,sqn:0,mortT:'',vl:[],famOk:false,arr:[],biens:[]});
 let PERSO=lire('perso',{tables:{},ev:[],efx:{},hist:{},etag:{},lieux:[],pos:{},extra:[]}),T=null,C=lire('c',nouveau()),PAN=lire('pan',[]),rot=0,occ=false,cur=[];
@@ -2450,7 +3024,7 @@ function poids(t){
  if(t.vie){cx=ev.concat(C.fl,C.inv,[C.pos,C.meteo,cap(sai())],WORLD.sites.some(s=>s.n===C.pos)?['Site']:[]);if(C.en<=3)cx.push('Épuisé');if(C.pv<=4)cx.push('Blessé');const q=etq();if(C.qs<q.length)cx.push('Étape:'+q[C.qs][2])}
  a.push(...cx);const rw=cx.slice().reverse();
  const permis=g=>{const a=C.rep.map(r=>r[1]);return g.some(x=>x.startsWith('tag:')?C.comp.some(s=>s.tag===x.slice(4)):x.startsWith('obj:')?C.inv.includes(x.slice(4)):a.includes(x)||x===C.ligTrait)};
- const l=t.o.filter(x=>(!x[3]||a.includes(x[3]))&&!(x[0]==='Vengeance de l\'ennemi'&&C.cd>0)&&!(x[0]==='Explorer le site'&&C.expl.includes(C.pos))&&!(x[0]==='Piste d\'un lieu oublié'&&WORLD.sites.length>=12)).map(x=>{let w=x[1];a.forEach(k=>{if(x[2]&&x[2][k]!==undefined)w*=x[2][k]});if(t.vie){if(EREQ[x[0]]&&!permis(EREQ[x[0]]))w*=.03;w*=repMult(x[0])*objBoost(x[0])*v10Boost(x[0])*v12Boost(x[0])*v13Boost(x[0]);C.rep.concat(C.ligTrait?[['L',C.ligTrait]]:[]).forEach(r=>{const m=TR[r[1]];if(m&&m[x[0]])w*=m[x[0]]});RELF.forEach(f=>{const v=C.rel[f],k=v>=2?'Rel:'+f+'+':v<=-2?'Rel:'+f+'-':'',m=RELW[k];if(m&&m[x[0]])w*=m[x[0]]});const mo=C.mnd&&MONDE[C.mnd.n].w[x[0]];if(mo)w*=mo}
+ const l=t.o.filter(x=>(!x[3]||a.includes(x[3]))&&!(x[0]==='Vengeance de l\'ennemi'&&C.cd>0)&&!(x[0]==='Explorer le site'&&C.expl.includes(C.pos))&&!(x[0]==='Piste d\'un lieu oublié'&&WORLD.sites.length>=12)).map(x=>{let w=x[1];a.forEach(k=>{if(x[2]&&x[2][k]!==undefined)w*=x[2][k]});if(t.vie){if(EREQ[x[0]]&&!permis(EREQ[x[0]]))w*=.03;w*=repMult(x[0])*objBoost(x[0])*v10Boost(x[0])*v12Boost(x[0])*v13Boost(x[0])*v16Boost(x[0]);C.rep.concat(C.ligTrait?[['L',C.ligTrait]]:[]).forEach(r=>{const m=TR[r[1]];if(m&&m[x[0]])w*=m[x[0]]});RELF.forEach(f=>{const v=C.rel[f],k=v>=2?'Rel:'+f+'+':v<=-2?'Rel:'+f+'-':'',m=RELW[k];if(m&&m[x[0]])w*=m[x[0]]});const mo=C.mnd&&MONDE[C.mnd.n].w[x[0]];if(mo)w*=mo}
   const why=rw.find(k=>x[2]&&x[2][k]!==undefined&&x[2][k]!==1&&k!==C.pos&&!SAI.includes(k.toLowerCase()))||(x[3]&&x[3]!==C.pos?x[3]:'');return{t:x[0],w,why:why.startsWith('Étape:')?'son objectif':why}}).filter(x=>x.w>0);
  return l.length?l:t.o.filter(x=>!x[3]).map(x=>({t:x[0],w:x[1]}))}
 function dessiner(w){
@@ -2459,13 +3033,12 @@ function dessiner(w){
  const p=(r,u)=>(150+r*Math.cos(u)).toFixed(1)+' '+(150+r*Math.sin(u)).toFixed(1);
  cur.forEach((x,i)=>{const d=x.w/s*2*Math.PI,b=a+d,c='hsl('+(i*47%360)+' 36% '+(i%2?38:46)+'%)',m=a+d/2;
   h+=cur.length>1?'<path d="M150 150L'+p(140,a)+'A140 140 0 '+(d>Math.PI?1:0)+' 1 '+p(140,b)+'Z" fill="'+c+'" stroke="'+(w===i?'#fff':'var(--s)')+'" stroke-width="'+(w===i?5:2)+'" opacity="'+(w!==undefined&&w!==i?.3:1)+'"/>':'<circle cx="150" cy="150" r="140" fill="'+c+'"/>';
-  const L=x.t.length,fs=Math.min(12,88/(.56*L),d*80/1.2);
-  if(fs>=7)h+='<text transform="translate('+p(88,m)+') rotate('+(m*180/Math.PI)+')" text-anchor="middle" dominant-baseline="middle" font-size="'+fs.toFixed(1)+'" fill="#fff" opacity="'+(w!==undefined&&w!==i?.3:1)+'">'+esc(x.t)+'</text>';a=b});
+  h+=texteRoue(x.t,m,d,w!==undefined&&w!==i);a=b});
  $('g').innerHTML=h;
 }
 /* ----- Jets, effets, objets, boutique ----- */
 function usure(k){const c=[];C.inv.filter((x,i,a)=>a.indexOf(x)===i).forEach(x=>{if(((ITEMS[x]||{})[k])&&DUR[x]){C.us[x]=(C.us[x]||0)+1;if(C.us[x]>=DUR[x]){C.inv.splice(C.inv.indexOf(x),1);C.us[x]=0;c.push(x)}}});return c}
-function jet(k,d,tag){d+=DIFF.a+Math.min(DIFF.b,Math.floor(C.vie.length/DIFF.c));const b=C.inv.reduce((s,x)=>s+((ITEMS[x]||{})[k]||0),0),cp=tag?bonusComp(tag):0,r=2+rnd(6)+rnd(6),st=Math.floor(C.st[k]/2),ml=(C.bl||[]).reduce((s,x)=>s+((x.s||{})[k]||0),0),cm=C.cmp?Math.min(2,C.cmp.niv):0,nb=v13Bonus(k),tot=r+st+b+cp+ml+cm+nb;
+function jet(k,d,tag){d+=DIFF.a+(C.mode==='hard'?1:0)+Math.min(DIFF.b,Math.floor(C.vie.length/DIFF.c));const b=C.inv.reduce((s,x)=>s+((ITEMS[x]||{})[k]||0),0),cp=tag?bonusComp(tag):0,r=2+rnd(6)+rnd(6),st=Math.floor(C.st[k]/2),ml=(C.bl||[]).reduce((s,x)=>s+((x.s||{})[k]||0),0),cm=C.cmp?Math.min(2,C.cmp.niv):0,nb=v13Bonus(k),tot=r+st+b+cp+ml+cm+nb;
  const casses=usure(k);return{ok:tot>=d,casses,txt:(/^[AEIOUÉ]/.test(S[k])?'Jet d\u2019':'Jet de ')+S[k]+' : '+tot+' (dés '+r+' + stat '+st+(b?' + objets '+b:'')+(cp?' + compétence '+cp:'')+(cm?' + compagnon '+cm:'')+(nb?' + lame nommée '+nb:'')+(ml?' - blessure '+(-ml):'')+') contre '+d}}
 let LASTOK=true;
 function initComp(){const g=k=>(C.rep.find(r=>r[0]===k)||[])[1],L=[];
@@ -2509,9 +3082,9 @@ function boutique(tx){ /* achats seuls en ville */
  if(!C.inv.some(x=>['Épée','Dague','Marteau','Arc'].includes(x))&&C.or>=px('Épée'))a('Épée');if(!n('Armure légère')&&C.or>=px('Armure légère')+5)a('Armure légère')}
 function verifier(){
  if(C.en<=0){C.fat++;if(C.fat%2===0&&C.enm>3)C.enm--;if(C.pv>0)C.pv--}
- if(C.pv<=0){C.pv=0;C.fin='mort';return}
- if(age()>=70){C.fin='mort';return}
- if(avancer())C.fin='victoire'}
+ if(C.pv<=0){if(C.mode==='sand')C.pv=1;else{C.pv=0;C.fin='mort';return}}
+ if(age()>=70&&C.mode!=='sand'){C.fin='mort';return}
+ {const a=avancer();if(a&&C.mode!=='sand')C.fin='victoire'}}
 function cible(c){{const ex=(C.v12&&C.v12.exil)||[];if(ex.length){const k=c.filter(x=>!ex.includes(x));if(k.length)c=k}}if(C.tr&&c.includes(C.tr)&&Math.random()<.5)return C.tr;if(Math.random()>.3){const n=c.filter(x=>!ETR.includes(x));if(n.length)c=n}if(C.sq&&c.includes(C.sq.lieu)&&Math.random()<.45)return C.sq.lieu;const o=C.obj,q=etq();let tg=null;if(C.qs<q.length){const d=OBJD[o]&&OBJD[o][C.qs];if(d){if(d.t==='lieu')tg=d.v;else if(d.t==='ev'){const e=tv().o.find(x=>x[0]===d.v);tg=e&&e[3]}}else if(o==='Retrouver la Relique'&&C.qs>=1)tg='Désert aux ruines'}
  return tg&&c.includes(tg)&&Math.random()<.5?tg:c[rnd(c.length)]}
 function agir(v,why){
@@ -2524,7 +3097,7 @@ function agir(v,why){
  const ent={t:v,ok:LASTOK,p:C.pos,txt:''};C.vie.push(ent);verifier();succes(tx);{const e0=etq()[C.qs];if(e0&&e0[3]&&!C.fin&&e0[3].t!=='lieu'){const p=progres(e0[3]);if(p)tx.push('Objectif : '+p[0]+'/'+p[1])}}if(C.en<=0&&!C.fin)tx.push('épuisé');
  ent.txt=(d0+' : '+txt+(why?' (suite à : '+why+')':'')+(tx.length?' ['+tx.join(', ')+']':'')+(C.fin==='mort'?' : mort'+(age()>=70?' de vieillesse':''):''));
  $('act').textContent=ent.txt;ecrire('c',C);return{tx,vers,de,sc}}
-function fin(){C.pvm=C.pv=8+C.st.End;C.enm=C.en=6+Math.floor(C.st.End/2);C.or=5;C.age0=17+rnd(14);C.t=rnd(12);meteo();
+function fin(){C.pvm=C.pv=8+C.st.End;C.mode=REG.mode||'normal';if(C.mode==='hard')C.pvm=C.pv=Math.max(4,C.pvm-2);C.enm=C.en=6+Math.floor(C.st.End/2);C.or=5;C.age0=17+rnd(14);C.t=rnd(12);meteo();
  const g=k=>(C.rep.find(r=>r[0]===k)||[])[1];C.inv=[INV[g('Métier')]||'Bâton','Ration'];C.obj=g('Objectif')||'';initComp();C.an0=WORLD.annee+1+rnd(20);applyLig();applyRH();heritages();v10Debut();v12Debut();v13Debut()}
 function applyRH(){C.rhTx=[];const rc=race(),h=RH[rc];if(!h)return;const v=Math.min(3,h.v||0),m=Math.min(3,h.m||0),bs=Object.keys(S).sort((a,b)=>((SB[rc]||{})[b]||0)-((SB[rc]||{})[a]||0));
  if(v){const st={};bs.slice(0,v).forEach(k=>st[k]=1);effet({st,or:3*v},C.rhTx);C.rhTx.unshift('Gloire des '+rc.toLowerCase()+'s ('+h.v+' victoire'+(h.v>1?'s':'')+')')}
@@ -2576,7 +3149,7 @@ function ui(){
  $('j').hidden=!REG.j;$('j').innerHTML=C.vie.map(x=>{const p=x.txt.split(' [');return '<li><b>'+esc(p[0])+'</b>'+esc(p[1]?p[1].replace(/\]$/,'').replace(/, /g,' · '):'')+'</li>'}).join('')||'<li>Aucun événement pour l\u2019instant.</li>';
  $('pan').innerHTML=PAN.map((x,i)=>!panOK(x)?'':'<li data-p="'+i+'"><span class="pi">'+iconeSVG(x.race,30)+'</span><span><b>'+esc(x.nom)+' : '+(x.fin==='mort'?'mort':'victoire')+' à '+x.age+' ans</b>'+esc(x.race+' '+x.metier+(x.succ&&x.succ.length?', '+x.succ[0]:'')+(x.lig?', '+x.lig:'')+(x.nouvelle?', fonde la '+x.nouvelle:''))+'</span></li>').join('')||'<li>Aucun personnage terminé pour l\u2019instant.</li>';if(PAN.length&&!$('pan').innerHTML.trim())$('pan').innerHTML='<li>Aucun personnage ne correspond au filtre.</li>';hist();
  $('fin').hidden=!f;if(f)$('fin').innerHTML='<b>'+(f==='mort'?esc(nomS())+' est mort.':'Objectif accompli !')+'</b><br>'+esc(bio())+'<br><button id="bl">Bilan de vie</button>';
- $('go').disabled=!t||occ||!!f;if($('un'))$('un').hidden=!(UNDO&&UNDO.length)||!C.pvm;banniere();autoSauve();majPanF();majSv();hist10();hist11();if($('un'))$('un').textContent='Annuler ('+UNDO.length+')';if($('rp'))$('rp').hidden=!C.pvm||!!C.fin||C.rep.length<etapes().length;$('vc').hidden=!C.pos;rendreStats();hist12();hist13();dessiner()}
+ $('go').disabled=!t||occ||!!f;if($('un'))$('un').hidden=!(UNDO&&UNDO.length)||!C.pvm||C.mode==='hard';banniere();autoSauve();majPanF();majSv();hist10();hist11();if($('un'))$('un').textContent='Annuler ('+UNDO.length+')';if($('rp'))$('rp').hidden=!C.pvm||!!C.fin||C.rep.length<etapes().length;$('vc').hidden=!C.pos;rendreStats();hist12();hist13();dessiner()}
 /* ----- Son, tirage synchronisé, carte du destin ----- */
 let AC=null,MUET=lire('muet',false);
 function bip(f,d,v,t){if(MUET)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=t||'triangle';o.frequency.value=f;const T0=AC.currentTime;g.gain.setValueAtTime(.0001,T0);g.gain.linearRampToValueAtTime(v||.05,T0+.006);g.gain.exponentialRampToValueAtTime(.0001,T0+d);o.connect(g);g.connect(AC.destination);o.start(T0);o.stop(T0+d+.02)}catch(e){}}
@@ -2586,7 +3159,7 @@ $('son').textContent='Son : '+(MUET?'non':'oui');$('son').onclick=()=>{MUET=!MUE
 const STORY=(t,v)=>(t.n==='Naissance'?({'Sans lignée':'Aucun grand nom derrière lui : tout reste à écrire.','Lignée de naissance':'Il naît dans une lignée qui porte son sang.','Adopté':'Recueilli par une lignée qui n\u2019était pas la sienne : un destin rarissime.'}[v]||''):'')||(t.n==='Lignée'?(v==='Sans lignée'?'Aucun grand nom derrière lui : tout reste à écrire.':(LIG.find(l=>l.nom===v)||{}).txt):'')||HIST[v]||DESC12[v]||({'Trait de caractère':'Un trait qui marquera ses choix : '+v.toLowerCase()+'.','Défaut':'Son défaut, '+v.toLowerCase()+', lui jouera des tours.','Décor':'Sa vie commence ici : '+v+'.','Objectif':'Son but : '+v.toLowerCase()+'.'}[t.n]||'');
 function modal(cat,titre,texte,liste,ok,img){const m=$('md');$('mca').textContent=cat;$('mti').textContent=titre;$('mtx').className='';$('mtx').textContent=texte;$('mli').innerHTML=(liste||[]).map(x=>'<li>'+esc(x)+'</li>').join('');
  if($('mim'))$('mim').innerHTML='';$('mem').innerHTML=cat==='Race'?portrait(titre,120):'<div class="gl">'+esc(titre.charAt(0))+'</div>';m.hidden=false;if(img)illustrer(img[0],img[1]);$('mok').onclick=()=>{m.hidden=true;ok&&ok()};$('mok').focus()}
-function resume(){const k=Object.keys(S).sort((a,b)=>C.st[b]-C.st[a]);modal('Caractéristiques','Votre personnage',S[k[0]]+' est son point fort, '+S[k[4]]+' son point faible.',Object.keys(S).map(x=>{const rb=((SB[(C.rep.find(r=>r[0]==='Race')||[])[1]]||{})[x]||0);return S[x]+' : '+C.st[x]+(rb?' (race '+(rb>0?'+':'')+rb+')':'')}),()=>ui())}
+function resume(){const k=Object.keys(S).sort((a,b)=>C.st[b]-C.st[a]);modal('Caractéristiques','Votre personnage',S[k[0]]+' est son point fort, '+S[k[4]]+' son point faible.',Object.keys(S).map(x=>{const rb=((SB[(C.rep.find(r=>r[0]==='Race')||[])[1]]||{})[x]||0);return S[x]+' : '+C.st[x]+(rb?' (tendance de race : '+(rb>0?'plus élevé':'plus bas')+')':'')}),()=>ui())}
 $('go').onclick=()=>{
  if(occ||!cur.length)return;if(AC&&AC.state==='suspended')AC.resume();const t=table(),s=cur.reduce((a,x)=>a+x.w,0);let r=Math.random()*s,i=0,c=0;
  for(;i<cur.length-1;i++){if(r<c+cur[i].w)break;c+=cur[i].w}
