@@ -12,7 +12,7 @@ const IMC={};let illTok=0;
 function imageFor(kind,nom){const key=kind+'-'+slug(nom);if(key in IMC)return Promise.resolve(IMC[key]);
  return idb('get','img-'+key).then(b=>{if(b)return IMC[key]=URL.createObjectURL(b);
   return new Promise(r=>{const ex=['jpg','png','webp'];let i=0;const t=()=>{if(i>=ex.length){IMC[key]=null;return r(null)}const u='img/'+key+'.'+ex[i++],im=new Image();im.onload=()=>{IMC[key]=u;r(u)};im.onerror=t;im.src=u};t()})})}
-function illustrer(kind,nom){const el=$('mim');if(!el)return;el.innerHTML='';const tok=++illTok;imageFor(kind,nom).then(u=>{if(u&&tok===illTok&&!$('md').hidden)el.innerHTML='<img src="'+u+'" alt="">'})}
+function illustrer(kind,nom){const el=$('mim');if(!el)return;el.innerHTML='';const tok=++illTok,L=Array.isArray(kind)?kind:[[kind,nom]];(async()=>{for(const z of L){const u=await imageFor(z[0],z[1]);if(u){if(tok===illTok&&!$('md').hidden)el.innerHTML='<img src="'+u+'" alt="">';return}}})()}
 /* donnees.js : tout ce qui est « contenu » du jeu (tables, événements, effets, objets, quêtes, lieux) */
 const S={For:'Force',Agi:'Agilité',Esp:'Esprit',Cha:'Charisme',End:'Endurance'};
 const SB={'Elfe':{Agi:2,Esp:1,For:-1,End:-1},'Nain':{For:1,End:2,Agi:-1},'Orc':{For:2,Esp:-1,Cha:-1},'Halfelin':{Agi:2,For:-1,Cha:1},'Gnome':{Esp:2,For:-1,End:-1},'Démon':{Esp:1,Cha:1,End:-1,For:1},'Drakéen':{For:2,End:1,Agi:-1},'Félin':{Agi:2,Esp:0,For:-1,End:-1},'Sylvain':{End:2,Agi:1,Cha:-1},'Humain':{Cha:1},'Paysan':{End:1},'Noble déchu':{Cha:1,Esp:1},'Marchand':{Cha:1},'Orphelin des rues':{Agi:1,End:1},'Fils de soldat':{For:1},'Étranger exilé':{End:1},'Forgeron':{For:2},'Voleur':{Agi:2},'Soldat':{For:1,End:1},'Érudit':{Esp:2},'Guérisseur':{Esp:1,Cha:1},'Mercenaire':{For:1,Agi:1},'Aubergiste':{Cha:1,End:1},'Contrebandier':{Agi:1,Cha:1},'Curieux':{Esp:1},'Têtu':{End:1},'Généreux':{Cha:1},'Peureux':{Agi:1,For:-1},'Rancunier':{For:1},'Cupide':{Esp:1}};
@@ -776,7 +776,7 @@ function monde(){
  +'<path d="M150 34C130 50 110 46 96 62S60 80 40 84" fill="none" stroke="var(--mer)" stroke-width="1.6"/>'
  +'<ellipse cx="160" cy="92" rx="22" ry="12" fill="#d9c58f" opacity=".55"/><ellipse cx="128" cy="76" rx="6" ry="3" fill="var(--mer)"/><ellipse cx="76" cy="52" rx="4" ry="2.4" fill="var(--mer)"/>'
  +'<path d="M140 30l6-12 6 12zM150 30l7-15 7 15zM162 30l5-10 5 10z" fill="var(--rel)"/>'
- +'<text class="pa sr" x="105" y="22">Royaume du Nord</text><text class="pa sr" x="105" y="74">Terres du Centre</text><text class="pa sr" x="105" y="104">Marches du Sud</text>'
+ +lblHome18()
  +'<text class="pa ar" x="100" y="-6">Ancien Royaume</text>';
  const qM=Lc.filter(n=>!TYPE14[n]).map(pos);qM.forEach((c,i)=>{const d=qM[(i+1)%qM.length];h+='<path d="M'+c[0]+' '+c[1]+'Q'+f((c[0]+d[0])/2+(i%2?6:-6))+' '+f((c[1]+d[1])/2+5)+' '+d[0]+' '+d[1]+'" fill="none" stroke="var(--rel)" stroke-width=".7" opacity=".8"/>'});
  const pr=(x,y,r)=>q.some(c=>Math.hypot(c[0]-x,c[1]-y)<r);
@@ -803,7 +803,7 @@ function monde(){
    else h+='<path d="M'+f(x)+' '+f(y)+'l3.6-8 3.6 8z" fill="var(--rel)" stroke="var(--e)" stroke-width=".12"/>'}
   const E=WORLD.pe[p.n];const l0=pos(p.L[0][0]),cn=(pi<6?Lc.map(pos):Lc.map(pos).concat(PAYS.slice(0,pi).map(q=>pos(q.L[0][0])))).reduce((b,c)=>Math.hypot(c[0]-l0[0],c[1]-l0[1])<Math.hypot(b[0]-l0[0],b[1]-l0[1])?c:b,[100,60]);
   h+='<path d="M'+l0[0]+' '+l0[1]+'L'+cn[0]+' '+cn[1]+'" fill="none" stroke="'+(E&&E.h==='prospère'?'#d9a441':'var(--rel)')+'" stroke-width="'+(E&&E.h==='prospère'?'.9':'.5')+'" stroke-dasharray="'+(E&&E.h==='prospère'?'none':'1.4 1.6')+'" opacity=".75"/>'});
- h+=terr15()+(GEO?roads17(Lv):routes14(Lv))+deco14()+(GEO?noms17():noms15());
+ h+=fog18()+terr15()+(GEO?roads17(Lv):routes14(Lv))+deco14()+(GEO?noms17():noms15());
  if(CARTE_URL)h+='<image href="'+CARTE_URL+'" x="0" y="0" width="200" height="120" preserveAspectRatio="xMidYMid slice"/>';
  q.forEach((c,i)=>{const n=Lv[i],vu=!ETR.includes(n)||WORLD.vus.includes(n),F=WORLD.fond.some(z=>z.n===n);
   const vd='<g class="vd"><circle cx="'+f(c[0])+'" cy="'+f(c[1])+'" r="7" fill="none" stroke="var(--rel)" stroke-width=".35" stroke-dasharray="1 .8"/><path d="M'+f(c[0]-7)+' '+f(c[1])+'H'+f(c[0]+7)+'M'+f(c[0])+' '+f(c[1]-7)+'V'+f(c[1]+7)+'M'+f(c[0]-5)+' '+f(c[1]-5)+'L'+f(c[0]+5)+' '+f(c[1]+5)+'" stroke="var(--rel)" stroke-width=".25" fill="none"/><rect x="'+f(c[0]-1.5)+'" y="'+f(c[1]-1.5)+'" width="3" height="3" fill="var(--terre)" stroke="var(--rel)" stroke-width=".2"/></g>';
@@ -1161,7 +1161,7 @@ function rapide(n){if(occ||C.fin||!C.pvm||C.rep.length<etapes().length)return;sn
  ui();modal('Partie rapide',L.length+' tirages',C.fin?(C.fin==='mort'?nomS()+' est mort.':'Objectif accompli !'):'',L,null)}
 if($('rp'))$('rp').onclick=()=>rapide(5);
 /* v10.js : destin, relations, chaînes, humeurs, roue truquée, coups du sort, bilan, records, livre d'or, thèmes, export, transfert, test auto */
-const W10=()=>{['pnj','biens','desc','aban','chro','deces','pays'].forEach(k=>WORLD[k]=WORLD[k]||[]);WORLD.hu=WORLD.hu||{};WORLD.pe=WORLD.pe||{};WORLD.sent=WORLD.sent||{};WORLD.vus=WORLD.vus||[];try{geoSync()}catch(e){console.error('geo',e)}};
+const W10=()=>{['pnj','biens','desc','aban','chro','deces','pays'].forEach(k=>WORLD[k]=WORLD[k]||[]);WORLD.hu=WORLD.hu||{};WORLD.pe=WORLD.pe||{};WORLD.sent=WORLD.sent||{};WORLD.vus=WORLD.vus||[];try{geoSync()}catch(e){console.error('geo',e)}try{init18W()}catch(e){console.error('v18',e)}};
 const humeur=l=>{if(!l)return '';const h=(WORLD.hu||{})[l];if(h&&C.an0&&anCourant()-h.an<30)return h.h;const e=(WORLD.pe||{})[paysDe(pos(l))];return e&&C.an0&&anCourant()-e.an<30?e.h:''};
 const HUM=['prospère','en guerre','en deuil','en fête'];
 const PNJR={rival:'Rival',mentor:'Mentor',proche:'Proche'};
@@ -1376,7 +1376,7 @@ function hist11(){W10();
  const jl=$('jl');if(jl)jl.innerHTML=LIG.length?LIG.map(l=>'<li><b>'+esc(l.nom)+'</b>'+esc(l.race||'')+(l.par?' ('+l.par.map(esc).join(' / ')+')':'')+' · réputation '+repTxt(l.rep||0)+(l.rel?' · '+l.rel.ty+' de '+esc(l.rel.avec):'')+(l.union?' · unie à '+esc(l.union):'')
   +(l.quete?'<br><small>Quête : '+esc(l.quete.txt)+' ('+l.quete.prog+'/'+l.quete.need+')</small>':'')+((l.faits||[]).length?'<br><small>Accompli : '+l.faits.map(esc).join(' ; ')+'</small>':'')
   +((l.membres||[]).length?'<br><small>'+l.membres.map(m=>esc(m.nom)+' ('+m.age+' ans, '+(m.fin==='mort'?'mort':'victoire')+(m.exp?', '+esc(m.exp):'')+')').join('<br>')+'</small>':'')+'</li>').join(''):'<li>Aucune lignée pour l’instant.</li>';
- const fr=$('fr');if(fr)fr.innerHTML=RACES.map(r=>{const n=r[0],b=SB[n]||{},bs=Object.keys(S).filter(k=>b[k]).map(k=>S[k]+' '+(b[k]>0?'+':'')+b[k]).join(', ')||'aucun bonus',h=RH[n]||{},j=(STAT.rj||{})[n]||{},top=Object.keys(j).sort((x,y)=>j[y]-j[x]).slice(0,3).map(k=>k+' ×'+j[k]).join(', '),nl=LIG.filter(l=>l.race===n).length;
+ const fr=$('fr');if(fr)fr.innerHTML=RACES.filter(r=>raceOk18(r[0])).map(r=>{const n=r[0],b=SB[n]||{},bs=Object.keys(S).filter(k=>b[k]).map(k=>S[k]+' '+(b[k]>0?'+':'')+b[k]).join(', ')||'aucun bonus',h=RH[n]||{},j=(STAT.rj||{})[n]||{},top=Object.keys(j).sort((x,y)=>j[y]-j[x]).slice(0,3).map(k=>k+' ×'+j[k]).join(', '),nl=LIG.filter(l=>l.race===n).length;
   return '<li><b>'+esc(n)+'</b>'+esc(bs)+'<br><small>'+(h.v||0)+' victoire(s), '+(h.m||0)+' mort(s), '+nl+' lignée(s)'+(top?' · métiers : '+esc(top):'')+'</small></li>'}).join('');
  const nt=$('nt');if(nt&&document.activeElement!==nt&&nt.value!==(C.note||''))nt.value=C.note||'';
  const hm=$('hm');if(hm&&(WORLD.chro.length||WORLD.deces.length)){const E=WORLD.chro.map(e=>[e.an,e.txt]).concat(WORLD.deces.map(e=>[e.an,'Décès : '+e.n+' ('+e.txt+')']));E.sort((a,b)=>b[0]-a[0]);hm.insertAdjacentHTML('beforeend',E.slice(0,25).map(e=>'<li><b>An '+e[0]+'</b> '+esc(e[1])+'</li>').join(''))}}
@@ -1737,7 +1737,7 @@ function h12(){sections12();const w=W12();
  const R=WORLD.reliques.map(r=>'<li><b>'+esc(r.it)+'</b> laissé(e) par '+esc(r.par)+' à '+esc(r.lieu||'?')+' (an '+r.an+'), à retrouver</li>').concat(w.codex.slice().reverse().map(c=>'<li><b>'+esc(c.it)+'</b> porté(e) par '+esc(c.par)+' (an '+c.an+')'+(c.lieu?', fin de vie à '+esc(c.lieu):'')+'</li>'));set('cod',R.length?'<ul>'+R.join('')+'</ul>':'<p>Aucune relique dans le codex pour l’instant.</p>');
  const K=Object.keys(w.cach);set('cach','<p>'+K.length+' trouvé'+(K.length>1?'s':'')+' sur '+CACH.length+'.</p><ul>'+CACH.map(c=>w.cach[c[0]]?'<li><b>'+esc(c[0])+'</b>'+esc(c[3])+' <small>Pris par '+esc(w.cach[c[0]].par)+' (an '+w.cach[c[0]].an+')</small></li>':'<li><b>'+esc(c[0].charAt(0))+'…'+esc(c[0].slice(-1))+' <small>('+c[0].length+' lettres)</small></b><small>Un succès caché reste à découvrir.</small></li>').join('')+'</ul>');
  const M=[];if(w.ere)M.push('<li><b>Ère</b>'+esc(w.ere.n)+' <small>(jusqu’à l’an '+w.ere.fin+')</small></li>');
- REGIONS.filter(r=>REGIONS.indexOf(r)<3||WORLD.pays.includes(r)).forEach(r=>{const k=w.roy[r];if(k)M.push('<li><b>'+esc(r)+'</b>'+(k.vacant?'trône vacant':'souverain : '+esc(k.souv))+'</li>')});
+ REGIONS.filter(r=>regK18(r)).forEach(r=>{const k=w.roy[r];if(k)M.push('<li><b>'+esc(r)+'</b>'+(k.vacant?'trône vacant':'souverain : '+esc(k.souv))+'</li>')});
  w.fleaux.filter(f=>f.fin>=anCourant()).forEach(f=>M.push('<li><b>'+esc(f.ty)+'</b>'+esc(f.pays)+', jusqu’à l’an '+f.fin+'</li>'));
  w.guerres.filter(g=>!g.fin).forEach(g=>M.push('<li><b>Guerre de lignées</b>'+esc(g.a)+' contre '+esc(g.b)+' ('+g.sa+' à '+g.sb+')</li>'));
  if(w.dragon)M.push('<li><b>Monstre légendaire</b>'+esc(w.dragon.n)+', '+esc(w.dragon.ty.toLowerCase())+(w.dragon.vivant?' (en vie, quelque part)':' (terrassé par '+esc(w.dragon.par||'?')+', an '+w.dragon.mort+')')+'</li>');
@@ -1768,8 +1768,8 @@ async function dynastie(n){if(occ)return;if(C.pvm&&!C.fin&&!confirm('Le personna
  finally{occ=false;ui()}}
 
 /* ---------- Nouveautés ---------- */
-const NEWS12=['Carte naturelle : un continent différent à chaque nouveau monde (côtes, golfes, îles, fleuves, montagnes), 98 pays aux frontières organiques et plus de 2 000 lieux placés selon le terrain','Plans de villes uniques (quartiers, rues, remparts, fleuve) et événements dans une rue précise ; certaines rues gardent la mémoire d’un duel ou d’une tombe','12 races, cultures par pays, traits, défauts, destins, métiers, objets, objectifs et près de 100 succès en plus','Le monde peut vivre seul (+5 à +50 ans) : dynasties, mariages royaux, usurpations, prix et embargos, ordres transnationaux','Lire une vie en chapitres, exporter la carte en image, modes Hardcore et Bac à sable (Réglages)','Vingt pays de plus (26 en tout) : steppes, jungles, sultanat, royaume des ombres, archipel des corsaires…','Guerres entre pays, conquêtes et frontières qui bougent ; lieux qui grandissent ou tombent en ruines ; religions locales','Magie et écoles, procès, expéditions, ancêtres, compagnons de lignée, carrières et ateliers','Toucher un lieu sur la carte ouvre sa fiche ; bouton Trajet ; fiche « Qui suis-je ? » ; statistiques et livre du monde','Plus de 170 nouveaux lieux sur la carte : hameaux, moulins, phares, tours, ponts, auberges, camps, volcans, lacs, ruines, abbayes, arènes…, chacun avec ses événements','Routes secondaires, routes maritimes, caravanes et navires qui se déplacent, rose des vents, échelle','Primes et avis de recherche, commerce de route, épidémies, récoltes et famines, voyageurs récurrents, domaines familiaux, almanach','Boutons de vitesse (Roue, Carte, Pause) à côté de Lecture auto','Onglets Personnage / Monde / Mémoire / Réglages, ambiance du fond, nouveau monde et archives, glossaire'];
-setTimeout(()=>{try{if(REG.vu!=='17'&&typeof modal==='function'){REG.vu='17';ecrire('reg',REG);modal('Nouveautés','Version 17','',NEWS12,null)}}catch(e){}},1500);
+const NEWS12=['Chronologie : à l’an 0, presque tout est à découvrir ou à bâtir (peuples, contrées, bâtiments, métiers, lieux) ; la carte est grisée sauf les terres connues. Votre ancien monde est archivé','Sauvegarde complète exportable (Réglages) et images pour n’importe quel élément, même caché, qui s’affichent à son apparition','Carte naturelle : un continent différent à chaque nouveau monde (côtes, golfes, îles, fleuves, montagnes), 98 pays aux frontières organiques et plus de 2 000 lieux placés selon le terrain','Plans de villes uniques (quartiers, rues, remparts, fleuve) et événements dans une rue précise ; certaines rues gardent la mémoire d’un duel ou d’une tombe','12 races, cultures par pays, traits, défauts, destins, métiers, objets, objectifs et près de 100 succès en plus','Le monde peut vivre seul (+5 à +50 ans) : dynasties, mariages royaux, usurpations, prix et embargos, ordres transnationaux','Lire une vie en chapitres, exporter la carte en image, modes Hardcore et Bac à sable (Réglages)','Vingt pays de plus (26 en tout) : steppes, jungles, sultanat, royaume des ombres, archipel des corsaires…','Guerres entre pays, conquêtes et frontières qui bougent ; lieux qui grandissent ou tombent en ruines ; religions locales','Magie et écoles, procès, expéditions, ancêtres, compagnons de lignée, carrières et ateliers','Toucher un lieu sur la carte ouvre sa fiche ; bouton Trajet ; fiche « Qui suis-je ? » ; statistiques et livre du monde','Plus de 170 nouveaux lieux sur la carte : hameaux, moulins, phares, tours, ponts, auberges, camps, volcans, lacs, ruines, abbayes, arènes…, chacun avec ses événements','Routes secondaires, routes maritimes, caravanes et navires qui se déplacent, rose des vents, échelle','Primes et avis de recherche, commerce de route, épidémies, récoltes et famines, voyageurs récurrents, domaines familiaux, almanach','Boutons de vitesse (Roue, Carte, Pause) à côté de Lecture auto','Onglets Personnage / Monde / Mémoire / Réglages, ambiance du fond, nouveau monde et archives, glossaire'];
+setTimeout(()=>{try{if(REG.vu!=='18'&&typeof modal==='function'){REG.vu='18';ecrire('reg',REG);modal('Nouveautés','Version 18','',NEWS12,null)}}catch(e){}},1500);
 /* v13a.js : données de la V13 (descriptions, glossaire, héritages, pactes, guildes, fêtes, prophéties, événements) */
 const DESC12={
  /* traits */
@@ -2064,7 +2064,7 @@ function monde13(){const c=$('v13-mv');if(!c)return;const w=WORLD.v13||{},h=[];
  h.push('<li><b>Calendrier des fêtes</b>'+cal.map(([m,r])=>MOIS12[m]+' : '+esc(FETES[r].n)+' <small>('+esc(r)+')</small>').join('<br>')+'</li>');
  c.innerHTML='<ul>'+h.join('')+'</ul>'}
 
-function hist13(){try{hist14();hist16();hist17()}catch(e){}ambiance13();monde13();if(!hist13.m){hist13.m=1;majMondes()}groupeFiche()}
+function hist13(){try{hist14();hist16();hist17();hist18()}catch(e){}ambiance13();monde13();if(!hist13.m){hist13.m=1;majMondes()}groupeFiche()}
 
 /* ---------- Fiche : sous-catégories repliables ---------- */
 const GRP13=[['Statistiques',l=>l.classList.contains('st')],['Compétences',l=>/^(Compétences|Surnom|Rang)/.test(lab13(l))],['Liens',l=>/^(Compagnon|Amis|Enfants|Conjoint|Guilde|Réputation ici|Biens|Navire|Ici)/.test(lab13(l))],['États et destin',l=>/^(États|Pacte|Malédiction|Bénédiction|Prophétie|Rumeur|Roue|Marques|Serment|Rêve|Titre|Héritier|Traits acquis)/.test(lab13(l))],['Succès et objectif',l=>/^(Succès|Objectif|Quête)/.test(lab13(l))||!!l.querySelector('details')]];
@@ -2321,7 +2321,7 @@ function terre17(Lv){const G=GEO,W=G.W,f=v=>v.toFixed(1),disc=new Set(),xs=i=>GB
  PAYS.forEach((p,i)=>{if(WORLD.pays.includes(p.n))disc.add(i)});
  let h='<g class="ter"><path d="'+path17('all')+'" fill="none" stroke="#fff" stroke-opacity=".34" stroke-width="5" stroke-linejoin="round"/>';
  h+='<path d="'+path17(G.HOME)+'" fill="var(--terre)" stroke="var(--rel)" stroke-width=".5" fill-rule="evenodd"/>';
- const is=path17(G.ISLET);if(is)h+='<path d="'+is+'" fill="var(--terre)" stroke="var(--rel)" stroke-width=".5" fill-rule="evenodd"/>';
+ const is=path17(G.ISLET);if(is)h+='<path d="'+is+'" fill="#cfd6e0" opacity=".6" stroke="var(--rel)" stroke-width=".4" stroke-dasharray="2 1.5" fill-rule="evenodd"/>';
  PAYS.forEach((p,i)=>{const d=path17(i);if(!d)return;const dc=disc.has(i);h+='<path d="'+d+'" fill="'+(dc?p.col:'#cfd6e0')+'" fill-rule="evenodd" stroke="var(--rel)" stroke-width="'+(dc?.55:.4)+'"'+(dc?'':' opacity=".6" stroke-dasharray="2 1.5"')+'/>'});
  h+=rivs17(disc);
  /* décors par biome dans les pays découverts */
@@ -2497,7 +2497,7 @@ const col15=r=>{const p=PAYS.find(z=>z.n===r);return p?p.col:'#b8862d'};
 const vois15=r=>{if(GEO){const i=PAYS.findIndex(p=>p.n===r);if(i>=0)return GEO.voi[i].map(j=>PAYS[j].n).concat(GEO.mer&&GEO.mer[i]?GEO.mer[i].map(j=>PAYS[j].n):[])}const a=rc15(r);return REGIONS.filter(o=>o!==r&&Math.hypot(rc15(o)[0]-a[0],rc15(o)[1]-a[1])<230)};
 
 /* ---------- Carte : territoires et guerres ---------- */
-function terr15(){const w=WORLD.v15;if(!w)return '';const f=v=>v.toFixed(1),ok=r=>CENT15[r]||(WORLD.pays||[]).includes(r);let h='<g class="c-t2">';
+function terr15(){const w=WORLD.v15;if(!w)return '';const f=v=>v.toFixed(1),ok=r=>regK18(r);let h='<g class="c-t2">';
  Object.keys(w.terr).forEach(r=>{if(!ok(r))return;const c=rc15(r),o=w.terr[r].o,k=col15(o);const pi=GEO?PAYS.findIndex(z=>z.n===r):-1;h+=(pi>=0?'<path d="'+path17(pi)+'" fill="'+k+'" fill-rule="evenodd" opacity=".38" stroke="#7a3b2e" stroke-width=".5" stroke-dasharray="2 1.4"/>':'<ellipse cx="'+f(c[0])+'" cy="'+f(c[1])+'" rx="'+f(c[2]*.95)+'" ry="'+f(c[3]*.95)+'" fill="'+k+'" opacity=".38" stroke="#7a3b2e" stroke-width=".5" stroke-dasharray="2 1.4"/>')+'<text class="pa" x="'+f(c[0])+'" y="'+f(c[1]+c[3]*.55)+'" style="opacity:.9">occupé par '+esc(o)+'</text>'});
  w.war.forEach(g=>{if(!ok(g.a)||!ok(g.b))return;const a=rc15(g.a),b=rc15(g.b),mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;h+='<path d="M'+f(a[0])+' '+f(a[1])+'L'+f(b[0])+' '+f(b[1])+'" stroke="#c0504d" stroke-width=".9" stroke-dasharray="2 1.2" opacity=".8"/><path d="M'+f(mx-3)+' '+f(my-3)+'l6 6M'+f(mx+3)+' '+f(my-3)+'l-6 6" stroke="#c0504d" stroke-width="1.2"/>'});
  return h+'</g>'}
@@ -2602,9 +2602,9 @@ function initCarte15(){const b=document.querySelector('.bas');if(!b||$('rc-t'))r
 
 /* pays du monde */
 function pays15(){const c=$('v15-pays');if(!c)return;const w=WORLD.v15||{},v14=WORLD.v14||{};
- const inc=REGIONS.filter(r=>paysObj(r)&&!(WORLD.pays||[]).includes(r)).length;c.innerHTML='<ul>'+REGIONS.filter(r=>!paysObj(r)||(WORLD.pays||[]).includes(r)).map(r=>{const p=paysObj(r),home=!p,dec=home||(WORLD.pays||[]).includes(r),k=(WORLD.v12&&WORLD.v12.roy||{})[r],g=(w.war||[]).some(z=>z.a===r||z.b===r);
+ const inc=REGIONS.filter(r=>!regK18(r)).length;c.innerHTML='<ul>'+REGIONS.filter(r=>regK18(r)).map(r=>{const p=paysObj(r),home=!p,dec=true,k=(WORLD.v12&&WORLD.v12.roy||{})[r],g=(w.war||[]).some(z=>z.a===r||z.b===r);
   return '<li data-pays="'+esc(r)+'" style="cursor:pointer"><b>'+(dec?esc(r):'Terres inconnues')+'</b>'+(dec?esc(p?p.d||'':'Une région du royaume connu.')+(k?' <small>('+(k.vacant?'trône vacant':'souverain : '+esc(k.souv))+')</small>':'')+(g?' <small>· en guerre</small>':'')+((w.terr||{})[r]?' <small>· occupé par '+esc(w.terr[r].o)+'</small>':''):'<small>Pas encore découvert</small>')+'</li>'}).join('')+(inc?'<li><b>'+inc+' contrées inconnues</b><small>Elles apparaissent sur la carte quand un voyageur les atteint.</small></li>':'')+'</ul>';
- c.onclick=e=>{const li=e.target.closest('[data-pays]');if(!li)return;const r=li.dataset.pays,p=paysObj(r),dec=!p||(WORLD.pays||[]).includes(r);if(!dec)return modal('Pays','Terres inconnues','Aucun voyageur n’a encore atteint cette contrée.',[],()=>{});
+ c.onclick=e=>{const li=e.target.closest('[data-pays]');if(!li)return;const r=li.dataset.pays,p=paysObj(r),dec=regK18(r);if(!dec)return modal('Pays','Terres inconnues','Aucun voyageur n’a encore atteint cette contrée.',[],()=>{});
   const o=[],dn=(w.dieux||{})[r],g=DIEUX.find(z=>z[0]===dn),fe=FETES[r];if(p&&p.reg)o.push('Régime : '+p.reg);if(g)o.push('Culte : '+g[0]+' ('+g[1]+')');if(fe)o.push('Fête : '+fe.n+' ('+MOIS12[fe.m]+')');
   const L=LIEUX14.filter(z=>z[2]===r&&visible15(z[0]));o.push(L.length+' lieu'+(L.length>1?'x':'')+' connu'+(L.length>1?'s':'')+' sur '+LIEUX14.filter(z=>z[2]===r).length);
   if(v14.mal&&v14.mal[r])o.push('Épidémie en cours');if(v14.rec&&v14.rec[r]==='mauvaise')o.push('Famine');if((v14.primes||[]).some(z=>z.reg===r))o.push('Primes offertes dans le pays');
@@ -2639,7 +2639,7 @@ function livre15(){monde();const E=[];(WORLD.chro||[]).forEach(e=>E.push([e.an,e
  const css=':root{--terre:#e8e2cf;--rel:#b9b196;--arb:#6f8f58;--tro:#7a5a3a;--mer:#bcd0dc;--e:#1d2330;--a:#b8862d;--s:#fff}body{font:16px/1.5 Georgia,serif;max-width:760px;margin:30px auto;padding:0 16px;color:#222}h1{text-align:center}h2{border-bottom:1px solid #b8862d;margin-top:34px}svg text:not(.pa){display:none}svg .mai,svg .vd,svg .fog{display:none}svg .pa{font-size:11px;fill:#222;text-anchor:middle;opacity:.8;stroke:#fff;stroke-width:2px;paint-order:stroke}li{margin:4px 0}small{color:#666}';
  const h='<!doctype html><html lang="fr"><meta charset="utf-8"><title>Livre du monde</title><style>'+css+'</style><body><h1>'+esc(mondeNom())+'</h1><p style="text-align:center"><i>An '+WORLD.annee+' · '+PAN.length+' destins · '+LIG.length+' lignées</i></p>'
   +'<h2>Carte du monde</h2>'+sv.outerHTML
-  +'<h2>Pays</h2><ul>'+REGIONS.filter(r=>!paysObj(r)||(WORLD.pays||[]).includes(r)).map(r=>'<li><b>'+esc(r)+'</b> '+esc((paysObj(r)||{}).d||'')+'</li>').join('')+'</ul>'
+  +'<h2>Pays</h2><ul>'+REGIONS.filter(r=>regK18(r)).map(r=>'<li><b>'+esc(r)+'</b> '+esc((paysObj(r)||{}).d||'')+'</li>').join('')+'</ul>'
   +'<h2>Chronique</h2><ul>'+E.map(e=>'<li><small>An '+e[0]+'</small> '+esc(e[1])+'</li>').join('')+'</ul>'
   +'<h2>Lignées</h2><ul>'+LIG.map(l=>'<li><b>'+esc(l.nom)+'</b> '+esc(l.race||'')+' <small>'+esc(l.txt||'')+'</small></li>').join('')+'</ul>'
   +'<h2>Panthéon</h2><ul>'+PAN.map(x=>'<li><b>'+esc(x.nom)+'</b> '+(x.fin==='mort'?'mort':'victoire')+' à '+x.age+' ans <small>'+esc(x.race+' '+x.metier+(x.lig?', '+x.lig:''))+'</small></li>').join('')+'</ul></body></html>';
@@ -2692,7 +2692,7 @@ function recherche16(){const o=document.createElement('div');o.className='ov13';
   GLOS.forEach(g=>A.push(['Glossaire',g[0],()=>modal('Glossaire',g[0],g[1],[],()=>{})]));
   SUCC.forEach(z=>A.push(['Succès',z[0],()=>modal('Succès',z[0],z[3]||'',[WORLD.succ[z[0]]?'Pris par '+WORLD.succ[z[0]].par+' (an '+WORLD.succ[z[0]].an+')':'Encore libre'],()=>{})]));
   Object.keys(TYPE14).concat(Object.keys(BASET14)).filter(visible15).forEach(n=>A.push(['Lieu',n,()=>fichePlace15(n)]));
-  REGIONS.filter(r=>!paysObj(r)||(WORLD.pays||[]).includes(r)).forEach(r=>A.push(['Pays',r,()=>{aller16('c-pays15')}]));return A};
+  REGIONS.filter(r=>regK18(r)).forEach(r=>A.push(['Pays',r,()=>{aller16('c-pays15')}]));return A};
  const I=items(),rend=()=>{const v=q.value.trim().toLowerCase();const R=v?I.filter(z=>z[1].toLowerCase().includes(v)).slice(0,40):I.filter(z=>z[0]==='Catégorie');l.innerHTML=R.map((z,i)=>'<li data-i="'+i+'" style="cursor:pointer"><b>'+z[0]+'</b>'+esc(z[1])+'</li>').join('')||'<li>Aucun résultat.</li>';l._R=R};
  q.oninput=rend;rend();l.onclick=e=>{const li=e.target.closest('[data-i]');if(!li)return;const r=l._R[+li.dataset.i];o.remove();r[2]()};o.querySelector('.n').onclick=()=>o.remove();q.focus()}
 
@@ -2938,7 +2938,7 @@ function tick17(an){const w=W17();if(w.tk===an)return;w.tk=an;const R=REGIONS;
  /* ordres */
  if(!w.ord){w.ord={};ORD17.forEach(o=>{const inf={};for(let k=0;k<3;k++)inf[R[rnd(R.length)]]=3+rnd(3);w.ord[o[0]]={inf}})}
  ORD17.forEach(o=>{const inf=w.ord[o[0]].inf;Object.keys(inf).forEach(r=>{if(inf[r]>=2&&Math.random()<.3){const vs=vois15(r);if(vs.length){const b=vs[rnd(vs.length)];inf[b]=Math.min(5,(inf[b]||0)+1)}}if(Math.random()<.08)inf[r]--;if(WORLD.pe[r]&&WORLD.pe[r].h==='en guerre'&&Math.random()<.2)inf[r]--;if(inf[r]<=0)delete inf[r]});if(!Object.keys(inf).length)inf[R[rnd(R.length)]]=2})}
-function tickAn17hook(an){try{tick17(an)}catch(e){console.error('tick17',e)}}
+function tickAn17hook(an){try{tick17(an)}catch(e){console.error('tick17',e)}try{tick18(an)}catch(e){console.error('tick18',e)}}
 /* ---------- événements ---------- */
 const EV17=[['Spéculer sur les prix',3,'_Cour',{jet:['Cha',9],EN:-1},'commerce','Les prix varient d’un royaume à l’autre : de quoi s’enrichir, ou s’endetter.','{n} spécule sur les prix des royaumes.','{n} se trompe de marché.'],
  ['Rejoindre un ordre',2,'_Cour',{jet:['Cha',9]},'social','Un ordre recrute : ses insignes ouvrent bien des portes.','{n} est reçu dans un ordre.','{n} voit sa candidature refusée.'],
@@ -2960,8 +2960,8 @@ function vivre17(n){if(occ)return;if(C.pvm&&!C.fin)return modal('Monde','Un pers
  built=false;ecrire('monde',WORLD);const l=WORLD.chro.slice(L0).filter(z=>z).slice(-16);modal('Monde','Le monde a vécu '+n+' ans','Nous sommes maintenant en l’an '+WORLD.annee+'.',l.length?l.map(z=>'An '+z.an+' : '+z.txt):['Rien de notable ne s’est produit.'],()=>{});hist17()}
 /* ---------- affichage ---------- */
 function hist17(){const w=W17(),el=id=>$(id);
- if(el('v17-dyn')){const L=REGIONS.filter(r=>r==='Royaume du Nord'||r==='Terres du Centre'||r==='Marches du Sud'||(WORLD.pays||[]).includes(r));el('v17-dyn').innerHTML='<ul>'+L.map(r=>{const d=w.dyn[r];if(!d)return '';const al=w.alli.filter(z=>z.a===r||z.b===r).map(z=>z.a===r?z.b:z.a);return '<li><b>'+esc(r)+'</b>'+(d.roi?esc(d.roi.n)+' ('+d.roi.age+' ans), '+esc(d.maison):'trône vacant')+' <small>· '+d.hr.length+' héritier'+(d.hr.length>1?'s':'')+(al.length?' · allié à '+esc(al.join(', ')):'')+'</small></li>'}).join('')+'</ul>'||'<p>Aucune dynastie connue.</p>'}
- if(el('v17-eco')){const pr=w.eco.prix,L=REGIONS.filter(r=>r==='Terres du Centre'||(WORLD.pays||[]).includes(r)),g=[];DEN17.forEach(d=>{let mn=null,mx=null;L.forEach(r=>{const p=(pr[r]||{})[d];if(!p)return;if(!mn||p<mn[1])mn=[r,p];if(!mx||p>mx[1])mx=[r,p]});if(mn&&mx&&mn[0]!==mx[0])g.push([d,mn,mx,mx[1]/mn[1]])});g.sort((a,b)=>b[3]-a[3]);
+ if(el('v17-dyn')){const L=REGIONS.filter(r=>regK18(r));el('v17-dyn').innerHTML='<ul>'+L.map(r=>{const d=w.dyn[r];if(!d)return '';const al=w.alli.filter(z=>z.a===r||z.b===r).map(z=>z.a===r?z.b:z.a);return '<li><b>'+esc(r)+'</b>'+(d.roi?esc(d.roi.n)+' ('+d.roi.age+' ans), '+esc(d.maison):'trône vacant')+' <small>· '+d.hr.length+' héritier'+(d.hr.length>1?'s':'')+(al.length?' · allié à '+esc(al.join(', ')):'')+'</small></li>'}).join('')+'</ul>'||'<p>Aucune dynastie connue.</p>'}
+ if(el('v17-eco')){const pr=w.eco.prix,L=REGIONS.filter(r=>regK18(r)),g=[];DEN17.forEach(d=>{let mn=null,mx=null;L.forEach(r=>{const p=(pr[r]||{})[d];if(!p)return;if(!mn||p<mn[1])mn=[r,p];if(!mx||p>mx[1])mx=[r,p]});if(mn&&mx&&mn[0]!==mx[0])g.push([d,mn,mx,mx[1]/mn[1]])});g.sort((a,b)=>b[3]-a[3]);
   el('v17-eco').innerHTML=(g.length?'<ul>'+g.slice(0,8).map(z=>'<li><b>'+esc(cap(z[0]))+'</b>moins cher à '+esc(z[1][0])+' ('+z[1][1]+'), plus cher à '+esc(z[2][0])+' ('+z[2][1]+')</li>').join('')+'</ul>':'<p>Découvrez d’autres contrées pour comparer les marchés.</p>')+(w.eco.emb.length?'<p><b>Embargos :</b> '+w.eco.emb.map(z=>esc(z.a+' / '+z.b)).join(' ; ')+'</p>':'')}
  if(el('v17-ord')&&w.ord){el('v17-ord').innerHTML='<ul>'+ORD17.map(o=>{const inf=(w.ord[o[0]]||{}).inf||{},t=Object.keys(inf).sort((a,b)=>inf[b]-inf[a]).slice(0,4);return '<li><b>'+esc(o[0])+'</b>'+esc(cap(o[1]))+' <small>· influence : '+(t.length?esc(t.map(r=>r+' '+inf[r]).join(', ')):'faible')+'</small></li>'}).join('')+'</ul>'+(C.pvm&&C.v17&&C.v17.ordre?'<p>Votre ordre : <b>'+esc(C.v17.ordre.n)+'</b> (rang '+C.v17.ordre.rang+')</p>':'')}
  const f17=$('fin17');if(f17)f17.hidden=!(C.pvm&&!C.fin&&C.mode==='sand');const m=$('v17-mode');if(m)m.textContent=C.pvm?('Mode de ce personnage : '+({hard:'Hardcore',sand:'Bac à sable'}[C.mode]||'Normal')):''}
@@ -2972,7 +2972,7 @@ function init17(){const sec=document.querySelector('.tp[data-t=m]');if(!sec||$('
  if(rgb&&!$('rg-mode')){const lb=document.createElement('label');lb.innerHTML='Mode de jeu (prochain personnage) <select id="rg-mode"><option value="normal">Normal</option><option value="hard">Hardcore : pas d’annulation, jets plus durs</option><option value="sand">Bac à sable : on ne meurt pas</option></select><small id="v17-mode" style="display:block;color:var(--m)"></small>';rgb.appendChild(lb);const s=$('rg-mode');s.value=REG.mode||'normal';s.onchange=()=>{REG.mode=s.value;ecrire('reg',REG)}}
  const mem=document.querySelector('.tp[data-t=r]');if(mem&&!$('ch17')){const b=document.createElement('button');b.id='ch17';b.className='n';b.textContent='Lire cette vie en chapitres';b.style.cssText='width:100%;margin:8px 0';b.onclick=chapitres17;mem.insertBefore(b,mem.firstChild);const e=document.createElement('button');e.id='fin17';e.className='n';e.textContent='Terminer cette vie (bac à sable)';e.style.cssText='width:100%;margin:8px 0';e.hidden=true;e.onclick=()=>{if(C.mode==='sand'&&C.pvm&&!C.fin&&confirm('Terminer la vie de ce personnage ?')){C.fin='mort';ui()}};mem.insertBefore(e,mem.firstChild)}
  const pl=$('plein');if(pl&&!$('ex17')){const b=document.createElement('button');b.id='ex17';b.textContent='Image';b.className='n';b.style.cssText='position:absolute;right:10px;bottom:96px;z-index:3';b.onclick=()=>exportCarte17();pl.appendChild(b)}
- hist17()}
+ try{init18()}catch(e){console.error('init18',e)}hist17()}
 /* ---------- chapitres ---------- */
 const TCH17={combat:'Le fer et le sang',commerce:'Les comptes du monde',savoir:'Les pages et la cendre',voyage:'Les routes',survie:'Les épreuves',mystique:'Les voix invisibles',artisanat:'Les mains au travail',ruse:'L’ombre et le vent',soin:'Les mains qui guérissent',social:'Les visages',hospitalité:'Les tables et les feux'};
 function chapitres17(){if(!C.pvm)return modal('Récit','Aucune vie','Créez un personnage pour lire son histoire en chapitres.',[],()=>{});
@@ -2992,6 +2992,161 @@ function exportCarte17(retour){monde();const svg=mp.cloneNode(true),vb=mp.getAtt
  const src='<?xml version="1.0"?>'+new XMLSerializer().serializeToString(svg),url='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(src);
  return new Promise(res=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=W;c.height=Hh;const x=c.getContext('2d');x.fillStyle=cs.getPropertyValue('--mer')||'#bcd0dc';x.fillRect(0,0,W,Hh);x.drawImage(im,0,0,W,Hh);
    c.toBlob(b=>{if(retour){res(b?b.size:0);return}const f=new File([b],'carte-'+(WORLD.nomM||'monde')+'.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Carte du monde'}).catch(()=>{})}else{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=f.name;document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),500)}res(b.size)})};im.onerror=()=>res(0);im.src=url})}
+
+/* la roue du décor compte plus de 2 000 lieux : on n'en affiche que 18, tirés selon leur poids, stables pour un même personnage */
+function ech17(R){if(!C.sd17)C.sd17=1+Math.floor(Math.random()*2147483000);const rd=mulb(C.sd17),K=R.map((x,i)=>[Math.pow(rd(),1/Math.max(x.w,1e-6)),i]).sort((a,b)=>b[0]-a[0]).slice(0,18).map(z=>z[1]).sort((a,b)=>a-b);return K.map(i=>R[i])}
+/* v18.js : chronologie. À l'an 0, presque rien n'existe : races, contrées, bâtiments, métiers et lieux apparaissent au fil des vies et des années.
+   Tout le contenu reste dans les données ; un élément « n'existe pas » tant qu'il n'a pas été découvert ou bâti (filtre unique dans poids()). */
+const HOMEREG18=['Royaume du Nord','Terres du Centre','Marches du Sud'];
+const MAG18=['Démon','Revenant','Golem','Vampire','Loup-garou','Fée','Lutin'];
+/* [bâtiment, prérequis, événement, stat, difficulté, affinités, histoire, récit réussite, récit échec, chronique, métiers qu'il rend possibles] */
+const BAT18=[
+['Ferme',[],'Défricher une ferme','End',8,{'Paysan':3,'Éleveur':3},'Un terrain, des bras et de la patience : une ferme peut naître ici.','{n} défriche un champ et bâtit une ferme.','{n} s’épuise sur un sol trop dur.','Une ferme est défrichée',[]],
+['Forge',['Ferme'],'Bâtir une forge','For',9,{'Forgeron':4,'Nain':2},'Du minerai, un foyer, une enclume : il manque quelqu’un pour allumer la première forge.','{n} allume la première forge.','{n} rate sa fonte, le foyer s’effondre.','Une forge est bâtie',['Forgeron','Verrier']],
+['Auberge',['Ferme'],'Ouvrir une auberge','Cha',8,{'Aubergiste':4,'Cuisinier':3,'Halfelin':2},'Les voyageurs ont soif et faim : une table et un toit feraient fortune.','{n} ouvre la première auberge.','{n} ferme boutique faute de clients.','Une auberge ouvre ses portes',['Aubergiste','Cuisinier']],
+['Marché',['Ferme'],'Installer un marché','Cha',9,{'Marchand ambulant':3,'Marchand':3,'Colporteur':2},'Des étals dispersés cherchent une place où se réunir.','{n} installe le premier marché.','{n} ne parvient pas à rassembler les marchands.','Un marché est installé',['Marchand ambulant','Changeur','Bijoutier','Orfèvre','Boulanger','Caravanier','Marchand d’épices','Colporteur','Contrebandier','Faussaire','Escroc','Passeur']],
+['Temple',['Ferme'],'Élever un temple','Esp',9,{'Prêtre':4,'Moine':3,'Pèlerin':2},'Les gens prient sous les arbres : une pierre dressée en ferait un lieu saint.','{n} élève le premier temple.','{n} voit son chantier abandonné.','Un temple est élevé',['Prêtre','Moine','Exorciste','Oracle','Devin','Médium','Druide','Pèlerin']],
+['Atelier',['Ferme'],'Monter un atelier','Agi',9,{'Charpentier':3,'Tisserand':3,'Potier':3,'Maçon':3},'Charpentiers et tisserands travaillent à même le sol : un atelier les réunirait.','{n} monte le premier atelier.','{n} échoue à réunir les artisans.','Un atelier est monté',['Charpentier','Tisserand','Potier','Maçon']],
+['Caserne',['Marché'],'Bâtir une caserne','For',10,{'Soldat':4,'Chevalier errant':2,'Fils de soldat':3},'Des hommes en armes errent sans chef : une caserne leur donnerait un ordre.','{n} bâtit la première caserne.','{n} échoue à lever des troupes.','Une caserne est bâtie',['Soldat','Archer','Chevalier errant','Archer d’élite','Garde du corps','Garde de caravane','Chasseur de primes','Infirmier de guerre']],
+['Port',['Marché'],'Aménager un port','Agi',10,{'Marin':4,'Armateur':3,'Pilote de fleuve':2},'La côte attend ses quais : sans port, la mer reste fermée.','{n} aménage le premier port.','{n} voit la mer emporter ses quais.','Un port est aménagé',['Marin','Armateur','Pilote de fleuve']],
+['Dispensaire',['Temple'],'Fonder un dispensaire','Esp',9,{'Guérisseur':4,'Apothicaire':3,'Sage-femme':3,'Herboriste':2},'Les malades se pressent au temple : il faudrait un lieu pour les soigner.','{n} fonde le premier dispensaire.','{n} manque de remèdes et renonce.','Un dispensaire est fondé',['Guérisseur','Apothicaire','Sage-femme','Chirurgien','Herboriste']],
+['Bibliothèque',['Temple'],'Fonder une bibliothèque','Esp',10,{'Érudit':4,'Scribe':3,'Bibliothécaire':4},'Des parchemins s’entassent dans les temples : une bibliothèque les sauverait.','{n} fonde la première bibliothèque.','{n} voit les rayonnages brûler.','Une bibliothèque est fondée',['Érudit','Scribe','Bibliothécaire','Archiviste','Traducteur','Chroniqueur','Cartographe']],
+['Guilde',['Marché'],'Fonder une guilde','Cha',10,{'Marchand ambulant':2,'Marchand':2,'Banquier':2},'Les marchands s’entendent mal : une charte les lierait.','{n} fonde la première guilde.','{n} échoue à faire signer la charte.','Une guilde est fondée',[]],
+['Banque',['Guilde'],'Ouvrir une banque','Cha',11,{'Banquier':4,'Changeur':3},'L’or dort dans les coffres : un prêteur de confiance le ferait circuler.','{n} ouvre la première banque.','{n} fait faillite avant d’avoir commencé.','Une banque ouvre ses portes',['Banquier']],
+['Arène',['Caserne'],'Bâtir une arène','For',10,{'Gladiateur':4,'Soldat':2},'Les soldats s’affrontent sur la place : une arène donnerait un cadre aux combats.','{n} bâtit la première arène.','{n} voit les gradins s’effondrer.','Une arène est bâtie',['Gladiateur']],
+['Palais',['Caserne','Marché'],'Bâtir un palais','Cha',11,{'Noble déchu':3,'Chevalier errant':2},'Un chef règne sans trône : un palais ferait de lui un roi.','{n} bâtit le premier palais.','{n} échoue à lever les fonds du palais.','Un palais est bâti',['Courrier royal','Espion']],
+['Tour de mage',['Bibliothèque'],'Dresser une tour de mage','Esp',11,{'Alchimiste':3,'Géomancien':3,'Érudit':2,'Elfe':2},'Les savoirs interdits demandent une tour à l’écart.','{n} dresse la première tour de mage.','{n} voit ses sortilèges faire écrouler la tour.','Une tour de mage est dressée',['Alchimiste','Géomancien']],
+['Observatoire',['Bibliothèque'],'Bâtir un observatoire','Esp',10,{'Astronome':4,'Érudit':2},'Les étoiles se lisent mieux d’un sommet.','{n} bâtit le premier observatoire.','{n} perd ses instruments dans un orage.','Un observatoire est bâti',['Astronome']]];
+const BATN18=BAT18.map(b=>b[0]),BATI18={};BAT18.forEach(b=>BATI18[b[0]]=b);
+const MBI18={};BAT18.forEach(b=>b[10].forEach(m=>MBI18[m]=b[0]));
+const EVF18={};BAT18.forEach(b=>EVF18[b[2]]=b[0]);
+/* lieux construits : type de lieu → bâtiment requis */
+const TB18={port:'Port',phare:'Port',marche:'Marché',bourg:'Marché',relais:'Marché',auberge:'Auberge',forge:'Forge',mine:'Forge',carriere:'Atelier',temple:'Temple',abbaye:'Temple',chateau:'Palais',camp:'Caserne',tour:'Caserne',arene:'Arène',biblio:'Bibliothèque',mage:'Tour de mage',observatoire:'Observatoire',cimetiere:'Temple'};
+const LB18={'Cité portuaire':'Port','Capitale en révolte':'Palais','Forteresse assiégée':'Caserne'};
+/* événements qui supposent un bâtiment */
+const EVB18={'Repos à l\'auberge':'Auberge','Soirée de taverne':'Auberge','Chanson de taverne':'Auberge','Concours de cuisine':'Auberge','Partie de dés':'Auberge','Dette de jeu':'Auberge',
+ 'Marché florissant':'Marché','Négociation tendue':'Marché','Acheter en gros':'Marché','Revendre la cargaison':'Marché','Marché noir':'Marché','Commande importante':'Atelier','Client difficile':'Marché','Pièce d\'orfèvrerie':'Marché','Tour de passe-passe':'Marché','Embrouille de ruelle':'Marché','Cambriolage':'Marché','Livraison urgente':'Marché',
+ 'Cérémonie':'Temple','Offrande au dieu local':'Temple','Hérésie':'Temple','Prêche d\'un culte':'Temple','Rite du culte':'Temple',
+ 'Soins d\'un guérisseur':'Dispensaire','Soigner les malades':'Dispensaire','Épidémie au village':'Dispensaire',
+ 'Patrouille':'Caserne','Commandement':'Caserne','Contrat de prime':'Caserne','Chasse à la prime':'Caserne',
+ 'Tournoi':'Palais','Banquet':'Palais','Audience royale':'Palais','Audience à la cour':'Palais','Spéculer sur les prix':'Palais','Rejoindre un ordre':'Palais','Mission de l’ordre':'Palais',
+ 'Manuscrit rare':'Bibliothèque','Manuscrits rares':'Bibliothèque','Traversée en mer':'Port','Acheter un bateau':'Port',
+ 'Rejoindre une guilde':'Guilde','Quête de guilde':'Guilde','Rivalité de guildes':'Guilde','Guilde étrangère':'Guilde',
+ 'Apprentissage de la magie':'Tour de mage','Étude des sorts':'Tour de mage','Lancer un sort':'Tour de mage','Duel de mages':'Tour de mage',
+ 'Gadget instable':'Atelier','Ouvrir un atelier':'Atelier','Gérer l\'atelier':'Atelier'};
+/* objectifs qui supposent un bâtiment ou un lieu */
+const OBB18={'Traverser les mers':'Port','Remporter un tournoi':'Palais','Devenir mage':'Tour de mage','Devenir fidèle d’un dieu':'Temple','Recevoir 2 visions':'Temple','Conclure 3 marchés':'Marché','Faire fortune par le commerce':'Marché','Entrer dans une guilde':'Guilde','Devenir un grand savant':'Bibliothèque','Devenir un maître d’armes':'Caserne','Réussir 2 commandes':'Atelier'};
+
+/* ---------- état ---------- */
+let DISC18=null,LAST18=null,CA18={},SIG18='',IMGR18=null;
+const lieuMag18=()=>0;
+function seed18(){const hum='Humain',autres=RACES.map(r=>r[0]).filter(n=>n!==hum&&n!=='Sang-mêlé'&&!MAG18.includes(n)),r2=autres[Math.floor(Math.random()*autres.length)],
+  b2=['Forge','Auberge','Marché','Temple','Atelier'][Math.floor(Math.random()*5)];
+ const v={reg:['Terres du Centre'],races:[hum,r2],bat:['Ferme',b2],tk:0,log:[],cur:0};
+ if(!(WORLD.chro||[]).length&&WORLD.annee===1200)WORLD.annee=0;
+ v.log.push({an:0,txt:'An 0 : le monde s’éveille. Seuls les '+hum.toLowerCase()+'s et les '+r2.toLowerCase()+'s l’habitent, autour d’une ferme et d’'+(/^[AEIOUÉ]/.test(b2)?'un ':'un ')+b2.toLowerCase()+'. Tout le reste est à découvrir.'});
+ WORLD.chro=WORLD.chro||[];WORLD.chro.push({an:0,txt:v.log[0].txt});return v}
+let TOUT18=null;
+/* un monde d'avant la chronologie (non vide, pas encore archivé) : tout existe, en attendant la migration */
+function V18(){if(!WORLD.v18){if(NOSAVE||mondeVide())WORLD.v18=seed18();else return TOUT18||(TOUT18={reg:HOMEREG18.slice(),races:RACES.map(r=>r[0]),bat:BATN18.slice(),tk:0,log:[],cur:0})}return WORLD.v18}
+function init18W(){V18()}
+const regK18=r=>{if(!r)return false;if((WORLD.pays||[]).includes(r))return true;const v=V18();return HOMEREG18.includes(r)&&v.reg.includes(r)};
+const bat18=b=>V18().bat.includes(b);
+const raceOk18=n=>V18().races.includes(n);
+function inv18(){CA18={};SIG18=''}
+function log18(txt,an){const v=V18(),a=an!==undefined?an:(v.cur||(C&&C.an0?anCourant():WORLD.annee));v.log.push({an:a,txt});if(v.log.length>200)v.log.splice(0,v.log.length-200);WORLD.chro=WORLD.chro||[];WORLD.chro.push({an:a,txt});ecrire('monde',WORLD)}
+/* peuples d'une contrée : races citées dans ses lieux */
+function raceDe18(n){const p=paysObj(n);if(!p)return[];const c={};RACES.forEach(r=>{});p.L.forEach(l=>Object.keys(l[3]||{}).forEach(k=>{if(RACES.some(r=>r[0]===k))c[k]=(c[k]||0)+(l[3][k]||1)}));
+ const o=Object.keys(c).sort((a,b)=>c[b]-c[a]);if(!o.length)return[];const out=[o[0]];if(o[1]&&c[o[1]]>=c[o[0]]*.7)out.push(o[1]);return out}
+function learnRace(r,src,tx){const v=V18();if(!r||v.races.includes(r)||r==='Sang-mêlé')return false;v.races.push(r);inv18();log18('Les '+r.toLowerCase()+'s sont rencontrés pour la première fois'+(src?' ('+src+')':''));LAST18=['race',r];if(tx)tx.push('Nouveau peuple rencontré : '+r);return true}
+function reveal18(n,src,tx){const v=V18();if(HOMEREG18.includes(n)){if(v.reg.includes(n))return false;v.reg.push(n)}else{if((WORLD.pays||[]).includes(n))return false;WORLD.pays.push(n)}
+ inv18();built=false;log18('Contrée découverte : '+n+(src?' ('+src+')':''));LAST18=['pays',n];if(tx)tx.push('Nouvelle contrée découverte : '+n);raceDe18(n).forEach(r=>learnRace(r,'peuple de '+n,tx));return true}
+function build18(b,src,tx){const v=V18();if(v.bat.includes(b))return false;v.bat.push(b);inv18();built=false;log18(BATI18[b][9]+(src?' ('+src+')':''));LAST18=['bat',b];if(tx)tx.push('Fondation : '+b);return true}
+const dispo18=b=>!bat18(b)&&BATI18[b][1].every(bat18);
+/* contrées qu'on peut atteindre : les plus proches des terres connues d'abord */
+function candidats18(){const v=V18(),L=[];HOMEREG18.forEach((r,i)=>{if(!v.reg.includes(r))L.push([r,30])});
+ const kn=PAYS.map((p,i)=>[p,i]).filter(z=>(WORLD.pays||[]).includes(z[0].n)).map(z=>GEO?GEO.cen[z[1]]:[z[0].cx,z[0].cy]);kn.push([107,60]);
+ PAYS.forEach((p,i)=>{if((WORLD.pays||[]).includes(p.n))return;const c=GEO?(GEO.cen[i]||[p.cx,p.cy]):[p.cx,p.cy];let d=1e9;kn.forEach(k=>{d=Math.min(d,Math.hypot(c[0]-k[0],c[1]-k[1]))});L.push([p.n,Math.exp(-d/90)+.02])});return L}
+function tirerP18(L){const s=L.reduce((a,x)=>a+x[1],0);if(!s)return null;let r=Math.random()*s;for(const x of L){if(r<x[1])return x[0];r-=x[1]}return L[L.length-1][0]}
+const inconnues18=()=>RACES.map(r=>r[0]).filter(n=>n!=='Sang-mêlé'&&!raceOk18(n));
+
+/* ---------- existence : un seul filtre pour toutes les roues ---------- */
+function sig18(){const v=V18();return (WORLD.geo||0)+'|'+v.races.length+'|'+v.bat.length+'|'+v.reg.length+'|'+(WORLD.pays||[]).length+'|'+WORLD.sites.length+'|'+WORLD.fond.length+'|'+(WORLD.v18?1:0)}
+let OWN18={},OWNK18=null;const own18=n=>{const k=GEO?GEO.seed:0;if(OWNK18!==k||!OWN18._n){OWN18={_n:1};PAYS.forEach(p=>p.L.forEach(l=>OWN18[l[0]]=p.n));OWNK18=k}return OWN18[n]};
+function lieuOk18(n){if(WORLD.sites.some(s=>s.n===n)||WORLD.fond.some(f=>f.n===n))return true;
+ const need=LB18[n]||TB18[TYPE14[n]||BASET14[n]];if(need&&!bat18(need))return false;
+ return regK18(own18(n)||paysDe(pos(n)))}
+function ex18(tn,n){
+ if(tn!=='Race'&&tn!=='Métier'&&tn!=='Décor'&&tn!=='Objectif'&&tn!=='Événement de vie'&&tn!=='Origine'&&tn!=='Parent 1'&&tn!=='Parent 2')return 1;
+ const v=V18(),s=sig18();if(s!==SIG18){CA18={};SIG18=s}
+ const k=tn+'|'+n,c=CA18[k];if(c!==undefined)return c;let r=1;
+ if(tn==='Race'||tn==='Parent 1'||tn==='Parent 2'){r=v.races.includes(n)?1:n==='Sang-mêlé'?(v.races.length>=3?1:0):MAG18.includes(n)&&tn==='Race'?.05:0}
+ else if(tn==='Métier'){const b=MBI18[n];r=!b||v.bat.includes(b)?1:0}
+ else if(tn==='Décor')r=lieuOk18(n)?1:0;
+ else if(tn==='Origine'){r=n==='Noble déchu'?(v.bat.includes('Palais')?1:.15):n==='Marchand'?(v.bat.includes('Marché')?1:.2):n==='Fils de soldat'?(v.bat.includes('Caserne')?1:.2):n==='Étranger exilé'?(v.reg.length+(WORLD.pays||[]).length>=2?1:.2):1}
+ else if(tn==='Objectif'){const m=/^Atteindre : (.+)$/.exec(n);if(m)r=lieuOk18(m[1])?1:0;else if(n==='Retrouver la Relique')r=lieuOk18('Désert aux ruines')?1:0;else if(OBB18[n])r=v.bat.includes(OBB18[n])?1:0}
+ else{ /* événements */
+  const f=EVF18[n];if(f)r=dispo18(f)?1:0;
+  else if(n==='Pousser vers l’inconnu')r=candidats18().length?1:0;
+  else if(n==='Rencontre d’un peuple inconnu')r=inconnues18().length?1:0;
+  else if(EVB18[n])r=v.bat.includes(EVB18[n])?1:0}
+ CA18[k]=r;return r}
+
+/* ---------- événements nouveaux : fonder, explorer, rencontrer ---------- */
+const ST18={For:1,Agi:1,Esp:1,Cha:1,End:1};
+BAT18.forEach(b=>{const n=b[2];DEF.find(t=>t.vie).o.push([n,2.4,Object.assign({},b[5]),undefined]);EF[n]={jet:[b[3],b[4]-4],or:-3,EN:-1};ETAG[n]=['End','Agi'].includes(b[3])?'artisanat':b[3]==='Esp'?'savoir':b[3]==='For'?'combat':'social';HIST[n]=b[6];REC[n]=[b[7],b[8]]});
+[['Pousser vers l’inconnu',2.2,{'Guide':2.5,'Éclaireur':3,'Chasseur':1.8,'Cartographe':2.5,'Marin':2},{jet:['End',6],EN:-2},'voyage','Au-delà des terres connues, des fumées montent à l’horizon.','{n} pousse jusqu’aux terres inconnues.','{n} rebrousse chemin, épuisé.'],
+ ['Rencontre d’un peuple inconnu',2,{'Marchand ambulant':1.6,'Guide':2,'Caravanier':2,'Messager':1.6},{jet:['Cha',5]},'social','Des étrangers aux coutumes inconnues apparaissent à la lisière du pays.','{n} rencontre un peuple jusqu’ici inconnu.','{n} fuit devant des inconnus.']
+].forEach(e=>{DEF.find(t=>t.vie).o.push([e[0],e[1],e[2],undefined]);EF[e[0]]=e[3];ETAG[e[0]]=e[4];HIST[e[0]]=e[5];REC[e[0]]=[e[6],e[7]]});
+function ap18(v,ok,tx){LAST18=null;V18().cur=0;
+ if(EVF18[v]){if(ok){const b=EVF18[v];if(dispo18(b)){build18(b,'par '+(nomS?nomS():'un inconnu'),tx);const r=C.rel;if(r)r.Peuple=Math.min(5,r.Peuple+1)}}}
+ else if(v==='Pousser vers l’inconnu'){if(ok){const n=tirerP18(candidats18());if(n)reveal18(n,'par '+nomS(),tx)}}
+ else if(v==='Rencontre d’un peuple inconnu'){if(ok){const L=inconnues18().map(r=>[r,MAG18.includes(r)?.15:1]),r=tirerP18(L);if(r)learnRace(r,'par '+nomS(),tx)}}
+ DISC18=LAST18}
+{const o=v17Apres;v17Apres=function(v,ok,tx){o(v,ok,tx);try{ap18(v,ok,tx)}catch(e){console.error('ap18',e)}}}
+{const o=fin;fin=function(){o();try{const r=race();if(r&&r!=='Sang-mêlé'&&!raceOk18(r))learnRace(r,'surgi du hasard')}catch(e){console.error('fin18',e)}}}
+
+/* ---------- le monde vit seul : de nouvelles choses apparaissent au fil des années ---------- */
+function tick18(an){const v=V18();if(v.tk===an)return;v.tk=an;v.cur=an;
+ try{const r=Math.random();
+  if(r<.06){const L=BATN18.filter(dispo18);if(L.length)build18(L[Math.floor(Math.random()*L.length)],'par des bâtisseurs anonymes')}
+  else if(r<.085){const u=inconnues18();if(u.length){const L=u.map(x=>[x,MAG18.includes(x)?.15:1]);learnRace(tirerP18(L),'arrivé de loin')}}
+  else if(r<.105){const n=tirerP18(candidats18());if(n)reveal18(n,'par des voyageurs')}}finally{v.cur=0}}
+
+/* ---------- brouillard sur la carte ---------- */
+function fog18(){if(!GEO)return '';const hp=path17(GEO.HOME);if(!hp)return '';
+ const B=[['Royaume du Nord',-900,41],['Terres du Centre',41,80],['Marches du Sud',80,900]].filter(b=>!regK18(b[0]));if(!B.length)return '';
+ return '<defs><clipPath id="cp18"><path d="'+hp+'" clip-rule="evenodd"/></clipPath></defs><g clip-path="url(#cp18)" class="fog18">'+B.map(b=>'<rect x="-900" y="'+b[1]+'" width="2000" height="'+(b[2]-b[1])+'" fill="#cfd6e0" opacity=".9"/>').join('')+'</g>'}
+function lblHome18(){return [['Royaume du Nord',22],['Terres du Centre',74],['Marches du Sud',104]].map(([n,y])=>regK18(n)?'<text class="pa sr" x="105" y="'+y+'">'+n+'</text>':'<text class="pa inc" x="105" y="'+y+'">Terres inconnues</text>').join('')}
+
+/* ---------- images (même pour ce qui n'est pas encore découvert) ---------- */
+const IMGK18=[['race','Races'],['pays','Contrées'],['bat','Bâtiments'],['metier','Métiers'],['lieu','Lieux'],['ev','Événements']];
+function noms18(k){return k==='race'?RACES.map(r=>r[0]):k==='pays'?REGIONS.slice():k==='bat'?BATN18.slice():k==='metier'?(DEF.find(t=>t.n==='Métier')||{o:[]}).o.map(x=>x[0]):k==='lieu'?(DEF.find(t=>t.n==='Décor')||{o:[]}).o.map(x=>x[0]):DEF.find(t=>t.vie).o.map(x=>x[0])}
+function connu18(k,n){const v=V18();return k==='race'?v.races.includes(n):k==='pays'?regK18(n):k==='bat'?v.bat.includes(n):k==='metier'?ex18('Métier',n)>0:k==='lieu'?lieuOk18(n):ex18('Événement de vie',n)>0}
+function sauverImg18(k,n,f,fin){if(!f)return;const key=k+'-'+slug(n),im=new Image();im.onload=()=>{const q=Math.min(1,900/im.width),c=document.createElement('canvas');c.width=Math.round(im.width*q);c.height=Math.round(im.height*q);c.getContext('2d').drawImage(im,0,0,c.width,c.height);c.toBlob(b=>idb('set','img-'+key,b).then(()=>{delete IMC[key];fin&&fin()}),'image/jpeg',.85)};im.src=URL.createObjectURL(f)}
+async function imgListe18(){const L=await idbCles18();return new Set(L.filter(k=>k.startsWith('img-')).map(k=>k.slice(4)))}
+
+/* ---------- interface : chronologie et images ---------- */
+function hist18(){const v=WORLD.v18;if(!v)return;const el=$('v18-chr');if(!el)return;
+ const nR=RACES.length-1,nP=REGIONS.length,nB=BAT18.length;
+ el.innerHTML='<p><b>An '+WORLD.annee+'</b> · Peuples rencontrés : '+v.races.length+' / '+nR+' · Contrées connues : '+(v.reg.length+(WORLD.pays||[]).length)+' / '+nP+' · Bâtiments : '+v.bat.length+' / '+nB+'</p>'
+ +'<p style="font-size:14px"><b>Peuples :</b> '+esc(v.races.join(', '))+'<br><b>Bâtiments :</b> '+esc(v.bat.join(', '))+'</p>'
+ +'<ul>'+v.log.slice(-14).reverse().map(z=>'<li><small>An '+z.an+'</small> '+esc(z.txt)+'</li>').join('')+'</ul>';if(IMGR18&&$('im-l'))IMGR18()}
+function imgPanel18(){const box=document.createElement('div');box.id='v18-img';
+ box.innerHTML='<p style="color:var(--m);font-size:14px">Ajoutez une image à n’importe quel élément, même caché : elle s’affichera au moment où il apparaît. Stockée sur cet appareil (incluse dans la sauvegarde complète).</p><label>Catégorie <select id="im-k">'+IMGK18.map(z=>'<option value="'+z[0]+'">'+z[1]+'</option>').join('')+'</select></label><input id="im-q" placeholder="Rechercher un nom" style="width:100%"><div id="im-l"></div>';
+ let tok=0;const rendre=IMGR18=async()=>{const k=$('im-k').value,q=$('im-q').value.trim().toLowerCase(),t=++tok,have=await imgListe18();if(t!==tok)return;
+  let L=noms18(k).filter(n=>!q||n.toLowerCase().includes(q));const tot=L.length;L=L.slice(0,40);
+  $('im-l').innerHTML='<p style="font-size:13px;color:var(--m)">'+tot+' élément'+(tot>1?'s':'')+(tot>40?' (40 affichés : précisez la recherche)':'')+'</p><ul>'+L.map((n,i)=>{const ok=have.has(k+'-'+slug(n));return '<li><b>'+esc(n)+'</b> <small>'+(connu18(k,n)?'· apparu':'· à découvrir')+' · '+(ok?'image ✓':'pas d’image')+'</small><div class="l"><label style="cursor:pointer;border:1px solid var(--m);border-radius:8px;padding:6px 12px;display:inline-block;font-size:14px">'+(ok?'Remplacer':'Ajouter')+' une image<input type="file" accept="image/*" data-i="'+i+'" hidden></label>'+(ok?'<button class="mini" data-x="'+i+'">Retirer</button>':'')+'</div></li>'}).join('')+'</ul>';
+  $('im-l').onchange=e=>{const i=e.target.dataset&&e.target.dataset.i;if(i===undefined)return;sauverImg18(k,L[+i],e.target.files[0],rendre)};
+  $('im-l').onclick=e=>{const b=e.target.closest&&e.target.closest('[data-x]');if(!b)return;const n=L[+b.dataset.x];idb('del','img-'+k+'-'+slug(n)).then(()=>{delete IMC[k+'-'+slug(n)];rendre()})}};
+ box.querySelector('#im-k').onchange=rendre;box.querySelector('#im-q').oninput=rendre;setTimeout(rendre,0);return box}
+function svPanel18(){const box=document.createElement('div');
+ box.innerHTML='<p style="color:var(--m);font-size:14px">Un seul fichier avec tout : personnage, monde, archives des mondes, panthéon, lignées, réglages, images et carte personnelle. Pour changer d’appareil ou se protéger d’un effacement.</p><div class="l"><button id="sc-e">Exporter la sauvegarde complète</button></div><label style="display:block;margin-top:8px">Importer un fichier <input id="sc-f" type="file" accept=".json,application/json"></label><p id="sc-s" style="font-size:13px;color:var(--m)"></p>';
+ box.querySelector('#sc-e').onclick=async()=>{const s=box.querySelector('#sc-s');s.textContent='Préparation…';try{await telecharger();s.textContent='Fichier préparé.'}catch(e){s.textContent='Échec : '+e.message}};
+ box.querySelector('#sc-f').onchange=e=>{const f=e.target.files[0];if(f)f.text().then(importer)};return box}
+function init18(){const m=document.querySelector('.tp[data-t=m]'),g=document.querySelector('.tp[data-t=g]');if(!m||$('v18-chr'))return;
+ const d=document.createElement('div');d.id='v18-chr';m.insertBefore(cat13('c-chr18','Chronologie et découvertes',[d],true),m.firstChild);
+ const tgt=g||document.body;tgt.appendChild(cat13('c-sv18','Sauvegarde complète',[svPanel18()],false));tgt.appendChild(cat13('c-im18','Images (même cachées)',[imgPanel18()],false));hist18()}
 /* jeu.js : état du personnage, roulette, jets, objets, boutique, saisons, quêtes, fin de partie, interface */
 const nouveau=()=>({nom:'',rep:[],vie:[],pos:null,trail:[],st:{},pv:0,pvm:0,en:0,enm:0,inv:[],or:0,fl:[],comp:[],vis:[],rel:{Marchands:0,Couronne:0,Pègre:0,Peuple:0},cic:[],us:{},fat:0,cd:0,nem:'',ally:'',mnd:null,succ:[],expl:[],dec:0,boss:0,an0:0,lig:null,ligTrait:'',ligTx:[],fonde:'',obj:'',qs:0,t:0,age0:20,meteo:'Clair',fin:null,arch:0,lat:[],sur:'',cmp:null,bl:[],rang:0,enf:[],sq:null,sqn:0,mortT:'',vl:[],famOk:false,arr:[],biens:[]});
 let PERSO=lire('perso',{tables:{},ev:[],efx:{},hist:{},etag:{},lieux:[],pos:{},extra:[]}),T=null,C=lire('c',nouveau()),PAN=lire('pan',[]),rot=0,occ=false,cur=[];
@@ -3007,7 +3162,7 @@ function construireT(){const t=JSON.parse(JSON.stringify(DEF));t.forEach(x=>{if(
 appliquerPerso();T=construireT();
 const ligTable=mode=>{const ad=mode==='Adopté',o=LIG.map(l=>[l.nom,ad?(ligOk(l)>0?0:1):ligOk(l)]).filter(x=>x[1]>0);return{n:'Lignée',o:o.length?o:[['Sans lignée',1]]}},
  naisTable=()=>{const nb=LIG.reduce((s,l)=>s+ligOk(l),0),na=LIG.filter(l=>ligOk(l)<=0).length,o=[['Sans lignée',8]];if(nb>0)o.push(['Lignée de naissance',nb]);if(na>0)o.push(['Adopté',(8+nb)*.015]);return{n:'Naissance',o}},famTable=()=>({n:'Famille',o:[['Héritage familial',3],['Brouillé avec les siens',1]]}),
- etapes=()=>{const b=T.filter(t=>!t.vie),ins=[];if(((C.rep[0]||[])[1])==='Sang-mêlé'){const R0=RACES.map(x=>[x[0],x[1]]).filter(x=>x[0]!=='Sang-mêlé');ins.push({n:'Parent 1',o:R0});const p1=(C.rep[1]||[])[1];ins.push({n:'Parent 2',o:R0.filter(x=>x[0]!==p1)})}if(LIG.length){ins.push(naisTable());const nv=(C.rep.find(r=>r[0]==='Naissance')||[])[1];if(nv&&nv!=='Sans lignée')ins.push(ligTable(nv))}if(WORLD.fam)ins.push(famTable());return b.slice(0,1).concat(ins,b.slice(1))},
+ etapes=()=>{const b=T.filter(t=>!t.vie),ins=[];if(((C.rep[0]||[])[1])==='Sang-mêlé'){const R0=RACES.map(x=>[x[0],x[1]]).filter(x=>x[0]!=='Sang-mêlé'&&ex18('Parent 1',x[0])>0);ins.push({n:'Parent 1',o:R0});const p1=(C.rep[1]||[])[1];ins.push({n:'Parent 2',o:R0.filter(x=>x[0]!==p1)})}if(LIG.length){ins.push(naisTable());const nv=(C.rep.find(r=>r[0]==='Naissance')||[])[1];if(nv&&nv!=='Sans lignée')ins.push(ligTable(nv))}if(WORLD.fam)ins.push(famTable());return b.slice(0,1).concat(ins,b.slice(1))},
  tous=()=>lieux().concat(WORLD.sites.map(s=>s.n),WORLD.fond.map(f=>f.n)),anCourant=()=>C.an0+Math.floor(C.t/12),tv=()=>T.find(t=>t.vie),lieux=()=>((T.find(t=>t.n==='Décor')||{o:[]}).o).map(x=>x[0]);
 const table=()=>C.rep.length<etapes().length?etapes()[C.rep.length]:tv();
 const age=()=>C.age0+Math.floor(C.t/12),sai=()=>SAI[C.t%12],rnd=n=>Math.floor(Math.random()*n);
@@ -3024,9 +3179,9 @@ function poids(t){
  if(t.vie){cx=ev.concat(C.fl,C.inv,[C.pos,C.meteo,cap(sai())],WORLD.sites.some(s=>s.n===C.pos)?['Site']:[]);if(C.en<=3)cx.push('Épuisé');if(C.pv<=4)cx.push('Blessé');const q=etq();if(C.qs<q.length)cx.push('Étape:'+q[C.qs][2])}
  a.push(...cx);const rw=cx.slice().reverse();
  const permis=g=>{const a=C.rep.map(r=>r[1]);return g.some(x=>x.startsWith('tag:')?C.comp.some(s=>s.tag===x.slice(4)):x.startsWith('obj:')?C.inv.includes(x.slice(4)):a.includes(x)||x===C.ligTrait)};
- const l=t.o.filter(x=>(!x[3]||a.includes(x[3]))&&!(x[0]==='Vengeance de l\'ennemi'&&C.cd>0)&&!(x[0]==='Explorer le site'&&C.expl.includes(C.pos))&&!(x[0]==='Piste d\'un lieu oublié'&&WORLD.sites.length>=12)).map(x=>{let w=x[1];a.forEach(k=>{if(x[2]&&x[2][k]!==undefined)w*=x[2][k]});if(t.vie){if(EREQ[x[0]]&&!permis(EREQ[x[0]]))w*=.03;w*=repMult(x[0])*objBoost(x[0])*v10Boost(x[0])*v12Boost(x[0])*v13Boost(x[0])*v16Boost(x[0]);C.rep.concat(C.ligTrait?[['L',C.ligTrait]]:[]).forEach(r=>{const m=TR[r[1]];if(m&&m[x[0]])w*=m[x[0]]});RELF.forEach(f=>{const v=C.rel[f],k=v>=2?'Rel:'+f+'+':v<=-2?'Rel:'+f+'-':'',m=RELW[k];if(m&&m[x[0]])w*=m[x[0]]});const mo=C.mnd&&MONDE[C.mnd.n].w[x[0]];if(mo)w*=mo}
+ const l=t.o.filter(x=>(!x[3]||a.includes(x[3]))&&!(x[0]==='Vengeance de l\'ennemi'&&C.cd>0)&&!(x[0]==='Explorer le site'&&C.expl.includes(C.pos))&&!(x[0]==='Piste d\'un lieu oublié'&&WORLD.sites.length>=12)).map(x=>{let w=x[1]*ex18(t.n,x[0]);a.forEach(k=>{if(x[2]&&x[2][k]!==undefined)w*=x[2][k]});if(t.vie){if(EREQ[x[0]]&&!permis(EREQ[x[0]]))w*=.03;w*=repMult(x[0])*objBoost(x[0])*v10Boost(x[0])*v12Boost(x[0])*v13Boost(x[0])*v16Boost(x[0]);C.rep.concat(C.ligTrait?[['L',C.ligTrait]]:[]).forEach(r=>{const m=TR[r[1]];if(m&&m[x[0]])w*=m[x[0]]});RELF.forEach(f=>{const v=C.rel[f],k=v>=2?'Rel:'+f+'+':v<=-2?'Rel:'+f+'-':'',m=RELW[k];if(m&&m[x[0]])w*=m[x[0]]});const mo=C.mnd&&MONDE[C.mnd.n].w[x[0]];if(mo)w*=mo}
   const why=rw.find(k=>x[2]&&x[2][k]!==undefined&&x[2][k]!==1&&k!==C.pos&&!SAI.includes(k.toLowerCase()))||(x[3]&&x[3]!==C.pos?x[3]:'');return{t:x[0],w,why:why.startsWith('Étape:')?'son objectif':why}}).filter(x=>x.w>0);
- return l.length?l:t.o.filter(x=>!x[3]).map(x=>({t:x[0],w:x[1]}))}
+ {const mk=f=>t.o.filter(f).map(x=>({t:x[0],w:x[1]}));let R=l.length?l:mk(x=>!x[3]&&ex18(t.n,x[0])>0);if(!R.length)R=mk(x=>ex18(t.n,x[0])>0);if(!R.length)R=mk(x=>!x[3]);return t.n==='Décor'&&R.length>24?ech17(R):R}}
 function dessiner(w){
  const t=table();if(!t||C.fin){cur=[];$('g').innerHTML='';$('leg').innerHTML='';return}
  cur=truquer(poids(t),t);const s=cur.reduce((a,x)=>a+x.w,0);let a=-Math.PI/2,h='',leg=[];
@@ -3158,7 +3313,7 @@ let TIC=0;const tic=k=>{const n=performance.now();if(n-TIC<90)return;TIC=n;bip(3
 $('son').textContent='Son : '+(MUET?'non':'oui');$('son').onclick=()=>{MUET=!MUET;ecrire('muet',MUET);$('son').textContent='Son : '+(MUET?'non':'oui')};
 const STORY=(t,v)=>(t.n==='Naissance'?({'Sans lignée':'Aucun grand nom derrière lui : tout reste à écrire.','Lignée de naissance':'Il naît dans une lignée qui porte son sang.','Adopté':'Recueilli par une lignée qui n\u2019était pas la sienne : un destin rarissime.'}[v]||''):'')||(t.n==='Lignée'?(v==='Sans lignée'?'Aucun grand nom derrière lui : tout reste à écrire.':(LIG.find(l=>l.nom===v)||{}).txt):'')||HIST[v]||DESC12[v]||({'Trait de caractère':'Un trait qui marquera ses choix : '+v.toLowerCase()+'.','Défaut':'Son défaut, '+v.toLowerCase()+', lui jouera des tours.','Décor':'Sa vie commence ici : '+v+'.','Objectif':'Son but : '+v.toLowerCase()+'.'}[t.n]||'');
 function modal(cat,titre,texte,liste,ok,img){const m=$('md');$('mca').textContent=cat;$('mti').textContent=titre;$('mtx').className='';$('mtx').textContent=texte;$('mli').innerHTML=(liste||[]).map(x=>'<li>'+esc(x)+'</li>').join('');
- if($('mim'))$('mim').innerHTML='';$('mem').innerHTML=cat==='Race'?portrait(titre,120):'<div class="gl">'+esc(titre.charAt(0))+'</div>';m.hidden=false;if(img)illustrer(img[0],img[1]);$('mok').onclick=()=>{m.hidden=true;ok&&ok()};$('mok').focus()}
+ if($('mim'))$('mim').innerHTML='';$('mem').innerHTML=cat==='Race'?portrait(titre,120):'<div class="gl">'+esc(titre.charAt(0))+'</div>';m.hidden=false;if(img){if(Array.isArray(img[0]))illustrer(img);else illustrer(img[0],img[1])}$('mok').onclick=()=>{m.hidden=true;ok&&ok()};$('mok').focus()}
 function resume(){const k=Object.keys(S).sort((a,b)=>C.st[b]-C.st[a]);modal('Caractéristiques','Votre personnage',S[k[0]]+' est son point fort, '+S[k[4]]+' son point faible.',Object.keys(S).map(x=>{const rb=((SB[(C.rep.find(r=>r[0]==='Race')||[])[1]]||{})[x]||0);return S[x]+' : '+C.st[x]+(rb?' (tendance de race : '+(rb>0?'plus élevé':'plus bas')+')':'')}),()=>ui())}
 $('go').onclick=()=>{
  if(occ||!cur.length)return;if(AC&&AC.state==='suspended')AC.resume();const t=table(),s=cur.reduce((a,x)=>a+x.w,0);let r=Math.random()*s,i=0,c=0;
@@ -3171,10 +3326,10 @@ $('go').onclick=()=>{
 function arret(t,i){const v=cur[i].t,why=cur[i].why;$('res').textContent=v;$('res').className='pop';dessiner(i);ding();try{navigator.vibrate&&navigator.vibrate(40)}catch(e){}
  setTimeout(()=>{occ=false;suite(t,v,why)},1000)}
 function suite(t,v,why){
- if(t.vie){snapUndo();const o=agir(v,why);ui();modal(t.n,v,STORY(t,v),o.tx,()=>{o.vers?voyage(v,o.de,o.vers):o.sc?scene(o.sc,ui):ui()},['ev',v]);return}
+ if(t.vie){snapUndo();const o=agir(v,why);ui();modal(t.n,v,STORY(t,v),o.tx,()=>{o.vers?voyage(v,o.de,o.vers):o.sc?scene(o.sc,ui):ui()},(()=>{const d=DISC18;DISC18=null;return d?[d,['ev',v]]:['ev',v]})());return}
  C.rep.push([t.n,v]);if(t.n==='Lignée')C.lig=LIG.find(l=>l.nom===v)||null;if(t.n==='Famille')C.famOk=(v==='Héritage familial');if(t.n==='Décor')C.pos=v;if(t.stat)C.st[t.stat]=+v;let extra=[];if(C.rep.length===etapes().length){fin();if(t.n==='Cadeau divin')extra=donner(v).concat(C.ligTx||[],C.rhTx||[],C.famTx||[]);chienCmp()}ecrire('c',C);ui();
  if(t.stat){const nx=etapes()[C.rep.length];if(!nx||!nx.stat)resume();return}
- modal(t.n,v,STORY(t,v)+(t.n==='Race'&&RDESC[v]?' Apparence : '+RDESC[v]:''),extra.concat(L13(t,v)),ui,t.n==='Race'?['race',v]:null)}
+ modal(t.n,v,STORY(t,v)+(t.n==='Race'&&RDESC[v]?' Apparence : '+RDESC[v]:''),extra.concat(L13(t,v)),ui,t.n==='Race'?['race',v]:t.n==='Métier'?['metier',v]:t.n==='Décor'?['lieu',v]:null)}
 /* ----- Retours visuels : dégâts, gains, confettis ----- */
 let PV0=null,OR0=null,FETE=false;
 const num=(t,c)=>{const e=document.createElement('div');e.className='num';e.textContent=t;e.style.color=c;document.body.appendChild(e);setTimeout(()=>e.remove(),1300)};
@@ -3236,9 +3391,15 @@ $('rec').onclick=()=>{modal('Récit',C.nom||'Votre personnage','',[],null);$('mt
 /* ----- Sauvegardes ----- */
 const cles=()=>Object.keys(localStorage).filter(k=>k.startsWith(K));
 const exporter=()=>{const d={v:5,date:new Date().toISOString(),data:{}};cles().forEach(k=>{d.data[k]=localStorage.getItem(k)});return JSON.stringify(d)};
-function importer(txt){try{const d=JSON.parse(txt);if(!d.data)throw 0;if(!confirm('Remplacer toutes les données de ce téléphone par cette sauvegarde ?'))return;
+const idbCles18=()=>new Promise(r=>{try{const q=indexedDB.open('jdr',1);q.onupgradeneeded=()=>q.result.createObjectStore('s');q.onsuccess=()=>{const x=q.result.transaction('s','readonly').objectStore('s').getAllKeys();x.onsuccess=()=>r(x.result.map(String));x.onerror=()=>r([])};q.onerror=()=>r([])}catch(e){r([])}});
+const blobDU18=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.onerror=()=>r(null);f.readAsDataURL(b)});
+async function exporterTout(){const d={v:6,date:new Date().toISOString(),data:{},idb:{}};cles().forEach(k=>{d.data[k]=localStorage.getItem(k)});
+ for(const k of await idbCles18()){if(k==='auto')continue;const v=await idb('get',k);if(v==null)continue;if(typeof v==='string')d.idb[k]={s:v};else if(v instanceof Blob){const u=await blobDU18(v);if(u)d.idb[k]={b:u}}}
+ return JSON.stringify(d)}
+async function importer(txt){try{const d=JSON.parse(txt);if(!d.data)throw 0;if(!confirm('Remplacer toutes les données de ce téléphone par cette sauvegarde ?'))return;
+ if(d.idb){for(const k of await idbCles18()){if(k!=='auto')await idb('del',k)}for(const k of Object.keys(d.idb)){const o=d.idb[k];if(!o)continue;await idb('set',k,o.s!==undefined?o.s:await (await fetch(o.b)).blob())}}
  cles().forEach(k=>localStorage.removeItem(k));Object.keys(d.data).forEach(k=>{if(k.startsWith(K))localStorage.setItem(k,d.data[k])});location.reload()}catch(e){alert('Sauvegarde illisible.')}}
-function telecharger(){const b=new Blob([exporter()],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='roulette-jdr-sauvegarde.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
+async function telecharger(){const t=await exporterTout(),b=new Blob([t],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='roulette-jdr-sauvegarde-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
 
 /* ----- Carte personnelle (image stockée dans IndexedDB) ----- */
 const idb=(m,k,v)=>new Promise(r=>{try{const q=indexedDB.open('jdr',1);q.onupgradeneeded=()=>q.result.createObjectStore('s');
@@ -3314,3 +3475,9 @@ const voirAtelier=()=>{$('adm').hidden=false;$('adm').scrollIntoView()};const hA
 let tp=0,tt=0;document.querySelector('h1').onclick=()=>{const n=Date.now();tp=n-tt<700?tp+1:1;tt=n;if(tp>=5){if($('adm').hidden)voirAtelier();else $('adm').hidden=true;tp=0}};
 /* ----- Hors ligne ----- */
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+/* ----- V18 : les mondes d'avant la chronologie sont archivés ; on repart de l'an 0 ----- */
+async function migr18(){if(WORLD.v18)return;if(mondeVide()){W10();ui();return}
+ if(!WORLD.nomM)WORLD.nomM='Ancien monde (avant l\u2019an 0)';
+ await nouveauMonde({keep:{},arch:true});W10();ui();
+ modal('Nouvelle ère','Le monde repart de l\u2019an 0','Tout est désormais à découvrir ou à bâtir : peuples, contrées, bâtiments, métiers. Votre ancien monde est archivé (Monde, puis Mondes archivés) : il reste lisible, mais n\u2019a plus de valeur dans le monde actuel.',[],()=>{})}
+migr18().catch(e=>console.error('migr18',e));
