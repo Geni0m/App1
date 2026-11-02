@@ -186,3 +186,5 @@ body.nav16 #tabs13 button{padding:11px 2px;font-size:13px}
 #mp .pl17m{display:none}#mp[data-z=v] .pl17m{display:inline}
 /* V17 : la carte plein écran passe au-dessus du menu du bas, de la barre d'état et du bouton Lancer */
 #plein{z-index:40}#clp{z-index:45}#md{z-index:46}
+/* V18 : on fige les animations de la carte pendant les déplacements */
+#mp.mv *{animation-play-state:paused!important}
