@@ -164,3 +164,6 @@ details.sg>summary small{color:var(--m)}
 .haut{flex-wrap:wrap;gap:6px}.haut h1{flex-basis:100%;margin:0 0 4px}.haut button{flex:1;min-width:0;padding:8px 4px;font-size:13px}
 #mp text.mi{display:none}#mp[data-z=v] text.mi{display:inline}
 #mp .c-s2{pointer-events:none}
+#mp.noJ .c-j{display:none}
+#mp[data-z=m] .pa{font-size:calc(var(--k)*.55px)}
+#mp[data-z=m] .c-t2 text{font-size:calc(var(--k)*.4px)}
